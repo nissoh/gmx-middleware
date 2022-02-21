@@ -1,0 +1,294 @@
+enum IntervalTime {
+  _1
+  _900
+  _3600
+  _14400
+  _86400
+  _604800
+}
+
+enum Status {
+  open
+  closed
+  liquidated
+}
+
+
+enum PricefeedAddress {
+  # ARBITRUM
+  _0x321F653eED006AD1C29D174e17d96351BDe22649 # GLP
+  _0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a # GMX
+  _0x82af49447d8a07e3bd95bd0d56f35241523fbab1 # WETH
+
+  # AVALANCHE
+  _0xe1ae4d4b06A5Fe1fc288f6B4CD72f9F8323B107F # GLP
+  _0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7 # AVAX
+}
+
+enum StakedToken {
+  # ARBITRUM
+  _0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a # GMX
+  _0xf42ae1d54fd613c9bb14810b0588faaa09a426ca # esGMX
+  _0x1addd80e6039594ee970e5872d247bf0414c8903 # GLP
+
+  # AVALANCHE
+  _0x62edc0692bd897d2295872a9ffcac5425011c661 # GMX
+  _0xff1489227bbaac61a9209a08929e4c2a526ddd17 # esGMX
+  _0x01234181085565ed162a948b6a5e88758cd7c7b8 # GLP
+}
+
+type Pricefeed @entity {
+  id: ID!
+  timestamp: Int!
+
+  o:  BigInt! # open
+  h:  BigInt! # high
+  l:  BigInt! # low
+  c:  BigInt! # close
+
+  feed: PricefeedAddress!
+  interval: IntervalTime!
+}
+
+type PriceLatest @entity {
+  id: ID!
+  value: BigInt!
+  timestamp: Int!
+}
+
+type Transaction @entity {
+  id: ID!
+  blockNumber: Int!
+  timestamp: Int!
+  from: String!
+  to: String
+}
+
+type Stake @entity {
+  id: ID!
+
+  account: String!
+  token: StakedToken!
+  amount: BigInt!
+  amountUsd: BigInt!
+
+  transaction: Transaction!
+  timestamp: Int!
+}
+
+
+
+type StakedGmxTrackerTransfer @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+type StakedGlpTrackerTransfer @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+
+
+type BonusGmxTrackerTransfer @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+
+type FeeGmxTrackerTransfer @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+type FeeGlpTrackerTransfer @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+type FeeGlpTrackerClaim @entity {
+  id: ID!
+  timestamp: Int!
+
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+}
+type FeeGmxTrackerClaim @entity {
+  id: ID!
+  timestamp: Int!
+
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+}
+type StakedGlpTrackerClaim @entity {
+  id: ID!
+  timestamp: Int!
+
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+}
+type StakedGmxTrackerClaim @entity {
+  id: ID!
+  timestamp: Int!
+
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
+}
+
+type GmxVester @entity {
+  id: ID!
+
+  timestamp: Int!
+
+  from: String!
+  to: String!
+  value: BigInt!
+}
+
+
+type IncreasePosition @entity {
+  id: ID!
+  indexedAt: Int!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+  price: BigInt!
+  fee: BigInt!
+}
+
+type DecreasePosition @entity {
+  id: ID!
+  indexedAt: Int!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  collateralDelta: BigInt!
+  sizeDelta: BigInt!
+  price: BigInt!
+  fee: BigInt!
+}
+
+type UpdatePosition @entity {
+  id: ID!
+  indexedAt: Int!
+
+  key: String!
+
+  size: BigInt!
+  collateral: BigInt!
+
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  markPrice: BigInt!
+}
+
+type ClosePosition @entity {
+  id: ID!
+  indexedAt: Int!
+
+  key: String!
+
+  size: BigInt!
+  collateral: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+}
+
+type LiquidatePosition @entity {
+  id: ID!
+  indexedAt: Int!
+
+  key: String!
+
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+
+  isLong: Boolean!
+
+  size: BigInt!
+  collateral: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+  markPrice: BigInt!
+}
+
+
+type Trade @entity { # extends IncreasePosition
+  id: ID!
+  indexedAt: Int!
+  settledIndexedAt: Int
+
+  # IncreasePosition
+  account: String!
+  collateralToken: String!
+  indexToken: String!
+  isLong: Boolean!
+  key: String!
+
+  status: Status!
+
+  increaseList: [IncreasePosition!]!
+  decreaseList: [DecreasePosition!]!
+  updateList: [UpdatePosition!]!
+
+  # ++IncreasePosition accumulation
+  sizeDelta: BigInt!
+  collateralDelta: BigInt!
+  fee: BigInt! # ++(IncreasePosition.fee + DecreasePosiiton.fee)
+
+  # UpdatePosition latest assignment
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+
+  # Settlement
+  realisedPnl: BigInt!  
+  realisedPnlPercentage: BigInt!
+}
+
+
+
+
