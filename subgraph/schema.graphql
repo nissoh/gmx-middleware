@@ -256,7 +256,6 @@ type LiquidatePosition @entity {
 type Trade @entity { # extends IncreasePosition
   id: ID!
   indexedAt: Int!
-  settledIndexedAt: Int
 
   # IncreasePosition
   account: String!
@@ -284,6 +283,9 @@ type Trade @entity { # extends IncreasePosition
   # Settlement
   realisedPnl: BigInt!  
   realisedPnlPercentage: BigInt!
+  settledIndexedAt: Int
+  closedPosition: ClosePosition
+  liquidatedPosition: LiquidatePosition
 }
 
 
