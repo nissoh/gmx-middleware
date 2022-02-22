@@ -14,28 +14,25 @@ enum Status {
 }
 
 
-enum PricefeedAddress {
+enum TokenAddress {
   # ARBITRUM
-  _0x321F653eED006AD1C29D174e17d96351BDe22649 # GLP
-  _0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a # GMX
   _0x82af49447d8a07e3bd95bd0d56f35241523fbab1 # WETH
-
-  # AVALANCHE
-  _0xe1ae4d4b06A5Fe1fc288f6B4CD72f9F8323B107F # GLP
-  _0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7 # AVAX
-}
-
-enum StakedToken {
-  # ARBITRUM
+  _0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f # WBTC
+  _0xf97f4df75117a78c1a5a0dbb814af92458539fb4 # LINK
+  _0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0 # UNI
+  _0x4277f8f2c384827b5273592ff7cebd9f2c1ac258 # GLP
   _0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a # GMX
   _0xf42ae1d54fd613c9bb14810b0588faaa09a426ca # esGMX
-  _0x1addd80e6039594ee970e5872d247bf0414c8903 # GLP
 
   # AVALANCHE
+  _0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7 # WAVAX
+  _0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab # WETHE
+  _0x50b7545627a5162f82a992c33b87adc75187b218 # WBTCE
+  _0x01234181085565ed162a948b6a5e88758cd7c7b8 # GLP
   _0x62edc0692bd897d2295872a9ffcac5425011c661 # GMX
   _0xff1489227bbaac61a9209a08929e4c2a526ddd17 # esGMX
-  _0x01234181085565ed162a948b6a5e88758cd7c7b8 # GLP
 }
+
 
 type Pricefeed @entity {
   id: ID!
@@ -46,7 +43,7 @@ type Pricefeed @entity {
   l:  BigInt! # low
   c:  BigInt! # close
 
-  feed: PricefeedAddress!
+  feed: TokenAddress!
   interval: IntervalTime!
 }
 
@@ -68,7 +65,7 @@ type Stake @entity {
   id: ID!
 
   account: String!
-  token: StakedToken!
+  token: TokenAddress!
   amount: BigInt!
   amountUsd: BigInt!
 

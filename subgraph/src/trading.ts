@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import { ethereum, store, log } from "@graphprotocol/graph-ts"
 import * as contract from "../generated/gmxVault/gmxVault"
 
@@ -8,8 +7,7 @@ import {
   IncreasePosition, LiquidatePosition, UpdatePosition, Trade, PriceLatest
 } from "../generated/schema"
 
-import { ZERO_BI } from "./constant"
-import { calculatePositionDelta, calculatePositionDeltaPercentage } from "./helpers"
+import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI } from "./helpers"
 
 
 const namedEventId = (name: string, ev: ethereum.Event): string => name + ':' + ev.transaction.hash.toHex()
@@ -19,6 +17,7 @@ const namedKeyEventId = (name: string, key: string): string => name + ':' + key
 export function handleIncreasePosition(event: contract.IncreasePosition): void {
   const timestamp = event.block.timestamp.toI32()
   const entity = new IncreasePosition(namedEventId('IncreasePosition', event)) // we prevent 
+
   const activeTradeKey = event.params.key.toHex()
 
   entity.indexedAt = timestamp
@@ -128,7 +127,6 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
   const entity = new UpdatePosition(tradeId)
 
   entity.indexedAt = timestamp
-
   entity.key = activeTradeKey
 
   entity.size = event.params.size
@@ -198,6 +196,7 @@ export function handleClosePosition(event: contract.ClosePosition): void {
 
     const deltaPercentage = calculatePositionDeltaPercentage(entity.realisedPnl, aggTrade.collateral)
 
+    settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'closed'
     settledAggTrade.settledIndexedAt = entity.indexedAt
     settledAggTrade.realisedPnl = entity.realisedPnl
@@ -238,6 +237,7 @@ export function handleLiquidatePosition(event: contract.LiquidatePosition): void
     const settledAggTrade = new Trade(aggTradeSettledId)
     settledAggTrade.merge([aggTrade])
 
+    settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'liquidated'
     settledAggTrade.settledIndexedAt = entity.indexedAt
     settledAggTrade.realisedPnl = calculatePositionDelta(entity.markPrice, entity.isLong, entity.size, aggTrade.averagePrice)

@@ -1,4 +1,6 @@
-import * as rewardTracker from "../generated/RewardTracker/RewardTracker"
+import * as rewardRouterV2 from "../../generated/RewardRouterV2/RewardRouterV2"
+import * as rewardRouterV1 from "../../generated/RewardRouterV1/RewardRouter"
+import * as rewardTracker from "../../generated/RewardTracker/RewardTracker"
 import {
   BonusGmxTrackerTransfer,
   FeeGlpTrackerTransfer,
@@ -9,26 +11,34 @@ import {
   StakedGmxTrackerClaim,
   FeeGmxTrackerClaim,
   FeeGlpTrackerClaim,
-} from "../generated/schema"
-import { AVAX, getByAmoutFromFeed, GLP_AVALANCHE, GMX, _createTransactionIfNotExist, TokenDecimals, _storeStake, GLP_STAKING_AVAX, getIdFromEvent } from "./helpers"
-import * as rewardRouterV2 from "../generated/RewardRouterV2/RewardRouterV2"
+} from "../../generated/schema"
+import { getIdFromEvent, getByAmoutFromFeed, TokenDecimals, _storeStake } from "../helpers"
+import { GLP, GMX, WETH } from "./constant"
 
 
 
-export function handleStakeGmx(event: rewardRouterV2.StakeGmx): void {
-  _storeStake(event, true, event.params.account, event.params.token.toHexString(), event.params.amount, GMX)
+export function handleStakeGmxV1(event: rewardRouterV1.StakeGmx): void {
+  _storeStake(event, true, event.params.account, GMX, event.params.amount)
 }
 
-export function handleUnstakeGmx(event: rewardRouterV2.UnstakeGmx): void {
-  _storeStake(event, false, event.params.account, event.params.token.toHexString(), event.params.amount, GMX)
+export function handleUnstakeGmxV1(event: rewardRouterV1.UnstakeGmx): void {
+  _storeStake(event, false, event.params.account, GMX, event.params.amount)
+}
+
+export function handleStakeGmxV2(event: rewardRouterV2.StakeGmx): void {
+  _storeStake(event, true, event.params.account, GMX, event.params.amount)
+}
+
+export function handleUnstakeGmxV2(event: rewardRouterV2.UnstakeGmx): void {
+  _storeStake(event, false, event.params.account, GMX, event.params.amount)
 }
 
 export function handleStakeGlp(event: rewardRouterV2.StakeGlp): void {
-  _storeStake(event, true, event.params.account, GLP_STAKING_AVAX, event.params.amount, GLP_AVALANCHE)
+  _storeStake(event, true, event.params.account, GLP, event.params.amount)
 }
 
 export function handleUnstakeGlp(event: rewardRouterV2.UnstakeGlp): void {
-  _storeStake(event, false, event.params.account, GLP_STAKING_AVAX, event.params.amount, GLP_AVALANCHE)
+  _storeStake(event, false, event.params.account, GLP, event.params.amount)
 }
 
 
@@ -97,7 +107,7 @@ export function handleFeeGlpTrackerClaim(event: rewardTracker.Claim): void {
 
   entity.receiver = event.params.receiver.toHexString()
   entity.amount = event.params.amount
-  entity.amountUsd = getByAmoutFromFeed(event.params.amount, AVAX, TokenDecimals.AVAX)
+  entity.amountUsd = getByAmoutFromFeed(event.params.amount, WETH, TokenDecimals.WETH)
 
   entity.timestamp = event.block.timestamp.toI32()
 
@@ -110,7 +120,7 @@ export function handleFeeGmxTrackerClaim(event: rewardTracker.Claim): void {
 
   entity.receiver = event.params.receiver.toHexString()
   entity.amount = event.params.amount
-  entity.amountUsd = getByAmoutFromFeed(event.params.amount, AVAX, TokenDecimals.AVAX)
+  entity.amountUsd = getByAmoutFromFeed(event.params.amount, WETH, TokenDecimals.WETH)
   entity.timestamp = event.block.timestamp.toI32()
 
   entity.save()
@@ -122,7 +132,7 @@ export function handleStakedGlpTrackerClaim(event: rewardTracker.Claim): void {
 
   entity.receiver = event.params.receiver.toHexString()
   entity.amount = event.params.amount
-  entity.amountUsd = getByAmoutFromFeed(event.params.amount, GLP_AVALANCHE, TokenDecimals.GLP)
+  entity.amountUsd = getByAmoutFromFeed(event.params.amount, GLP, TokenDecimals.GLP)
   entity.timestamp = event.block.timestamp.toI32()
 
   entity.save()
