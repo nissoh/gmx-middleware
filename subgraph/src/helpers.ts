@@ -155,7 +155,7 @@ export function _storePricefeed(event: ethereum.Event, symbol: string, interval:
     entity = new Pricefeed(id)
 
     entity.interval = '_' + interval.toString()
-    entity.feed = '_' + symbol
+    entity.tokenAddress = '_' + symbol
     entity.timestamp = intervalID * interval
     entity.o = price
     entity.h = price
@@ -204,13 +204,13 @@ export function _storeDefaultPricefeed(feedAddress: string, event: ethereum.Even
   _storePricefeed(event, feedAddress, intervalUnixTime.DAY7, price)
 }
 
-export function _storeStake(event: ethereum.Event, isAdd: boolean, account: Address, token: string, amount: BigInt): void {
+export function _storeStake(event: ethereum.Event, isAdd: boolean, account: Address, token: string, contract: Address, amount: BigInt): void {
   const entity = new Stake(getIdFromEvent(event))
 
   entity.account = account.toHexString()
+  entity.contract = contract.toHexString()
   entity.token = '_' + token
   entity.amount = isAdd ? amount : negate(amount)
-  entity.amountUsd = isAdd ? getByAmoutFromFeed(amount, token, 18) : negate(getByAmoutFromFeed(amount, token, 18))
   entity.transaction = _createTransactionIfNotExist(event)
   entity.timestamp = event.block.timestamp.toI32()
 

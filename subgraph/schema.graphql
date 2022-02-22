@@ -43,7 +43,7 @@ type Pricefeed @entity {
   l:  BigInt! # low
   c:  BigInt! # close
 
-  feed: TokenAddress!
+  tokenAddress: TokenAddress!
   interval: IntervalTime!
 }
 
@@ -63,117 +63,20 @@ type Transaction @entity {
 
 type Stake @entity {
   id: ID!
+  contract: String!
 
   account: String!
   token: TokenAddress!
   amount: BigInt!
-  amountUsd: BigInt!
 
   transaction: Transaction!
   timestamp: Int!
 }
 
 
-
-type StakedGmxTrackerTransfer @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-
-type StakedGlpTrackerTransfer @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-
-
-
-type BonusGmxTrackerTransfer @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-
-
-type FeeGmxTrackerTransfer @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-type FeeGlpTrackerTransfer @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-
-type FeeGlpTrackerClaim @entity {
-  id: ID!
-  timestamp: Int!
-
-  receiver: String!
-  amount: BigInt!
-  amountUsd: BigInt!
-}
-type FeeGmxTrackerClaim @entity {
-  id: ID!
-  timestamp: Int!
-
-  receiver: String!
-  amount: BigInt!
-  amountUsd: BigInt!
-}
-type StakedGlpTrackerClaim @entity {
-  id: ID!
-  timestamp: Int!
-
-  receiver: String!
-  amount: BigInt!
-  amountUsd: BigInt!
-}
-type StakedGmxTrackerClaim @entity {
-  id: ID!
-  timestamp: Int!
-
-  receiver: String!
-  amount: BigInt!
-  amountUsd: BigInt!
-}
-
-type GmxVester @entity {
-  id: ID!
-
-  timestamp: Int!
-
-  from: String!
-  to: String!
-  value: BigInt!
-}
-
-
 type IncreasePosition @entity {
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   account: String!
   collateralToken: String!
@@ -189,7 +92,7 @@ type IncreasePosition @entity {
 
 type DecreasePosition @entity {
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   account: String!
   collateralToken: String!
@@ -205,7 +108,7 @@ type DecreasePosition @entity {
 
 type UpdatePosition @entity {
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   key: String!
 
@@ -221,7 +124,7 @@ type UpdatePosition @entity {
 
 type ClosePosition @entity {
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   key: String!
 
@@ -235,7 +138,7 @@ type ClosePosition @entity {
 
 type LiquidatePosition @entity {
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   key: String!
 
@@ -255,7 +158,7 @@ type LiquidatePosition @entity {
 
 type Trade @entity { # extends IncreasePosition
   id: ID!
-  indexedAt: Int!
+  timestamp: Int!
 
   # IncreasePosition
   account: String!
@@ -283,7 +186,7 @@ type Trade @entity { # extends IncreasePosition
   # Settlement
   realisedPnl: BigInt!  
   realisedPnlPercentage: BigInt!
-  settledIndexedAt: Int
+  settledtimestamp: Int
   closedPosition: ClosePosition
   liquidatedPosition: LiquidatePosition
 }

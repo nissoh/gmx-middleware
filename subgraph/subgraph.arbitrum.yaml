@@ -90,120 +90,78 @@ dataSources:
           handler: handleUnstakeGlp
       file: ./src/arbitrum/reward.ts
 
-  - kind: ethereum/contract
-    name: StakedGmxTrackerTransfer
-    network: arbitrum-one
-    source:
-      address: "0x908C4D94D34924765f1eDc22A1DD098397c59dD4"
-      abi: RewardTracker
-      startBlock: 100000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - StakedGmxTrackerTransfer
-        - StakedGmxTrackerClaim
-      abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleStakedGmxTrackerTransfer
-        - event: Claim(address,uint256)
-          handler: handleStakedGmxTrackerClaim
-      file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
-    name: StakedGlpTrackerTransfer
-    network: arbitrum-one
-    source:
-      address: "0x1aDDD80E6039594eE970E5872D247bf0414C8903"
-      abi: RewardTracker
-      startBlock: 100000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - StakedGlpTrackerTransfer
-        - StakedGlpTrackerClaim
-      abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleStakedGlpTrackerTransfer
-        - event: Claim(address,uint256)
-          handler: handleStakedGlpTrackerClaim
-      file: ./src/arbitrum/reward.ts
 
   - kind: ethereum/contract
-    name: BonusGmxTrackerTransfer
+    name: VesterGMX
     network: arbitrum-one
     source:
-      address: "0x4d268a7d4C16ceB5a606c173Bd974984343fea13"
-      abi: RewardTracker
+      address: "0x199070DDfd1CFb69173aa2F7e20906F26B363004"
+      abi: Vester
       startBlock: 100000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - BonusGmxTrackerTransfer
+        - Deposit
+        - Withdraw
       abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
+        - name: Vester
+          file: ./abis/Vester.json
       eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleBonusGmxTrackerTransfer
+        - event: Deposit(address,uint256)
+          handler: handleDepositVesting
+        - event: Withdraw(address,uint256,uint256)
+          handler: handleWithdrawVesting
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: VesterGLP
+    network: arbitrum-one
+    source:
+      address: "0xA75287d2f8b217273E7FCD7E86eF07D33972042E"
+      abi: Vester
+      startBlock: 100000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Deposit
+        - Withdraw
+      abis:
+        - name: Vester
+          file: ./abis/Vester.json
+      eventHandlers:
+        - event: Deposit(address,uint256)
+          handler: handleDepositVesting
+        - event: Withdraw(address,uint256,uint256)
+          handler: handleWithdrawVesting
       file: ./src/arbitrum/reward.ts
 
-  - kind: ethereum/contract
-    name: FeeGmxTrackerTransfer
-    network: arbitrum-one
-    source:
-      address: "0xd2D1162512F927a7e282Ef43a362659E4F2a728F"
-      abi: RewardTracker
-      startBlock: 100000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - FeeGmxTrackerTransfer
-        - FeeGmxTrackerClaim
-      abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleFeeGmxTrackerTransfer
-        - event: Claim(address,uint256)
-          handler: handleFeeGmxTrackerClaim
-      file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
-    name: FeeGlpTrackerTransfer
-    network: arbitrum-one
-    source:
-      address: "0x4e971a87900b931fF39d1Aad67697F49835400b6"
-      abi: RewardTracker
-      startBlock: 100000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - FeeGlpTrackerTransfer
-        - FeeGlpTrackerClaim
-      abis:
-        - name: RewardTracker
-          file: ./abis/RewardTracker.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleFeeGlpTrackerTransfer
-        - event: Claim(address,uint256)
-          handler: handleFeeGlpTrackerClaim
-      file: ./src/arbitrum/reward.ts
+
+  # - kind: ethereum/contract
+  #   name: FeeGlpTrackerTransfer
+  #   network: arbitrum-one
+  #   source:
+  #     address: "0x4e971a87900b931fF39d1Aad67697F49835400b6"
+  #     abi: RewardTracker
+  #     startBlock: 100000
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.5
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Deposit
+  #       - Withdraw
+  #     abis:
+  #       - name: RewardTracker
+  #         file: ./abis/Vester.json
+  #     eventHandlers:
+  #       - event: Deposit(address,uint256)
+  #         handler: handleDepositVesting
+  #       - event: Withdraw(address,uint256,uint256)
+  #         handler: handleWithdrawVesting
+  #     file: ./src/arbitrum/reward.ts
 
   - kind: ethereum/contract
     name: ChainlinkAggregatorBTC

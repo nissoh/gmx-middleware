@@ -20,7 +20,7 @@ export function handleIncreasePosition(event: contract.IncreasePosition): void {
 
   const activeTradeKey = event.params.key.toHex()
 
-  entity.indexedAt = timestamp
+  entity.timestamp = timestamp
 
   entity.account = event.params.account.toHex()
   entity.collateralToken = event.params.collateralToken.toHex()
@@ -42,7 +42,7 @@ export function handleIncreasePosition(event: contract.IncreasePosition): void {
   if (aggTrade === null) {
     aggTrade = new Trade(activeAggTradeKey)
     
-    aggTrade.indexedAt = entity.indexedAt
+    aggTrade.timestamp = entity.timestamp
     aggTrade.indexToken = entity.indexToken
 
     aggTrade.account = entity.account
@@ -87,7 +87,7 @@ export function handleDecreasePosition(event: contract.DecreasePosition): void {
   const tradeId = namedEventId('DecreasePosition', event)
   const entity = new DecreasePosition(tradeId)
 
-  entity.indexedAt = timestamp
+  entity.timestamp = timestamp
 
   entity.account = event.params.account.toHex()
   entity.collateralToken = event.params.collateralToken.toHex()
@@ -126,7 +126,7 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
   const tradeId = namedEventId('UpdatePosition', event)
   const entity = new UpdatePosition(tradeId)
 
-  entity.indexedAt = timestamp
+  entity.timestamp = timestamp
   entity.key = activeTradeKey
 
   entity.size = event.params.size
@@ -174,7 +174,7 @@ export function handleClosePosition(event: contract.ClosePosition): void {
   const tradeId = namedEventId('ClosePosition', event)
   const entity = new ClosePosition(tradeId)
 
-  entity.indexedAt = timestamp
+  entity.timestamp = timestamp
   entity.key = activeTradeKey
 
   entity.size = event.params.size
@@ -198,7 +198,7 @@ export function handleClosePosition(event: contract.ClosePosition): void {
 
     settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'closed'
-    settledAggTrade.settledIndexedAt = entity.indexedAt
+    settledAggTrade.settledtimestamp = entity.timestamp
     settledAggTrade.realisedPnl = entity.realisedPnl
     settledAggTrade.realisedPnlPercentage = deltaPercentage
     settledAggTrade.closedPosition = entity.id
@@ -215,7 +215,7 @@ export function handleLiquidatePosition(event: contract.LiquidatePosition): void
   const tradeId = namedEventId('LiquidatePosition', event)
   const entity = new LiquidatePosition(tradeId)
 
-  entity.indexedAt = timestamp
+  entity.timestamp = timestamp
   entity.key = activeTradeKey
   entity.account = event.params.account.toHex()
   entity.collateralToken = event.params.collateralToken.toHex()
@@ -241,7 +241,7 @@ export function handleLiquidatePosition(event: contract.LiquidatePosition): void
 
     settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'liquidated'
-    settledAggTrade.settledIndexedAt = entity.indexedAt
+    settledAggTrade.settledtimestamp = entity.timestamp
     settledAggTrade.realisedPnl = calculatePositionDelta(entity.markPrice, entity.isLong, entity.size, aggTrade.averagePrice)
     settledAggTrade.realisedPnlPercentage = calculatePositionDeltaPercentage(settledAggTrade.realisedPnl, entity.collateral)
     settledAggTrade.liquidatedPosition = entity.id
