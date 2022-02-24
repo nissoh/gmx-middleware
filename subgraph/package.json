@@ -1,6 +1,7 @@
 {
   "name": "gmx-raw",
   "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "codegen": "graph codegen subgraph.arbitrum.yaml && graph codegen subgraph.avalanche.yaml",
     "deploy-arbitrum": "graph deploy --product hosted-service nissoh/gmx-arbitrum subgraph.arbitrum.yaml",

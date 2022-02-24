@@ -4,7 +4,7 @@ on: push
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
 
       - name: Checkout repo
@@ -23,8 +23,8 @@ jobs:
         if: contains(github.ref, 'master')
         run: yarn version check
 
-      - name: set checksum behavior
-        run: set -x YARN_CHECKSUM_BEHAVIOR update
+      # - name: set checksum behavior
+      #   run: set -x YARN_CHECKSUM_BEHAVIOR update
 
       - name: Install Dependencies
         run: yarn install --immutable
