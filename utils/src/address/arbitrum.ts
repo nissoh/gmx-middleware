@@ -1,5 +1,4 @@
 
-
 export enum ARBITRUM_TRADEABLE_ADDRESS {
   WETH = "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
   WBTC = "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",
@@ -48,18 +47,3 @@ export enum ARBITRUM_CONTRACT {
 }
 
 
-const tradableAdressToNameMap = Object.entries(ARBITRUM_TRADEABLE_ADDRESS).reduce((seed, [name, address]) => {
-  return { ...seed, [address]: name }
-}, {} as {[key: string]: string})
-
-
-export function indexTokenToName(address: ARBITRUM_TRADEABLE_ADDRESS): string {
-  const name = tradableAdressToNameMap[address]
-
-  if (!name) {
-    throw new Error('No index token matched this address')
-  }
-  return name
-}
-    
-    

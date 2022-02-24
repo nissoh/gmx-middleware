@@ -179,16 +179,16 @@ export function _storePricefeed(event: ethereum.Event, symbol: string, interval:
 
 export function _storeGlpAddLiqPricefeed(priceFeed: string, event: AddLiquidity): void {
   const price = event.params.aumInUsdg.equals(ZERO_BI)
-    ? ZERO_BI :
-    event.params.glpSupply.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
+    ? ONE_BI :
+    event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
 
   _storeDefaultPricefeed(priceFeed, event, price)
 }
 
 export function _storeGlpRemoveLiqPricefeed(priceFeed: string, event: RemoveLiquidity): void {
   const price = event.params.aumInUsdg.equals(ZERO_BI)
-    ? ZERO_BI :
-    event.params.glpSupply.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
+    ? ONE_BI :
+    event.params.aumInUsdg.times(BI_18_PRECISION).div(event.params.glpSupply).times(BI_12_PRECISION)
 
   _storeDefaultPricefeed(priceFeed, event, price)
 }

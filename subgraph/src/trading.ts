@@ -198,7 +198,7 @@ export function handleClosePosition(event: contract.ClosePosition): void {
 
     settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'closed'
-    settledAggTrade.settledtimestamp = entity.timestamp
+    settledAggTrade.settledTimestamp = entity.timestamp
     settledAggTrade.realisedPnl = entity.realisedPnl
     settledAggTrade.realisedPnlPercentage = deltaPercentage
     settledAggTrade.closedPosition = entity.id
@@ -241,7 +241,7 @@ export function handleLiquidatePosition(event: contract.LiquidatePosition): void
 
     settledAggTrade.id = aggTradeSettledId
     settledAggTrade.status = 'liquidated'
-    settledAggTrade.settledtimestamp = entity.timestamp
+    settledAggTrade.settledTimestamp = entity.timestamp
     settledAggTrade.realisedPnl = calculatePositionDelta(entity.markPrice, entity.isLong, entity.size, aggTrade.averagePrice)
     settledAggTrade.realisedPnlPercentage = calculatePositionDeltaPercentage(settledAggTrade.realisedPnl, entity.collateral)
     settledAggTrade.liquidatedPosition = entity.id

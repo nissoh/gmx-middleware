@@ -1,5 +1,5 @@
 import { intervalInMsMap, USD_DECIMALS } from "./constant"
-import { IPagableResponse, IPageable, ISortable } from "./types"
+import { IPageParapApi, IPagePositionParamApi, ISortParamApi } from "./types"
 
 export const ETH_ADDRESS_REGEXP = /^0x[a-fA-F0-9]{40}$/i
 export const TX_HASH_REGEX = /^0x([A-Fa-f0-9]{64})$/i
@@ -25,7 +25,7 @@ export function shortPostAdress(address: string) {
   return address.slice(address.length -4, address.length)
 }
 
-export function readableNumber(ammount: number) {
+export function readableNumber(ammount: number, showDecimals = true) {
   const parts = ammount.toString().split('.')
   const [whole = '', decimal = ''] = parts
 
@@ -33,10 +33,11 @@ export function readableNumber(ammount: number) {
     return EMPTY_MESSAGE
   }
 
-  if (whole.replace(/^-/, '') === '0') {
+  if (whole.replace(/^-/, '') === '0' || whole.length < 3) {
     const shortDecimal = decimal.slice(0, 2)
-    return whole + (shortDecimal ? '.' + shortDecimal  : '')
+    return whole + (shortDecimal && showDecimals ? '.' + shortDecimal  : '')
   }
+
 
   return Number(whole).toLocaleString()
 }
@@ -224,7 +225,7 @@ export type UTCTimestamp = Nominal<number, "UTCTimestamp">
 export const tzOffset = new Date().getTimezoneOffset() * 60000
 
 export function timeTzOffset(ms: number): UTCTimestamp {
-  return Math.floor((ms - tzOffset) / 1000) as UTCTimestamp
+  return Math.floor((ms - tzOffset)) as UTCTimestamp
 }
 
 export function unixTimeTzOffset(ms: number): UTCTimestamp {
@@ -304,11 +305,11 @@ export function intervalListFillOrderMap<T, R extends { time: number }>({
 
 
 
-export async function pagingQuery<T, ReqParams extends IPageable & (ISortable<keyof T> | {})>(
+export async function pagingQuery<T, ReqParams extends IPagePositionParamApi & (ISortParamApi<keyof T> | {})>(
   queryParams: ReqParams,
   query: Promise<T[]>,
   customComperator?: (a: T, b: T) => number
-): Promise<IPagableResponse<T>> {
+): Promise<IPageParapApi<T>> {
   const res = await query
   let list = res
   if ('sortBy' in queryParams) {

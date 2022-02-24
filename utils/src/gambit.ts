@@ -3,7 +3,7 @@ import { Vault__factory } from "@gambitdao/gmx-contracts"
 import { ARBITRUM_CONTRACT, groupByMapMany } from "./address"
 import { BASIS_POINTS_DIVISOR, FUNDING_RATE_PRECISION, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE } from "./constant"
 import { listen } from "./contract"
-import { IAggregatedAccountSummary, IAggregatedTradeClosed, IAggregatedTradeLiquidated, IAggregatedTradeOpen, IPositionDelta, IAggregatedOpenPositionSummary, IAggregatedPositionSettledSummary, IAbstractPosition, IAggregatedTradeSettledAll, IAggregatedTradeAll, IClaim, IClaimSource, IPositionClose, IPositionLiquidated } from "./types"
+import { IAccountSummary,  ITrade, IPositionDelta,  IClaim, IClaimSource, IPositionClose, IPositionLiquidated, IAbstractPositionStake, ITradeSettled, IAbstractTrade, ITradeClosed, ITradeLiquidated, ITradeOpen, TradeStatus } from "./types"
 import { formatFixed, isAddress } from "./utils"
 
 
@@ -35,11 +35,9 @@ export function getPositionMarginFee(size: bigint) {
 
 
 
-export function getLeverage (size = 0n, collateral = 0n, fundingRate = 0n) {
-  const fundingFee = getPositionCumulativeFundingFee(size, fundingRate)
-  const realised = collateral - fundingFee
-
-  return size * BASIS_POINTS_DIVISOR / realised
+export function getLeverage ({ size, collateral }: IAbstractTrade): number {
+  const levBn = size * BASIS_POINTS_DIVISOR / collateral
+  return formatFixed(levBn, 4)
 }
 
 export function priceDelta(positionPrice: bigint, price: bigint, collateral: bigint, size: bigint) {
@@ -56,7 +54,7 @@ export function priceDeltaPercentage(positionPrice: bigint, price: bigint, colla
 
 
 
-export function calculatePositionDelta(marketPrice: bigint, isLong: boolean, { size, collateral, averagePrice }: IAbstractPosition): IPositionDelta {
+export function calculatePositionDelta(marketPrice: bigint, averagePrice: bigint, isLong: boolean, { size, collateral }: IAbstractPositionStake): IPositionDelta {
   const priceDelta = averagePrice > marketPrice ? averagePrice - marketPrice : marketPrice - averagePrice
 
   const hasProfit = isLong ? marketPrice > averagePrice : marketPrice < averagePrice
@@ -67,44 +65,35 @@ export function calculatePositionDelta(marketPrice: bigint, isLong: boolean, { s
   return { delta, deltaPercentage }
 }
 
-export function calculateSettledPositionDelta(trade: IAggregatedTradeSettledAll): IPositionDelta {
-  const settlement = trade.settledPosition
-  const isLiq = isLiquidated(settlement)
-  const averagePrice = trade.updateList[trade.updateList.length - 1].averagePrice
-  const maxCollateralUpdate = trade.updateList.reduce((seed, b) => seed.collateral > b.collateral ? seed : b, trade.updateList[0])
-
-  if (isLiq) {
-    const { size, collateral } = settlement
-    return calculatePositionDelta(settlement.markPrice, settlement.isLong, { size, collateral, averagePrice })
-  }
-
-
-  const delta = settlement.realisedPnl
-
-  return {
-    delta,
-    deltaPercentage: maxCollateralUpdate.collateral > 0n ? delta * BASIS_POINTS_DIVISOR / maxCollateralUpdate.collateral : 0n
-  }
-}
-
-
-
-export function isTradeSettled(trade: IAggregatedTradeAll): trade is IAggregatedTradeSettledAll  {
-  return 'settledPosition' in trade
-}
-
-export function isLiquidated(trade: IPositionClose | IPositionLiquidated): trade is IPositionLiquidated  {
-  return 'markPrice' in trade
-}
 
 
 export function getLiquidationPriceFromDelta(collateral: bigint, size: bigint, averagePrice: bigint, isLong: boolean) {
   const liquidationAmount = size * BASIS_POINTS_DIVISOR / MAX_LEVERAGE
-
   const liquidationDelta = collateral - liquidationAmount
   const priceDelta = liquidationDelta * averagePrice / size
 
   return isLong ? averagePrice - priceDelta : averagePrice + priceDelta
+}
+
+
+export function isTradeSettled(trade: ITrade): trade is ITradeSettled  {
+  return trade.status !== TradeStatus.OPEN
+}
+
+export function isTradeOpen(trade: ITrade): trade is ITradeOpen  {
+  return trade.status === TradeStatus.OPEN
+}
+
+export function isTradeLiquidated(trade: ITrade): trade is ITradeLiquidated  {
+  return trade.status === TradeStatus.LIQUIDATED
+}
+
+export function isTradeClosed(trade: ITrade): trade is ITradeClosed  {
+  return trade.status === TradeStatus.CLOSED
+}
+
+export function isPositionLiquidated(trade: IPositionClose | IPositionLiquidated): trade is IPositionLiquidated  {
+  return 'markPrice' in trade
 }
 
 export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: bigint, size: bigint) {
@@ -112,92 +101,54 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 }
 
 
-export function toAggregatedOpenTradeSummary<T extends IAggregatedTradeOpen>(trade: T): IAggregatedOpenPositionSummary<T> {
-  const increaseFees = trade.increaseList.reduce((seed, pos) => seed += pos.fee, 0n)
-  const decreaseFees = trade.decreaseList.reduce((seed, pos) => seed += pos.fee, 0n)
-  const latestUpdate = trade.updateList[trade.updateList.length - 1]
-
-  const cumulativeAccountData: IAggregatedOpenPositionSummary<T> = {
-    account: trade.account,
-    indexToken: trade.initialPosition.indexToken,
-    startTimestamp: trade.initialPosition.indexedAt,
-    fee: increaseFees + decreaseFees,
-
-    collateral: latestUpdate.collateral,
-    averagePrice: latestUpdate.averagePrice,
-    size: latestUpdate.size,
-
-    isLong: trade.initialPosition.isLong,
-    leverage: Number(latestUpdate.size / latestUpdate.collateral),
-
-    trade: trade
-  }
-  return cumulativeAccountData
-}
-
-
-export function toAggregatedTradeSettledSummary<T extends IAggregatedTradeClosed | IAggregatedTradeLiquidated>(trade: T): IAggregatedPositionSettledSummary<T> {
-  const isLiq = isLiquidated(trade.settledPosition)
-  const parsedAgg = toAggregatedOpenTradeSummary<T>(trade)
-
-  const pnl = isLiq ? -BigInt(trade.settledPosition.collateral) : BigInt(trade.settledPosition.realisedPnl)
-  const delta = calculateSettledPositionDelta(trade)
-
-  const cumulativeAccountData: IAggregatedPositionSettledSummary<T> = {
-    ...parsedAgg, pnl, delta,
-    fee: isLiq ? 0n : parsedAgg.fee,
-    realisedPnl: isLiq ? pnl : pnl - parsedAgg.fee,
-    settledTimestamp: trade.indexedAt,
-  }
-
-  return cumulativeAccountData
-}
-
-export function toAggregatedAccountSummary(list: IAggregatedTradeSettledAll[]): IAggregatedAccountSummary[] {
-  const settledListMap = groupByMapMany(list, a => a.initialPosition.account)
+export function toAccountSummary(list: ITrade[]): IAccountSummary[] {
+  const settledListMap = groupByMapMany(list, a => a.account)
   const allPositions = Object.entries(settledListMap)
 
-  const topMap = allPositions.reduce((seed, [account, allSettled]) => {
+  return allPositions.reduce((seed, [account, allSettled]) => {
 
-    let profitablePositionsCount = 0
-
-    const tradeSummaries = allSettled.map(toAggregatedTradeSettledSummary)
-    const fee = tradeSummaries.reduce((seed, pos) => seed + pos.fee, 0n)
-    const pnl = tradeSummaries.reduce((seed, pos) => {
-      if (pos.pnl > 0n) {
-        profitablePositionsCount++
-      }
-      return seed + pos.pnl
-    }, 0n)
-
-    const delta = tradeSummaries.reduce((seed, pos) => {
-      seed.delta += pos.delta.delta
-      seed.deltaPercentage += pos.delta.deltaPercentage
-
-      return seed
-    }, <IPositionDelta>{ delta: 0n, deltaPercentage: 0n })
-
-    const realisedPnl = tradeSummaries.reduce((seed, pos) => seed + pos.realisedPnl, 0n)
-
-
-    const summary: IAggregatedAccountSummary = {
-      account, fee, profitablePositionsCount, delta,
-      settledPositionCount: allSettled.length,
-      leverage: tradeSummaries.reduce((seed, pos) => seed + pos.leverage, 0) / tradeSummaries.length,
+    const seedAccountSummary: IAccountSummary = {
       claim: null,
-      collateral: tradeSummaries.reduce((seed, pos) => seed + pos.collateral, 0n),
-      pnl: pnl,
-      realisedPnl,
-      size: tradeSummaries.reduce((sum, pos) => sum + pos.size, 0n),
-      averagePrice: tradeSummaries.reduce((sum, pos) => sum + pos.averagePrice, 0n) / BigInt(tradeSummaries.length)
+      account,
+
+      collateral: 0n,
+      size: 0n,
+
+      fee: 0n,
+      realisedPnl: 0n,
+
+      collateralDelta: 0n,
+      sizeDelta: 0n,
+      realisedPnlPercentage: 0n,     
+
+      winTradeCount: 0,
+      settledTradeCount: 0,
+      openTradeCount: 0,
     }
+
+    const summary = allSettled.reduce((seed, next): IAccountSummary => {
+
+      return {
+        ...seed,
+        fee: seed.fee + next.fee,
+        collateral: seed.collateral + next.collateral,
+        collateralDelta: seed.collateralDelta + next.collateralDelta,
+        realisedPnl: seed.realisedPnl + next.realisedPnl,
+        size: seed.size + next.size,
+        sizeDelta: seed.sizeDelta + next.sizeDelta,
+        realisedPnlPercentage: seed.realisedPnlPercentage + next.realisedPnlPercentage,
+        
+        winTradeCount: next.realisedPnl > 0n ? seed.winTradeCount : seed.winTradeCount + 1,
+        settledTradeCount: next.status === TradeStatus.CLOSED || next.status === TradeStatus.LIQUIDATED ? seed.settledTradeCount + 1 : seed.settledTradeCount,
+        openTradeCount: next.status === TradeStatus.OPEN ? seed.openTradeCount + 1 : seed.openTradeCount,
+
+      }
+    }, seedAccountSummary) 
 
     seed.push(summary)
 
     return seed
-  }, [] as IAggregatedAccountSummary[])
-
-  return topMap
+  }, [] as IAccountSummary[])
 }
 
 

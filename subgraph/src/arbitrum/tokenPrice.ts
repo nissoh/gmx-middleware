@@ -27,7 +27,7 @@ export function handleAnswerUpdatedUNI(event: AnswerUpdated): void {
 }
 
 export function handleUniswapGmxEthSwap(event: Swap): void {
-  const ethPerGmx = event.params.amount0.times(BI_18_PRECISION).div(event.params.amount1)
+  const ethPerGmx = event.params.amount0.times(BI_18_PRECISION).div(event.params.amount1).abs()
   const price = getByAmoutFromFeed(ethPerGmx, WETH, TokenDecimals.WETH)
 
   _storeDefaultPricefeed(GMX, event, price)

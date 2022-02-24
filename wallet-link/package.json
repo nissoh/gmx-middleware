@@ -1,6 +1,6 @@
 {
-    "name": "@gambitdao/gmx-middleware",
-    "version": "0.6.0",
+    "name": "@gambitdao/wallet-link",
+    "version": "0.4.0",
     "license": "MIT",
     "module": ".dist/esm/index.js",
     "main": ".dist/cjs/index.js",
@@ -17,19 +17,13 @@
     },
     "dependencies": {
         "@aelea/core": "1.3.0",
-        "@ethersproject/abi": "5.5.0",
-        "@ethersproject/abstract-signer": "5.5.0",
-        "@ethersproject/bignumber": "^5.5.0",
-        "@ethersproject/bytes": "5.5.0",
-        "@ethersproject/contracts": "^5.5.0",
         "@ethersproject/providers": "5.5.3",
-        "@gambitdao/gmx-contracts": "1.0.6",
+        "@gambitdao/gmx-middleware": "workspace:*",
         "@most/core": "1.6.1",
         "@most/disposable": "1.3.0",
         "@most/prelude": "1.8.0",
         "@most/scheduler": "1.3.0",
         "@most/types": "1.1.0",
-        "@types/isomorphic-fetch": "^0.0.35",
-        "isomorphic-fetch": "^3.0.0"
+        "eip1193-provider": "1.0.1"
     }
 }

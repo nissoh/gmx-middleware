@@ -64,17 +64,17 @@ export function groupByMapMany<A, B extends string | symbol | number>(list: A[],
 
 
 
-
 export function groupByMap<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
-  const map = new Map<B, A>()
+  const map:  { [P in B]: A } = {} as any
+
   list.forEach((item) => {
     const key = getKey(item)
 
-    if (map.get(key)) {
+    if (map[key]) {
       console.warn(`${groupByMap.name}() is overwriting property: ${key}`)
     }
 
-    map.set(key, item)
+    map[key] = item
   })
 
   return map
