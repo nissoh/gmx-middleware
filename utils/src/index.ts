@@ -7,5 +7,4 @@ export * from './constant'
 export * from './tether'
 export * from './comTypes'
 export * from './fromJson'
-export * from './ensIdentity'
 

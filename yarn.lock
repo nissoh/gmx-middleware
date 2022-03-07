@@ -671,7 +671,6 @@ __metadata:
     "@most/scheduler": 1.3.0
     "@most/types": 1.1.0
     "@types/isomorphic-fetch": ^0.0.35
-    "@urql/core": ^2.4.2
     isomorphic-fetch: ^3.0.0
   languageName: unknown
   linkType: soft
@@ -737,15 +736,6 @@ __metadata:
   dependencies:
     assemblyscript: 0.19.10
   checksum: 4a8deca693b9c43766d1bac0afb61804d692cd0496b6aec1e791c0fdb1b2651009dea7911aa069f415af9c1e390551599ce876956c964b0a80a9f60bf24192c5
-  languageName: node
-  linkType: hard
-
-"@graphql-typed-document-node/core@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "@graphql-typed-document-node/core@npm:3.1.1"
-  peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 87ff4cee308f1075f4472b80f9f9409667979940f8f701e87f0aa35ce5cf104d94b41258ea8192d05a0893475cd0f086a3929a07663b4fe8d0e805a277f07ed5
   languageName: node
   linkType: hard
 
@@ -1383,18 +1373,6 @@ __metadata:
     "@typescript-eslint/types": 5.12.1
     eslint-visitor-keys: ^3.0.0
   checksum: ada52c77dc42d055a6cefb294b9a893d680d125eb0fc5cc0daf2f85007c603ef688f4f5a865893758e00e89739850409bb748e26bb8c834372409d24ea820677
-  languageName: node
-  linkType: hard
-
-"@urql/core@npm:^2.4.2":
-  version: 2.4.3
-  resolution: "@urql/core@npm:2.4.3"
-  dependencies:
-    "@graphql-typed-document-node/core": ^3.1.1
-    wonka: ^4.0.14
-  peerDependencies:
-    graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 368324171c33a3e9ede22896ac5ba93a34a8aaa22cc3765b23401a94da2c4501c47b334192220ddc3f5f7c139f17a40c1265a3c2efedf40533eaf7a85a8e76e5
   languageName: node
   linkType: hard
 
@@ -6074,13 +6052,6 @@ __metadata:
   dependencies:
     string-width: ^1.0.2 || 2
   checksum: d09c8012652a9e6cab3e82338d1874a4d7db2ad1bd19ab43eb744acf0b9b5632ec406bdbbbb970a8f4771a7d5ef49824d038ba70aa884e7723f5b090ab87134d
-  languageName: node
-  linkType: hard
-
-"wonka@npm:^4.0.14":
-  version: 4.0.15
-  resolution: "wonka@npm:4.0.15"
-  checksum: afbee7359ed2d0a9146bf682f3953cb093f47d5f827e767e6ef33cb70ca6f30631afe5fe31dbb8d6c7eaed26c4ac6426e7c13568917c017ef6f42c71139b38f7
   languageName: node
   linkType: hard
 
