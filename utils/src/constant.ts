@@ -10,7 +10,7 @@ export const FUNDING_RATE_PRECISION = 1000000n
 
 export enum intervalInMsMap {
   SEC = 1,
-  SEC60 = 60,
+  MIN = 60,
   MIN5 = 300,
   MIN15 = 900,
   MIN30 = 1800,
@@ -76,7 +76,7 @@ export const EXPLORER_URL = {
   [CHAIN.AVALANCHE]: "https://snowtrace.io/",
 }
 
-interface AddEthereumChainParameter {
+export interface AddEthereumChainParameter {
   chainId: string; // A 0x-prefixed hexadecimal string
   chainName: string;
   nativeCurrency: {
@@ -93,7 +93,7 @@ interface AddEthereumChainParameter {
 export const NETWORK_METADATA: {[k: string]: AddEthereumChainParameter} = {
 
   [CHAIN.ETH]: {
-    chainName: 'Ethereum Mainnet',
+    chainName: 'Ethereum',
     chainId: '0x' + CHAIN.ETH.toString(16),
     nativeCurrency: {
       name: 'Ethereum',
@@ -106,7 +106,7 @@ export const NETWORK_METADATA: {[k: string]: AddEthereumChainParameter} = {
 
   [CHAIN.BSC]: {
     chainId: '0x' + CHAIN.BSC.toString(16),
-    chainName: 'BSC',
+    chainName: 'BNB Chain',
     nativeCurrency: {
       name: 'BNB Coin',
       symbol: 'BNB',

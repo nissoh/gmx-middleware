@@ -1,15 +1,23 @@
 
 export enum TOKEN_SYMBOL {
-  EXRD = 'EXRD',
-  SUSHI = 'SUSHI',
-  USDC = 'USDC',
-  USDT = 'USDT',
+  // XRD = 'XRD',
+  // SUSHI = 'SUSHI',
+  // WBNB = "WBNB",
+  // USDG = "USDG",
+  // BUSD = "BUSD",
+  // BNB = "BNB",
+  
   ETH = 'ETH',
+  WETH = 'WETH',
   BTC = "BTC",
   UNI = "UNI",
   LINK = "LINK",
-  WBNB = "WBNB",
-  BNB = "BNB",
-  USDG = "USDG",
-  BUSD = "BUSD"
+  AVAX = "AVAX",
+  
+
+  USDT = "USDT",
+  DAI = "DAI",
+  USDC = 'USDC',
+  FRAX = 'FRAX',
+  MIM = "MIM",
 }

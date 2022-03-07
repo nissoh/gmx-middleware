@@ -123,22 +123,3 @@ export const providerEvent = <A>(ps: Stream<BaseProvider | null>) => (eventType:
 )
 
 
-
-function getChain(chainId: CHAIN) {
-  const explorerUrl = EXPLORER_URL[chainId]
-  if (!explorerUrl) {
-    throw new Error(`chainId: ${chainId} missing an explorer`)
-  }
-
-  return explorerUrl
-}
-
-export function getAccountExplorerUrl(chainId: CHAIN, account: string) {
-  return getChain(chainId) + "address/" + account
-}
-
-export function getTxnUrl(chainId: CHAIN, transactionHash: string) {
-  return  getChain(chainId) + 'tx/' + transactionHash 
-}
-
-

@@ -3,7 +3,7 @@ import { CHAIN } from "@gambitdao/gmx-middleware"
 import { awaitPromises, constant, map, merge, mergeArray, snapshot } from "@most/core"
 import { Stream } from "@most/types"
 import { EIP1193Provider, ProviderInfo, ProviderRpcError } from "eip1193-provider"
-import { eip1193ProviderEvent, getAccountExplorerUrl, getTxnUrl, parseError, providerAction } from "./common"
+import { eip1193ProviderEvent, parseError, providerAction } from "./common"
 
 
 export interface IWalletLink<T extends EIP1193Provider = EIP1193Provider> {
@@ -119,5 +119,5 @@ export async function attemptToSwitchNetwork(metamask: EIP1193Provider, chain: C
   }
 }
 
-export { getAccountExplorerUrl, getTxnUrl, parseError }
+export { parseError }
  

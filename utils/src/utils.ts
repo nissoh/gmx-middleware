@@ -1,4 +1,4 @@
-import { intervalInMsMap, USD_DECIMALS } from "./constant"
+import { CHAIN, EXPLORER_URL, intervalInMsMap, NETWORK_METADATA, USD_DECIMALS } from "./constant"
 import { IPageParapApi, IPagePositionParamApi, ISortParamApi } from "./types"
 
 export const ETH_ADDRESS_REGEXP = /^0x[a-fA-F0-9]{40}$/i
@@ -240,7 +240,7 @@ export type TimelineTime = {
 export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTime> {
   interval: intervalInMsMap
   getTime: (t: T) => number
-  seed: RTime
+  seed: R & TimelineTime
   source: T[]
   
   fillMap: (prev: RTime, next: T) => R
@@ -249,29 +249,34 @@ export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTim
 }
 
 
-export function intervalListFillOrderMap<T, R extends { time: number }>({
+export function intervalListFillOrderMap<T, R, RTime extends R & TimelineTime = R & TimelineTime>({
   source, getTime, seed, interval,
-
   fillMap, squashMap = fillMap, fillGapMap = (prev, _next) => prev
-}: IFillGap<T, R>) {
+}: IFillGap<T, R, RTime>) {
+
+  
 
   const sortedSource = [...source].sort((a, b) => getTime(a) - getTime(b))
-  const slot = Math.floor(seed.time / interval)
-  const normalizedSeed = { ...seed, time: slot * interval }
 
-  const timeslotMap: { [k: number]: R } = {
-    [slot]: normalizedSeed
+  const initialSourceTime = getTime(sortedSource[0])
+  if (seed.time > initialSourceTime) {
+    throw new Error(`inital source time: ${initialSourceTime} must be greater then seed time: ${seed.time}}`)
   }
 
-  return sortedSource.reduce((timeline: R[], next: T) => {
+  const seedSlot = Math.floor(seed.time / interval)
+  const normalizedSeed = { ...seed, time: seedSlot * interval } as RTime
+
+  const timeslotMap: { [k: number]: RTime } = {
+    [seedSlot]: normalizedSeed
+  }
+
+  return sortedSource.reduce((timeline: RTime[], next: T) => {
     const lastIdx = timeline.length - 1
     const slot = Math.floor(getTime(next) / interval)
-
     const squashPrev = timeslotMap[slot]
-    
 
     if (squashPrev) {
-      const newSqush = { ...squashMap(squashPrev, next), time: squashPrev.time }
+      const newSqush = { ...squashMap(squashPrev, next), time: squashPrev.time } as RTime
       timeslotMap[slot] = newSqush
       timeline.splice(lastIdx, 1, newSqush)
     } else {
@@ -285,17 +290,18 @@ export function intervalListFillOrderMap<T, R extends { time: number }>({
         const fillNext = fillGapMap(timeline[timeline.length - 1], next)
         const gapTime = interval * index
         const newTime = prev.time + gapTime
-        const newTick = { ...fillNext, time: newTime }
+        const newTick = { ...fillNext, time: newTime } as RTime
         const newSlot = Math.floor(newTime / interval)
 
         timeslotMap[newSlot] ??= newTick
         timeline.push(newTick)
-
       }
 
       const lastTick = fillMap(prev, next)
-      timeslotMap[slot] = lastTick
-      timeline.push({ ...lastTick, time })
+      const item = { ...lastTick, time: time } as RTime
+
+      timeslotMap[slot] = item
+      timeline.push(item)
     }
 
     return timeline
@@ -329,4 +335,16 @@ export async function pagingQuery<T, ReqParams extends IPagePositionParamApi & (
   return { offset, page, pageSize }
 }
 
+
+export const unixTimestampNow = () => Math.floor(Date.now() / 1000)
+
+export const getChainName = (chain: CHAIN) => NETWORK_METADATA[chain].chainName
+
+export const getTxExplorerUrl = (chain: CHAIN, hash: string) => {
+  return EXPLORER_URL[chain] + 'tx/' + hash
+}
+
+export function getAccountExplorerUrl(chain: CHAIN, account: string) {
+  return EXPLORER_URL[chain] + "address/" + account
+}
 

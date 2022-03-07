@@ -1,42 +1,22 @@
-import { CHAIN } from "."
-import { ARBITRUM_TRADEABLE_ADDRESS, ARBITRUM_USD_COINS, AVALANCHE_TRADEABLE_ADDRESS, TOKEN_SYMBOL } from "./address"
-import { intervalInMsMap } from "./constant"
+import { ARBITRUM_TRADEABLE_ADDRESS, ARBITRUM_USD_COINS, AVALANCHE_TRADEABLE_ADDRESS, AVALANCHE_USD_COINS, TOKEN_SYMBOL } from "./address"
+import { CHAIN, intervalInMsMap } from "./constant"
 
 
 
 export type Address = string
 
-export interface TokenAbstract {
+
+export interface TokenDescription {
   name: string
   symbol: TOKEN_SYMBOL
   decimals: number
 }
 
-export interface Token extends TokenAbstract {
-  address: ARBITRUM_USD_COINS
-}
-
-export interface TradeableToken extends TokenAbstract {
-  address: ARBITRUM_TRADEABLE_ADDRESS
-}
-
 export interface Transaction {
-  token: Token,
+  token: TokenDescription,
   from: Address
   to: Address
   value: bigint
-}
-
-export enum PricefeedAddress {
-  GLP = '_0x321F653eED006AD1C29D174e17d96351BDe22649'
-}
-
-export const CHAINLINK_USD_FEED_ADRESS = {
-  [ARBITRUM_TRADEABLE_ADDRESS.WBTC]: "0xae74faa92cb67a95ebcab07358bc222e33a34da7",
-  [ARBITRUM_TRADEABLE_ADDRESS.WETH]: "0x37bc7498f4ff12c19678ee8fe19d713b87f6a9e6",
-  // [TOKEN_SYMBOL.BNB]: "0xc45ebd0f901ba6b2b8c7e70b717778f055ef5e6d",
-  [ARBITRUM_TRADEABLE_ADDRESS.LINK]: "0xdfd03bfc3465107ce570a0397b247f546a42d0fa",
-  [ARBITRUM_TRADEABLE_ADDRESS.UNI]: "0x68577f915131087199fe48913d8b416b3984fd38",
 }
 
 
@@ -57,8 +37,8 @@ export interface IPositionDelta {
 
 export interface IAbstractPosition {
   account: Address
-  collateralToken: string
-  indexToken: ARBITRUM_TRADEABLE_ADDRESS
+  collateralToken: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS | ARBITRUM_USD_COINS | AVALANCHE_USD_COINS
+  indexToken: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
   isLong: boolean
   key: string
 }
@@ -66,7 +46,6 @@ export interface IAbstractPosition {
 export type IAbstractPositionDelta = {
   collateralDelta: bigint
   sizeDelta: bigint
-  fee: bigint
 }
 
 export type IAbstractPositionStake = {
@@ -79,13 +58,14 @@ export type IAbstractRealisedPosition = IAbstractPositionStake & {
   realisedPnlPercentage: bigint
 }
 
-export type IPositionIncrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'IncreasePosition'> & { price: bigint }
-export type IPositionDecrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'DecreasePosition'> & { price: bigint }
+export type IPositionIncrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'IncreasePosition'> & { price: bigint,  fee: bigint }
+export type IPositionDecrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'DecreasePosition'> & { price: bigint,  fee: bigint }
 
 export type IPositionUpdate = IAbstractPositionStake & {
   key: string
   averagePrice: bigint
   realisedPnl: bigint
+  markPrice: bigint
   entryFundingRate: bigint
   reserveAmount: bigint
 } & IndexedType<'UpdatePosition'>
@@ -117,6 +97,7 @@ interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityInd
   account: Address
   status: T
   averagePrice: bigint
+  fee: bigint
 
   increaseList: IPositionIncrease[]
   decreaseList: IPositionDecrease[]
@@ -131,20 +112,20 @@ export type ITrade = ITradeSettled | ITradeOpen
 
 export interface IAccountSummary extends IAbstractTrade {
   account: string
-
+  fee: bigint
   settledTradeCount: number
   winTradeCount: number
   openTradeCount: number
   claim: IClaim | null,
 }
 
-export interface IPriceLatest {
-  id: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
+export interface IPriceTimeline {
+  id: string
   value: bigint
+  tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
   timestamp: string
 }
-export interface IPricefeed {
-  id: string
+export interface IPricefeed extends IndexedType<'Pricefeed'> {
   timestamp: number
   o: bigint
   h: bigint
@@ -153,6 +134,15 @@ export interface IPricefeed {
   tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
 }
 
+export interface IPriceLatest extends IndexedType<'PriceLatest'> {
+  value: bigint
+  id: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
+  timestamp: number
+}
+
+export type IPriceLatestMap = {
+  [P in ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS]: IPriceLatest
+}
 
 export enum IClaimSource {
   TWITTER = 'TWITTER',
@@ -206,28 +196,19 @@ export interface IPageParapApi<T> extends IPagePositionParamApi {
   page: T[]
 }
 
-export interface IPricefeedParamApi extends Partial<IPagePositionParamApi>, Partial<ITimerangeParamApi> {
-  feedAddress: string
-}
 
 export interface ILeaderboardRequest extends IPagePositionParamApi, IChainParamApi, ISortParamApi<keyof IAccountSummary> {
   timeInterval: intervalInMsMap.HR24 | intervalInMsMap.DAY7 | intervalInMsMap.MONTH
 }
 
+
+export type IPriceTimelineParamApi = IChainParamApi & ITimerangeParamApi & { tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS }
+
 export type IOpenTradesParamApi = IChainParamApi & IPagePositionParamApi & ISortParamApi<keyof ITradeOpen>
+export type IAccountTradeListParamApi = IChainParamApi & IAccountQueryParamApi
+export type IPricefeedParamApi = IChainParamApi & ITimerangeParamApi & { interval: intervalInMsMap, tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS }
 
-export enum TradeDirection {
-  SHORT = 'short',
-  LONG = 'long'
-}
 
-export enum TradeType {
-  OPEN = 'open',
-  CLOSED = 'closed',
-  LIQUIDATED = 'liquidated',
-}
 
-export interface IRequestTradeQueryparam extends IIdentifiableEntity {
-  status: TradeStatus,
-}
+export interface IRequestTradeQueryparam extends IChainParamApi, IIdentifiableEntity { }
 

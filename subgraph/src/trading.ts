@@ -141,7 +141,11 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
   const aggTrade = Trade.load(activeAggTradeKey)
 
   if (aggTrade) {
-    const price = entity.markPrice ? entity.markPrice : PriceLatest.load(aggTrade.indexToken)!.value
+    // const price = event.params.markPrice
+    const price = PriceLatest.load(aggTrade.indexToken)!.value
+
+    entity.markPrice = price
+
     const updates = aggTrade.updateList
 
     updates.push(entity.id)

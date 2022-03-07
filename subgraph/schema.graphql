@@ -53,6 +53,13 @@ type PriceLatest @entity {
   timestamp: Int!
 }
 
+type PriceTimeline @entity {
+  id: ID!
+  value: BigInt!
+  tokenAddress: TokenAddress!
+  timestamp: Int!
+}
+
 type Transaction @entity {
   id: ID!
   blockNumber: Int!

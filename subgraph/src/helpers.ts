@@ -1,6 +1,6 @@
 import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { AddLiquidity, RemoveLiquidity } from "../generated/GlpManager/GlpManager"
-import { Transaction, PriceLatest, Pricefeed, Stake } from "../generated/schema"
+import { Transaction, PriceTimeline, Pricefeed, Stake, PriceLatest } from "../generated/schema"
 import { getIntervalId, getIntervalIdentifier } from "./interval"
 
 export const BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
@@ -12,7 +12,7 @@ export const BI_10 = BigInt.fromI32(10)
 
 export const BI_12_PRECISION = BigInt.fromI32(10).pow(12)
 export const BI_18_PRECISION = BigInt.fromI32(10).pow(18)
-export const BI_22_PRECISION = BigInt.fromI32(10).pow(18)
+export const BI_22_PRECISION = BigInt.fromI32(10).pow(22)
 
 
 export enum TokenDecimals {
@@ -68,11 +68,11 @@ export function getByAmoutFromFeed(amount: BigInt, tokenAddress: string, decimal
 }
 
 
-export function getTokenPrice(feedAddress: string): BigInt {
-  const chainlinkPriceEntity = PriceLatest.load(feedAddress)
+export function getTokenPrice(tokenAddress: string): BigInt {
+  const chainlinkPriceEntity = PriceTimeline.load(tokenAddress)
 
   if (chainlinkPriceEntity == null) {
-    log.warning(`Pricefeed doesn't exist: ${feedAddress}`, [])
+    log.warning(`Pricefeed doesn't exist: ${tokenAddress}`, [])
     return ONE_BI
   }
 
@@ -133,13 +133,25 @@ export function calculatePositionDeltaPercentage(delta: BigInt, collateral: BigI
 }
 
 
-export function _changeLatestPricefeed(symbol: string, price: BigInt, event: ethereum.Event): PriceLatest {
-  let entity = PriceLatest.load(symbol)
+export function _changeLatestPricefeed(tokenAddress: string, price: BigInt, event: ethereum.Event): PriceLatest {
+  let entity = PriceLatest.load(tokenAddress)
   if (entity === null) {
-    entity = new PriceLatest(symbol)
+    entity = new PriceLatest(tokenAddress)
   }
 
   entity.timestamp = event.block.timestamp.toI32()
+  entity.value = price
+  entity.save()
+
+  return entity
+}
+
+export function _addPriceToTimeline(tokenAddress: string, price: BigInt, event: ethereum.Event): PriceTimeline {
+  const id = tokenAddress + ':' + event.block.timestamp.toI32().toString()
+  const entity = new PriceTimeline(id)
+
+  entity.timestamp = event.block.timestamp.toI32()
+  entity.tokenAddress = '_' + tokenAddress
   entity.value = price
   entity.save()
 
@@ -193,15 +205,15 @@ export function _storeGlpRemoveLiqPricefeed(priceFeed: string, event: RemoveLiqu
   _storeDefaultPricefeed(priceFeed, event, price)
 }
 
-export function _storeDefaultPricefeed(feedAddress: string, event: ethereum.Event, price: BigInt): void {
-  _changeLatestPricefeed(feedAddress, price, event)
+export function _storeDefaultPricefeed(tokenAddress: string, event: ethereum.Event, price: BigInt): void {
+  _changeLatestPricefeed(tokenAddress, price, event)
+  _addPriceToTimeline(tokenAddress, price, event)
 
-  _storePricefeed(event, feedAddress, intervalUnixTime.SEC, price)
-  _storePricefeed(event, feedAddress, intervalUnixTime.MIN15, price)
-  _storePricefeed(event, feedAddress, intervalUnixTime.MIN60, price)
-  _storePricefeed(event, feedAddress, intervalUnixTime.HR4, price)
-  _storePricefeed(event, feedAddress, intervalUnixTime.HR24, price)
-  _storePricefeed(event, feedAddress, intervalUnixTime.DAY7, price)
+  _storePricefeed(event, tokenAddress, intervalUnixTime.MIN15, price)
+  _storePricefeed(event, tokenAddress, intervalUnixTime.MIN60, price)
+  _storePricefeed(event, tokenAddress, intervalUnixTime.HR4, price)
+  _storePricefeed(event, tokenAddress, intervalUnixTime.HR24, price)
+  _storePricefeed(event, tokenAddress, intervalUnixTime.DAY7, price)
 }
 
 export function _storeStake(event: ethereum.Event, isAdd: boolean, account: Address, token: string, contract: Address, amount: BigInt): void {
