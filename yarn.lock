@@ -5,32 +5,6 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@aelea/core@npm:1.1.0":
-  version: 1.1.0
-  resolution: "@aelea/core@npm:1.1.0"
-  dependencies:
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-  checksum: ae71b37cb95324f41f3ee3174d561b2af63489c01fcdf5f59ac9e9043a8067e67ab364663aeb975dc43efbf60fce7c1e1d11cd3c432fefaf60b9d202c728bbe2
-  languageName: node
-  linkType: hard
-
-"@aelea/core@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@aelea/core@npm:1.2.1"
-  dependencies:
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-  checksum: be0fe3c02b4a5ad50ca0c3f58e6b87baf7f5877b85fac611a7f3178a34c59f529f9a3d13fe6e9e460c04ba39f9443fdd6f0d6c7c73ee00bb1512c0dc7929c9c9
-  languageName: node
-  linkType: hard
-
 "@aelea/core@npm:1.3.0":
   version: 1.3.0
   resolution: "@aelea/core@npm:1.3.0"
@@ -41,59 +15,6 @@ __metadata:
     "@most/scheduler": 1.3.0
     "@most/types": 1.1.0
   checksum: 93cf93f044db9ed112e49c9ab1cfaa97c5aee77cc2252f265668e31d20c053df7634e1f383dbf54aa1e019fcd3c75f4434231c6dae115e3a2db357f472e842e8
-  languageName: node
-  linkType: hard
-
-"@aelea/dom@npm:0.2.0":
-  version: 0.2.0
-  resolution: "@aelea/dom@npm:0.2.0"
-  dependencies:
-    "@aelea/core": 1.1.0
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-    csstype: 3.0.9
-  checksum: a754f01ea18f377b538a499351e9b337f5621974c3af4e9e2223a37aa30c6f37c8176ac8a23e285cc8cae674260a73e3685d357c6a293b90ffe71c0191093a9a
-  languageName: node
-  linkType: hard
-
-"@aelea/router@npm:0.19.0":
-  version: 0.19.0
-  resolution: "@aelea/router@npm:0.19.0"
-  dependencies:
-    "@aelea/core": 1.1.0
-    "@aelea/dom": 0.2.0
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-  checksum: f580b9208e08cd37164c06c862694cfc772dcadac87efc53fc9efa4b7fd68358721cbebfe49e0f6b720e4fb13057c4cdbb0d7c540fcb7ee279bf93f192dbfb15
-  languageName: node
-  linkType: hard
-
-"@aelea/ui-components-theme@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@aelea/ui-components-theme@npm:0.10.0"
-  checksum: c16ea8366468494a05143ca6984c08415548acca33b3e50e18e18a6f0c2265a235d5115b704b0c52e05bc37290171ae66ca797d88e209e8b41d21f5d069156d6
-  languageName: node
-  linkType: hard
-
-"@aelea/ui-components@npm:0.28.0":
-  version: 0.28.0
-  resolution: "@aelea/ui-components@npm:0.28.0"
-  dependencies:
-    "@aelea/core": 1.2.1
-    "@aelea/dom": 0.2.0
-    "@aelea/ui-components-theme": 0.10.0
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-  checksum: b81c8c831b38bb8fc1ea78c01eaa8d34b8f6ed3d6cddf87a5248c42111b563e813803f83e4824c985d30c2c2422c4b59ca40d39625ef73da6c05d089dbc74e88
   languageName: node
   linkType: hard
 
@@ -570,7 +491,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/units@npm:5.5.0, @ethersproject/units@npm:^5.5.0":
+"@ethersproject/units@npm:5.5.0":
   version: 5.5.0
   resolution: "@ethersproject/units@npm:5.5.0"
   dependencies:
@@ -581,7 +502,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/wallet@npm:5.5.0, @ethersproject/wallet@npm:^5.5.0":
+"@ethersproject/wallet@npm:5.5.0":
   version: 5.5.0
   resolution: "@ethersproject/wallet@npm:5.5.0"
   dependencies:
@@ -653,7 +574,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gambitdao/gmx-middleware@0.7.0, @gambitdao/gmx-middleware@workspace:*, @gambitdao/gmx-middleware@workspace:utils":
+"@gambitdao/gmx-middleware@workspace:*, @gambitdao/gmx-middleware@workspace:utils":
   version: 0.0.0-use.local
   resolution: "@gambitdao/gmx-middleware@workspace:utils"
   dependencies:
@@ -675,39 +596,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gambitdao/ui-components@workspace:ui-components":
-  version: 0.0.0-use.local
-  resolution: "@gambitdao/ui-components@workspace:ui-components"
-  dependencies:
-    "@aelea/core": 1.3.0
-    "@aelea/dom": 0.2.0
-    "@aelea/router": 0.19.0
-    "@aelea/ui-components": 0.28.0
-    "@aelea/ui-components-theme": 0.10.0
-    "@ethersproject/abi": 5.5.0
-    "@ethersproject/abstract-signer": 5.5.0
-    "@ethersproject/bignumber": ^5.5.0
-    "@ethersproject/bytes": 5.5.0
-    "@ethersproject/contracts": ^5.5.0
-    "@ethersproject/hash": 5.5.0
-    "@ethersproject/keccak256": 5.5.0
-    "@ethersproject/providers": 5.5.3
-    "@ethersproject/strings": 5.5.0
-    "@ethersproject/units": ^5.5.0
-    "@ethersproject/wallet": ^5.5.0
-    "@gambitdao/gmx-contracts": 1.0.6
-    "@gambitdao/gmx-middleware": 0.7.0
-    "@gambitdao/wallet-link": "workspace:*"
-    "@metamask/detect-provider": ^1.2.0
-    "@most/core": 1.6.1
-    "@most/disposable": 1.3.0
-    "@most/prelude": 1.8.0
-    "@most/scheduler": 1.3.0
-    "@most/types": 1.1.0
-  languageName: unknown
-  linkType: soft
-
-"@gambitdao/wallet-link@workspace:*, @gambitdao/wallet-link@workspace:wallet-link":
+"@gambitdao/wallet-link@workspace:wallet-link":
   version: 0.0.0-use.local
   resolution: "@gambitdao/wallet-link@workspace:wallet-link"
   dependencies:
@@ -785,13 +674,6 @@ __metadata:
     "@json-rpc-tools/types": ^1.7.6
     "@pedrouid/environment": ^1.0.1
   checksum: 32cac2e8cbf8a15d95415de8ded483c6206e6df392e129ad51acd90a4842511e931156c59cb26036fb9fae8054e8f20b719a35282304f39cd18683a5293cb67d
-  languageName: node
-  linkType: hard
-
-"@metamask/detect-provider@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/detect-provider@npm:1.2.0"
-  checksum: 2c152534a8dd15bc1430bb5159cdf58993549a644cff344a1ff43f4ede8f041aad72b909e822747f6545de3ed293a740ecffc86a859daf7a925c4096efd61eb3
   languageName: node
   linkType: hard
 
@@ -2281,13 +2163,6 @@ __metadata:
     shebang-command: ^2.0.0
     which: ^2.0.1
   checksum: 671cc7c7288c3a8406f3c69a3ae2fc85555c04169e9d611def9a675635472614f1c0ed0ef80955d5b6d4e724f6ced67f0ad1bb006c2ea643488fcfef994d7f52
-  languageName: node
-  linkType: hard
-
-"csstype@npm:3.0.9":
-  version: 3.0.9
-  resolution: "csstype@npm:3.0.9"
-  checksum: 199f9af7e673f9f188525c3102a329d637ff46c52f6385a4427ff5cb17adcb736189150170a7af7c5701d18d7704bdad130273f4aa7e44c6c4f9967e6115dc93
   languageName: node
   linkType: hard
 
