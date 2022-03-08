@@ -7,7 +7,7 @@ import {
   IncreasePosition, LiquidatePosition, UpdatePosition, Trade, PriceLatest
 } from "../generated/schema"
 
-import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI } from "./helpers"
+import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI, _storeDefaultPricefeed } from "./helpers"
 
 
 const namedEventId = (name: string, ev: ethereum.Event): string => name + ':' + ev.transaction.hash.toHex()
@@ -34,7 +34,7 @@ export function handleIncreasePosition(event: contract.IncreasePosition): void {
   entity.fee = event.params.fee
 
   entity.save()
-  
+  _storeDefaultPricefeed(entity.indexToken, event, entity.price)
 
   const activeAggTradeKey = namedKeyEventId('Trade', activeTradeKey)
   let aggTrade = Trade.load(activeAggTradeKey)
@@ -100,8 +100,8 @@ export function handleDecreasePosition(event: contract.DecreasePosition): void {
   entity.price = event.params.price
   entity.fee = event.params.fee
 
-
   entity.save()
+  _storeDefaultPricefeed(entity.indexToken, event, entity.price)
 
   const activeAggTradeKey = namedKeyEventId('Trade', activeTradeKey)
   const aggTrade = Trade.load(activeAggTradeKey)
@@ -141,8 +141,8 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
   const aggTrade = Trade.load(activeAggTradeKey)
 
   if (aggTrade) {
-    // const price = event.params.markPrice
-    const price = PriceLatest.load(aggTrade.indexToken)!.value
+    const price = event.params.markPrice
+    // const price = PriceLatest.load(aggTrade.indexToken)!.value
 
     entity.markPrice = price
 
