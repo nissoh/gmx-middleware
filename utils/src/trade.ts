@@ -136,7 +136,6 @@ export function toAccountSummary(list: ITrade[]): IAccountSummary[] {
         realisedPnl: seed.realisedPnl + (next.realisedPnl - next.fee),
         size: seed.size + next.size,
         sizeDelta: seed.sizeDelta + next.sizeDelta,
-        realisedPnlPercentage: seed.realisedPnlPercentage + next.realisedPnlPercentage,
         
         winTradeCount: next.realisedPnl > 0n ? seed.winTradeCount + 1 : seed.winTradeCount,
         settledTradeCount: next.status === TradeStatus.CLOSED || next.status === TradeStatus.LIQUIDATED ? seed.settledTradeCount + 1 : seed.settledTradeCount,

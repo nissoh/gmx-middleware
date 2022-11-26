@@ -1,5 +1,5 @@
 enum IntervalTime {
-  _1
+  _300
   _900
   _3600
   _14400
@@ -28,6 +28,7 @@ enum TokenAddress {
   _0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7 # WAVAX
   _0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab # WETHE
   _0x50b7545627a5162f82a992c33b87adc75187b218 # WBTCE
+  _0x152b9d0fdc40c096757f570a51e494bd4b943e50 # BTCB
   _0x01234181085565ed162a948b6a5e88758cd7c7b8 # GLP
   _0x62edc0692bd897d2295872a9ffcac5425011c661 # GMX
   _0xff1489227bbaac61a9209a08929e4c2a526ddd17 # esGMX
@@ -53,12 +54,6 @@ type PriceLatest @entity {
   timestamp: Int!
 }
 
-type PriceTimeline @entity {
-  id: ID!
-  value: BigInt!
-  tokenAddress: TokenAddress!
-  timestamp: Int!
-}
 
 type Transaction @entity {
   id: ID!
@@ -189,10 +184,10 @@ type Trade @entity { # extends IncreasePosition
   size: BigInt!
   collateral: BigInt!
   averagePrice: BigInt!
+  realisedPnl: BigInt!  
+  realisedPnlPercentage: BigInt
 
   # Settlement
-  realisedPnl: BigInt!  
-  realisedPnlPercentage: BigInt!
   settledTimestamp: Int
   closedPosition: ClosePosition
   liquidatedPosition: LiquidatePosition

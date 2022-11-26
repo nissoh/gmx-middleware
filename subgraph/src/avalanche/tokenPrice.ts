@@ -1,24 +1,13 @@
-import { AnswerUpdated } from '../../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
+import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
-import { BI_22_PRECISION, _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
-import { GLP, WAVAX, WBTCE, WETHE } from './constant'
+import { _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
+import { GLP } from './constant'
 
-export function handleAnswerUpdatedBTC(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
 
-  _storeDefaultPricefeed(WBTCE, event, price)
-}
-
-export function handleAnswerUpdatedAVAX(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-
-  _storeDefaultPricefeed(WAVAX, event, price)
-}
-
-export function handleAnswerUpdatedETH(event: AnswerUpdated): void {
-  const price = event.params.current.times(BI_22_PRECISION)
-
-  _storeDefaultPricefeed(WETHE, event, price)
+export function handleFastPriceEvent(event: PriceUpdate): void {
+  const price = event.params.price
+  const token = event.params.token.toHex()
+  _storeDefaultPricefeed(token, event, price)
 }
 
 export function handleAddLiquidity(event: AddLiquidity): void {

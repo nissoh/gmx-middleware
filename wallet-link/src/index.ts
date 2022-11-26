@@ -1,5 +1,5 @@
 import { BaseProvider, TransactionReceipt, Web3Provider } from "@ethersproject/providers"
-import { CHAIN } from "@gambitdao/gmx-middleware"
+import { CHAIN, NETWORK_METADATA } from "@gambitdao/gmx-middleware"
 import { awaitPromises, constant, map, merge, mergeArray, snapshot } from "@most/core"
 import { Stream } from "@most/types"
 import { EIP1193Provider, ProviderInfo, ProviderRpcError } from "eip1193-provider"
@@ -95,7 +95,6 @@ export async function attemptToSwitchNetwork(metamask: EIP1193Provider, chain: C
       params: [{ chainId: '0x' + chain.toString(16) }], // chainId must be in hexadecimal numbers
     })
   } catch (error: any) {
-    // @ts-ignore
     if (!NETWORK_METADATA[chain]) {
       throw new Error(`Could not add metamask network, chainId ${chain} is not supported`)
     }
@@ -106,7 +105,6 @@ export async function attemptToSwitchNetwork(metamask: EIP1193Provider, chain: C
         await metamask.request({
           method: 'wallet_addEthereumChain',
           params: [
-            // @ts-ignore
             NETWORK_METADATA[chain]
           ],
         })

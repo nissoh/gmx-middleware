@@ -1,9 +1,16 @@
 import { AnswerUpdated } from '../../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
+import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Swap } from '../../generated/UniswapPool/UniswapPoolV3'
 import { getByAmoutFromFeed, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
 import { GLP, GMX, LINK, UNI, WBTC, WETH } from './constant'
 
+
+export function handleFastPriceEvent(event: PriceUpdate): void {
+  const price = event.params.price
+  const token = event.params.token.toHex()
+  _storeDefaultPricefeed(token, event, price)
+}
 
 
 export function handleAnswerUpdatedETH(event: AnswerUpdated): void {
@@ -20,7 +27,6 @@ export function handleAnswerUpdatedLINK(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
   _storeDefaultPricefeed(LINK, event, price)
 }
-
 export function handleAnswerUpdatedUNI(event: AnswerUpdated): void {
   const price = event.params.current.times(BI_22_PRECISION)
   _storeDefaultPricefeed(UNI, event, price)

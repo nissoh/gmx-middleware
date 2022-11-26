@@ -80,91 +80,26 @@ dataSources:
           handler: handleWithdrawVesting
       file: ./src/arbitrum/reward.ts
 
-
   - kind: ethereum/contract
-    name: ChainlinkAggregatorBTC
+    name: FastPriceFeed
     network: avalanche
     source:
-      address: "0x154baB1FC1D87fF641EeD0E9Bc0f8a50D880D2B6"
-      abi: ChainlinkAggregator
-      # startBlock: 6056544
+      address: "0x02b7023d43bc52bff8a0c54a9f2ecec053523bf6"
+      abi: FastPriceEvents
       startBlock: 8351228
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - ChainlinkPrice
+        - PriceUpdate
       abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
+        - name: FastPriceEvents
+          file: ./abis/FastPriceEvents.json
       eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedBTC
-      file: ./src/avalanche/tokenPrice.ts
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorETH
-    network: avalanche
-    source:
-      address: "0xEfaa69f461E0aaf0be1798b01371Daf14AC55eA8"
-      abi: ChainlinkAggregator
-      # startBlock: 6056544
-      startBlock: 8351228
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedETH
-      file: ./src/avalanche/tokenPrice.ts
-  - kind: ethereum/contract
-    name: ChainlinkAggregatorAVAX
-    network: avalanche
-    source:
-      address: "0x9450A29eF091B625e976cE66f2A5818e20791999"
-      abi: ChainlinkAggregator
-      # startBlock: 6056544
-      startBlock: 8351228
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - ChainlinkPrice
-      abis:
-        - name: ChainlinkAggregator
-          file: ./abis/ChainlinkAggregator.json
-      eventHandlers:
-        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
-          handler: handleAnswerUpdatedAVAX
-      file: ./src/avalanche/tokenPrice.ts
-
-  # - kind: ethereum/contract
-  #   name: GmxPrice
-  #   network: arbitrum-one
-  #   source:
-  #     address: "0x80A9ae39310abf666A87C743d6ebBD0E8C42158E"
-  #     abi: UniswapPoolV3
-  #     startBlock: 100000
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.5
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Pricefeed
-  #     abis:
-  #       - name: UniswapPoolV3
-  #         file: ./abis/UniswapPoolV3.json
-  #     eventHandlers:
-  #       - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
-  #         handler: handleUniswapGmxEthSwap
-  #     file: ./src/pricesMapping-arbitrum.ts
+        - event: PriceUpdate(address,uint256,address)
+          handler: handleFastPriceEvent
+      file: ./src/arbitrum/tokenPrice.ts
 
   - kind: ethereum/contract
     name: GlpManager

@@ -119,12 +119,7 @@ export interface IAccountSummary extends IAbstractTrade {
   claim: IClaim | null,
 }
 
-export interface IPriceTimeline {
-  id: string
-  value: bigint
-  tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
-  timestamp: string
-}
+
 export interface IPricefeed extends IndexedType<'Pricefeed'> {
   timestamp: number
   o: bigint

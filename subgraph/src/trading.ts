@@ -7,10 +7,11 @@ import {
   IncreasePosition, LiquidatePosition, UpdatePosition, Trade, PriceLatest
 } from "../generated/schema"
 
-import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI, _storeDefaultPricefeed } from "./helpers"
+import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI } from "./helpers"
 
 
-const namedEventId = (name: string, ev: ethereum.Event): string => name + ':' + ev.transaction.hash.toHex()
+const namedEventId = (name: string, ev: ethereum.Event): string => name + ':' + ev.logIndex.toString() + ':' + ev.transaction.hash.toHex()
+
 const namedKeyEventId = (name: string, key: string): string => name + ':' + key
 
 
@@ -34,20 +35,18 @@ export function handleIncreasePosition(event: contract.IncreasePosition): void {
   entity.fee = event.params.fee
 
   entity.save()
-  _storeDefaultPricefeed(entity.indexToken, event, entity.price)
 
   const activeAggTradeKey = namedKeyEventId('Trade', activeTradeKey)
   let aggTrade = Trade.load(activeAggTradeKey)
 
   if (aggTrade === null) {
     aggTrade = new Trade(activeAggTradeKey)
-    
+
     aggTrade.timestamp = entity.timestamp
-    aggTrade.indexToken = entity.indexToken
 
     aggTrade.account = entity.account
     aggTrade.collateralToken = entity.collateralToken
-    aggTrade.indexToken= entity.indexToken
+    aggTrade.indexToken = entity.indexToken
     aggTrade.key = entity.key
     aggTrade.isLong = entity.isLong
 
@@ -101,7 +100,6 @@ export function handleDecreasePosition(event: contract.DecreasePosition): void {
   entity.fee = event.params.fee
 
   entity.save()
-  _storeDefaultPricefeed(entity.indexToken, event, entity.price)
 
   const activeAggTradeKey = namedKeyEventId('Trade', activeTradeKey)
   const aggTrade = Trade.load(activeAggTradeKey)
@@ -135,16 +133,15 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
   entity.realisedPnl = event.params.realisedPnl
   entity.averagePrice = event.params.averagePrice
   entity.entryFundingRate = event.params.entryFundingRate
-    
+  entity.markPrice = event.params.markPrice
 
   const activeAggTradeKey = namedKeyEventId('Trade', activeTradeKey)
   const aggTrade = Trade.load(activeAggTradeKey)
 
   if (aggTrade) {
-    const price = event.params.markPrice
-    // const price = PriceLatest.load(aggTrade.indexToken)!.value
 
-    entity.markPrice = price
+    // Arbitrum
+    // entity.markPrice = PriceLatest.load(aggTrade.indexToken)!.value
 
     const updates = aggTrade.updateList
 
@@ -153,14 +150,12 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
     aggTrade.updateList = updates
 
     aggTrade.size = entity.size
-    aggTrade.collateral = entity.collateral
     aggTrade.averagePrice = entity.averagePrice
 
-    const realisedPnl = calculatePositionDelta(price, aggTrade.isLong, entity.size, entity.averagePrice)
-    const deltaPercentage = calculatePositionDeltaPercentage(realisedPnl, aggTrade.collateral)
+    aggTrade.realisedPnl = entity.realisedPnl
+    aggTrade.realisedPnlPercentage = calculatePositionDeltaPercentage(entity.realisedPnl, aggTrade.collateral)
 
-    aggTrade.realisedPnl = entity.realisedPnl.plus(realisedPnl)
-    aggTrade.realisedPnlPercentage = aggTrade.realisedPnlPercentage.plus(deltaPercentage)
+    aggTrade.collateral = entity.collateral
 
     aggTrade.save()
 
