@@ -3,6 +3,35 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
+    name: RewardRouterV3
+    network: arbitrum-one
+    source:
+      address: "0xB95DB5B167D75e6d04227CfFFA61069348d271F5"
+      abi: RewardRouterV3
+      startBlock: 100000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - StakeGmx
+        - UnstakeGmx
+        - StakeGlp
+        - UnstakeGlp
+      abis:
+        - name: RewardRouterV3
+          file: ./abis/RewardRouterV3.json
+      eventHandlers:
+        - event: StakeGmx(address,address,uint256)
+          handler: handleStakeGmxV2
+        - event: UnstakeGmx(address,address,uint256)
+          handler: handleUnstakeGmxV2
+        - event: StakeGlp(address,uint256)
+          handler: handleStakeGlp
+        - event: UnstakeGlp(address,uint256)
+          handler: handleUnstakeGlp
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
     name: RewardRouterV2
     network: arbitrum-one
     source:
@@ -11,7 +40,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - StakeGmx
@@ -40,7 +69,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - StakeGmx
@@ -69,7 +98,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - StakeGmx
@@ -90,7 +119,6 @@ dataSources:
           handler: handleUnstakeGlp
       file: ./src/arbitrum/reward.ts
 
-
   - kind: ethereum/contract
     name: VesterGMX
     network: arbitrum-one
@@ -100,7 +128,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Deposit
@@ -123,7 +151,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Deposit
@@ -138,7 +166,6 @@ dataSources:
           handler: handleWithdrawVesting
       file: ./src/arbitrum/reward.ts
 
-
   - kind: ethereum/contract
     name: ChainlinkAggregatorBTC
     network: arbitrum-one
@@ -148,7 +175,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ChainlinkPrice
@@ -168,7 +195,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ChainlinkPrice
@@ -188,7 +215,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ChainlinkPrice
@@ -208,7 +235,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ChainlinkPrice
@@ -220,7 +247,6 @@ dataSources:
           handler: handleAnswerUpdatedLINK
       file: ./src/arbitrum/tokenPrice.ts
 
-
   - kind: ethereum/contract
     name: FastPriceFeed
     network: arbitrum-one
@@ -230,7 +256,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - PriceUpdate
@@ -242,8 +268,6 @@ dataSources:
           handler: handleFastPriceEvent
       file: ./src/arbitrum/tokenPrice.ts
  
-
-
   - kind: ethereum/contract
     name: GmxPrice
     network: arbitrum-one
@@ -253,7 +277,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Pricefeed
@@ -273,7 +297,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Pricefeed
@@ -287,7 +311,6 @@ dataSources:
           handler: handleRemoveLiquidity
       file: ./src/arbitrum/tokenPrice.ts
 
-
   - kind: ethereum/contract
     name: gmxVault
     network: arbitrum-one
@@ -297,7 +320,7 @@ dataSources:
       startBlock: 100000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - ClosePosition

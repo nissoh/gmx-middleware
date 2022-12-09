@@ -2,7 +2,7 @@ import { AnswerUpdated } from '../../generated/ChainlinkAggregatorETH/ChainlinkA
 import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Swap } from '../../generated/UniswapPool/UniswapPoolV3'
-import { getByAmoutFromFeed, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
+import { getTokenUsdAmount, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
 import { GLP, GMX, LINK, UNI, WBTC, WETH } from './constant'
 
 
@@ -34,7 +34,7 @@ export function handleAnswerUpdatedUNI(event: AnswerUpdated): void {
 
 export function handleUniswapGmxEthSwap(event: Swap): void {
   const ethPerGmx = event.params.amount0.times(BI_18_PRECISION).div(event.params.amount1).abs()
-  const price = getByAmoutFromFeed(ethPerGmx, WETH, TokenDecimals.WETH)
+  const price = getTokenUsdAmount(ethPerGmx, WETH, TokenDecimals.WETH)
 
   _storeDefaultPricefeed(GMX, event, price)
 }

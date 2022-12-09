@@ -4,7 +4,7 @@ import * as contract from "../generated/gmxVault/gmxVault"
 import {
   ClosePosition,
   DecreasePosition,
-  IncreasePosition, LiquidatePosition, UpdatePosition, Trade, PriceLatest
+  IncreasePosition, LiquidatePosition, UpdatePosition, Trade
 } from "../generated/schema"
 
 import { calculatePositionDelta, calculatePositionDeltaPercentage, ZERO_BI } from "./helpers"
@@ -151,7 +151,6 @@ export function handleUpdatePosition(event: contract.UpdatePosition): void {
 
     aggTrade.size = entity.size
     aggTrade.averagePrice = entity.averagePrice
-
     aggTrade.realisedPnl = entity.realisedPnl
     aggTrade.realisedPnlPercentage = calculatePositionDeltaPercentage(entity.realisedPnl, aggTrade.collateral)
 

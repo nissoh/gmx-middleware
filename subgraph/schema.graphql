@@ -70,6 +70,7 @@ type Stake @entity {
   account: String!
   token: TokenAddress!
   amount: BigInt!
+  amountUsd: BigInt!
 
   transaction: Transaction!
   timestamp: Int!
