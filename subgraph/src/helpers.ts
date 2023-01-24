@@ -1,9 +1,16 @@
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
+import {  BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { AddLiquidity, RemoveLiquidity } from "../generated/GlpManager/GlpManager"
-import { Transaction, Pricefeed, Stake, PriceLatest } from "../generated/schema"
+import { Transfer, Pricefeed, PriceLatest, Claim } from "../generated/schema"
 import { getIntervalId, getIntervalIdentifier } from "./interval"
+import * as erc20 from "../generated/transferGmx/ERC20"
+
+export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
+export const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 export const BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
+export const FUNDING_RATE_PRECISION = BigInt.fromI32(1000000)
+export const MARGIN_FEE_BASIS_POINTS = BigInt.fromI32(10)
+
 
 export const ZERO_BI = BigInt.fromI32(0)
 export const ONE_BI = BigInt.fromI32(1)
@@ -84,33 +91,6 @@ export function getIdFromEvent(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + ':' + event.logIndex.toString()
 }
 
-export function _createTransaction(event: ethereum.Event, id: string): Transaction {
-  const to = event.transaction.to
-  const entity = new Transaction(id)
-
-  entity.timestamp = event.block.timestamp.toI32()
-  entity.blockNumber = event.block.number.toI32()
-  entity.from = event.transaction.from.toHexString()
-
-  if (to !== null) {
-    entity.to = to.toHexString()
-  }
-
-  return entity
-}
-
-export function _createTransactionIfNotExist(event: ethereum.Event): string {
-  const id = event.transaction.hash.toHexString()
-  let entity = Transaction.load(id)
-
-  if (entity === null) {
-    entity = _createTransaction(event, id)
-    entity.save()
-  }
-
-  return id
-}
-
 export function calculatePositionDelta(marketPrice: BigInt, isLong: boolean, size: BigInt, averagePrice: BigInt): BigInt {
   const priceDelta = averagePrice.gt(marketPrice) ? averagePrice.minus(marketPrice) : marketPrice.minus(averagePrice)
 
@@ -132,7 +112,6 @@ export function calculatePositionDeltaPercentage(delta: BigInt, collateral: BigI
   return  delta.times(BASIS_POINTS_DIVISOR).div(collateral)
 }
 
-
 export function _storePriceLatest(tokenAddress: string, price: BigInt, event: ethereum.Event): PriceLatest {
   let entity = PriceLatest.load(tokenAddress)
   if (entity === null) {
@@ -145,7 +124,6 @@ export function _storePriceLatest(tokenAddress: string, price: BigInt, event: et
 
   return entity
 }
-
 
 export function _storePricefeed(event: ethereum.Event, token: string, interval: intervalUnixTime, price: BigInt): void {
   const intervalID = getIntervalId(interval, event)
@@ -176,8 +154,6 @@ export function _storePricefeed(event: ethereum.Event, token: string, interval: 
   entity.save()
 }
 
-
-
 export function _storeGlpAddLiqPricefeed(priceFeed: string, event: AddLiquidity): void {
   const price = event.params.aumInUsdg.equals(ZERO_BI)
     ? ONE_BI :
@@ -205,17 +181,21 @@ export function _storeDefaultPricefeed(tokenAddress: string, event: ethereum.Eve
   _storePricefeed(event, tokenAddress, intervalUnixTime.DAY7, price)
 }
 
-export function _storeStake(event: ethereum.Event, isAdd: boolean, account: Address, token: string, contract: Address, amount: BigInt, amountUsd: BigInt): void {
-  const entity = new Stake(getIdFromEvent(event))
+export const uniqueEventId = (ev: ethereum.Event): string => ev.transaction.hash.toHex() + ':' + ev.logIndex.toString()
 
-  entity.account = account.toHexString()
-  entity.contract = contract.toHexString()
-  entity.token = '_' + token
-  entity.amount = isAdd ? amount : negate(amount)
-  entity.amountUsd = isAdd ? amountUsd : negate(amountUsd)
-  entity.transaction = _createTransactionIfNotExist(event)
-  entity.timestamp = event.block.timestamp.toI32()
 
-  entity.save()
+export function _storeERC20Transfer(token: string, event: erc20.Transfer, amountUsd: BigInt): void {
+  const from = event.params.from.toHexString()
+  const to = event.params.to.toHexString()
+  const id = uniqueEventId(event)
+
+  const transfer = new Transfer(id)
+  transfer.token = token
+  transfer.from = from
+  transfer.to = to
+  transfer.amount = event.params.value
+  transfer.amountUsd = amountUsd
+  transfer.timestamp = event.block.timestamp
+
+  transfer.save()
 }
-

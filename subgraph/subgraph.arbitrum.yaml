@@ -2,168 +2,107 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
+
   - kind: ethereum/contract
-    name: RewardRouterV3
+    name: transferGmx
     network: arbitrum-one
     source:
-      address: "0xB95DB5B167D75e6d04227CfFFA61069348d271F5"
-      abi: RewardRouterV3
-      startBlock: 100000
+      address: "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a"
+      abi: ERC20
+      startBlock: 147903
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
+        - Transfer
       abis:
-        - name: RewardRouterV3
-          file: ./abis/RewardRouterV3.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
-        - event: StakeGmx(address,address,uint256)
-          handler: handleStakeGmxV2
-        - event: UnstakeGmx(address,address,uint256)
-          handler: handleUnstakeGmxV2
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGmxTransfer
       file: ./src/arbitrum/reward.ts
   - kind: ethereum/contract
-    name: RewardRouterV2
+    name: transferGlp
     network: arbitrum-one
     source:
-      address: "0xA906F338CB21815cBc4Bc87ace9e68c87eF8d8F1"
-      abi: RewardRouterV2
-      startBlock: 100000
+      address: "0x4277f8f2c384827b5273592ff7cebd9f2c1ac258"
+      abi: ERC20
+      startBlock: 218168
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
+        - Transfer
       abis:
-        - name: RewardRouterV2
-          file: ./abis/RewardRouterV2.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
-        - event: StakeGmx(address,address,uint256)
-          handler: handleStakeGmxV2
-        - event: UnstakeGmx(address,address,uint256)
-          handler: handleUnstakeGmxV2
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlpTransfer
       file: ./src/arbitrum/reward.ts
   - kind: ethereum/contract
-    name: RewardRouterV1
+    name: transferEsGmx
     network: arbitrum-one
     source:
-      address: "0xc73d553473dC65CE56db96c58e6a091c20980fbA"
-      abi: RewardRouter
-      startBlock: 100000
+      address: "0xf42Ae1D54fd613C9bb14810b0588FaAa09a426cA"
+      abi: ERC20
+      startBlock: 147904
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
+        - Transfer
       abis:
-        - name: RewardRouter
-          file: ./abis/RewardRouter.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
-        - event: StakeGmx(address,uint256)
-          handler: handleStakeGmxV1
-        - event: UnstakeGmx(address,uint256)
-          handler: handleUnstakeGmxV1
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
-      file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
-    name: RewardRouterMigration
-    network: arbitrum-one
-    source:
-      address: "0x7b01acf6e7e9cc276e644ac65d770c1131583453"
-      abi: RewardRouter
-      startBlock: 100000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
-      abis:
-        - name: RewardRouter
-          file: ./abis/RewardRouter.json
-      eventHandlers:
-        - event: StakeGmx(address,uint256)
-          handler: handleStakeGmxV1
-        - event: UnstakeGmx(address,uint256)
-          handler: handleUnstakeGmxV1
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleEsGmxTransfer
       file: ./src/arbitrum/reward.ts
 
   - kind: ethereum/contract
-    name: VesterGMX
+    name: FeeGmxTrackerClaim
     network: arbitrum-one
     source:
-      address: "0x199070DDfd1CFb69173aa2F7e20906F26B363004"
-      abi: Vester
-      startBlock: 100000
+      address: "0xd2D1162512F927a7e282Ef43a362659E4F2a728F"
+      abi: RewardTracker
+      startBlock: 147921
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Deposit
-        - Withdraw
+        - Claim
       abis:
-        - name: Vester
-          file: ./abis/Vester.json
+        - name: RewardTracker
+          file: ./abis/RewardTracker.json
       eventHandlers:
-        - event: Deposit(address,uint256)
-          handler: handleDepositVesting
-        - event: Withdraw(address,uint256,uint256)
-          handler: handleWithdrawVesting
+        - event: Claim(address,uint256)
+          handler: handleClaimFees
       file: ./src/arbitrum/reward.ts
   - kind: ethereum/contract
-    name: VesterGLP
+    name: FeeGlpTrackerClaim
     network: arbitrum-one
     source:
-      address: "0xA75287d2f8b217273E7FCD7E86eF07D33972042E"
-      abi: Vester
-      startBlock: 100000
+      address: "0x4e971a87900b931fF39d1Aad67697F49835400b6"
+      abi: RewardTracker
+      startBlock: 218203
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Deposit
-        - Withdraw
+        - Claim
       abis:
-        - name: Vester
-          file: ./abis/Vester.json
+        - name: RewardTracker
+          file: ./abis/RewardTracker.json
       eventHandlers:
-        - event: Deposit(address,uint256)
-          handler: handleDepositVesting
-        - event: Withdraw(address,uint256,uint256)
-          handler: handleWithdrawVesting
+        - event: Claim(address,uint256)
+          handler: handleClaimFees
       file: ./src/arbitrum/reward.ts
 
   - kind: ethereum/contract
@@ -172,7 +111,7 @@ dataSources:
     source:
       address: "0x942d00008D658dbB40745BBEc89A93c253f9B882"
       abi: ChainlinkAggregator
-      startBlock: 100000
+      startBlock: 101502
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -186,13 +125,14 @@ dataSources:
         - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
           handler: handleAnswerUpdatedBTC
       file: ./src/arbitrum/tokenPrice.ts
+
   - kind: ethereum/contract
     name: ChainlinkAggregatorETH
     network: arbitrum-one
     source:
       address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
       abi: ChainlinkAggregator
-      startBlock: 100000
+      startBlock: 101486
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -207,12 +147,12 @@ dataSources:
           handler: handleAnswerUpdatedETH
       file: ./src/arbitrum/tokenPrice.ts
   - kind: ethereum/contract
-    name: ChainlinkAggregatorUNI
+    name: ChainlinkAggregator
     network: arbitrum-one
     source:
       address: "0xeFc5061B7a8AeF31F789F1bA5b3b8256674F2B71"
       abi: ChainlinkAggregator
-      startBlock: 100000
+      startBlock: 226749
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -232,7 +172,7 @@ dataSources:
     source:
       address: "0x9b8DdcF800a7BfCdEbaD6D65514dE59160a2C9CC"
       abi: ChainlinkAggregator
-      startBlock: 100000
+      startBlock: 101494
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -253,7 +193,7 @@ dataSources:
     source:
       address: "0x4530b7DE1958270A2376be192a24175D795e1b07"
       abi: FastPriceEvents
-      startBlock: 100000
+      startBlock: 3716732
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -274,7 +214,7 @@ dataSources:
     source:
       address: "0x80A9ae39310abf666A87C743d6ebBD0E8C42158E"
       abi: UniswapPoolV3
-      startBlock: 100000
+      startBlock: 227335
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -288,13 +228,14 @@ dataSources:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleUniswapGmxEthSwap
       file: ./src/arbitrum/tokenPrice.ts
+
   - kind: ethereum/contract
     name: GlpManager
     network: arbitrum-one
     source:
       address: "0x321F653eED006AD1C29D174e17d96351BDe22649"
       abi: GlpManager
-      startBlock: 100000
+      startBlock: 227115
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -312,12 +253,35 @@ dataSources:
       file: ./src/arbitrum/tokenPrice.ts
 
   - kind: ethereum/contract
+    name: positionRouter
+    network: arbitrum-one
+    source:
+      address: "0xb87a436B93fFE9D75c5cFA7bAcFff96430b09868"
+      abi: positionRouter
+      startBlock: 29856759
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ReferralAdjustment
+      abis:
+        - name: positionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/trading.ts
+
+  - kind: ethereum/contract
     name: gmxVault
     network: arbitrum-one
     source:
       address: "0x489ee077994b6658eafa855c308275ead8097c4a"
       abi: gmxVault
-      startBlock: 100000
+      startBlock: 227091
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -332,6 +296,8 @@ dataSources:
       abis:
         - name: gmxVault
           file: ./abis/Vault-arbitrum.json
+        - name: ReferralStorage
+          file: ./abis/ReferralStorage.json
       eventHandlers:
         - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
           handler: handleClosePosition

@@ -2,112 +2,7 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: RewardRouterV3
-    network: avalanche
-    source:
-      address: "0xD152c7F25db7F4B95b7658323c5F33d176818EE4"
-      abi: RewardRouterV3
-      startBlock: 22742389
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
-      abis:
-        - name: RewardRouterV3
-          file: ./abis/RewardRouterV3.json
-      eventHandlers:
-        - event: StakeGmx(address,address,uint256)
-          handler: handleStakeGmx
-        - event: UnstakeGmx(address,address,uint256)
-          handler: handleUnstakeGmx
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
-      file: ./src/avalanche/reward.ts
-  - kind: ethereum/contract
-    name: RewardRouterV2
-    network: avalanche
-    source:
-      address: "0x82147C5A7E850eA4E28155DF107F2590fD4ba327"
-      abi: RewardRouterV2
-      startBlock: 8353520
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - StakeGmx
-        - UnstakeGmx
-        - StakeGlp
-        - UnstakeGlp
-      abis:
-        - name: RewardRouterV2
-          file: ./abis/RewardRouterV2.json
-      eventHandlers:
-        - event: StakeGmx(address,address,uint256)
-          handler: handleStakeGmx
-        - event: UnstakeGmx(address,address,uint256)
-          handler: handleUnstakeGmx
-        - event: StakeGlp(address,uint256)
-          handler: handleStakeGlp
-        - event: UnstakeGlp(address,uint256)
-          handler: handleUnstakeGlp
-      file: ./src/avalanche/reward.ts
 
-
-  - kind: ethereum/contract
-    name: VesterGMX
-    network: avalanche
-    source:
-      address: "0x472361d3cA5F49c8E633FB50385BfaD1e018b445"
-      abi: Vester
-      startBlock: 8200001
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Deposit
-        - Withdraw
-      abis:
-        - name: Vester
-          file: ./abis/Vester.json
-      eventHandlers:
-        - event: Deposit(address,uint256)
-          handler: handleDepositVesting
-        - event: Withdraw(address,uint256,uint256)
-          handler: handleWithdrawVesting
-      file: ./src/arbitrum/reward.ts
-  - kind: ethereum/contract
-    name: VesterGLP
-    network: avalanche
-    source:
-      address: "0x62331A7Bd1dfB3A7642B7db50B5509E57CA3154A"
-      abi: Vester
-      startBlock: 8200001
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Deposit
-        - Withdraw
-      abis:
-        - name: Vester
-          file: ./abis/Vester.json
-      eventHandlers:
-        - event: Deposit(address,uint256)
-          handler: handleDepositVesting
-        - event: Withdraw(address,uint256,uint256)
-          handler: handleWithdrawVesting
-      file: ./src/arbitrum/reward.ts
 
   - kind: ethereum/contract
     name: FastPriceFeed
@@ -174,6 +69,8 @@ dataSources:
       abis:
         - name: gmxVault
           file: ./abis/Vault-avalanche.json
+        - name: ReferralStorage
+          file: ./abis/ReferralStorage.json
       eventHandlers:
         - event: ClosePosition(bytes32,uint256,uint256,uint256,uint256,uint256,int256)
           handler: handleClosePosition
@@ -188,6 +85,29 @@ dataSources:
       file: ./src/trading.ts
 
   - kind: ethereum/contract
+    name: positionRouter
+    network: avalanche
+    source:
+      address: "0xffF6D276Bc37c61A23f06410Dce4A400f66420f8"
+      abi: positionRouter
+      startBlock: 21006712
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - ReferralAdjustment
+      abis:
+        - name: positionRouter
+          file: ./abis/PositionRouter.json
+      eventHandlers:
+        - event: IncreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleIncreasePositionReferral
+        - event: DecreasePositionReferral(address,uint256,uint256,bytes32,address)
+          handler: handleDecreasePositionReferral
+      file: ./src/trading.ts
+
+  - kind: ethereum/contract
     name: GmxPrice
     network: avalanche
     source:
@@ -199,7 +119,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - PriceLatest
+        - Sync
       abis:
         - name: TraderJoePool
           file: ./abis/TraderJoePool.json

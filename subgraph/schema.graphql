@@ -54,30 +54,26 @@ type PriceLatest @entity {
   timestamp: Int!
 }
 
-
-type Transaction @entity {
+type Transfer @entity(immutable: true) {
   id: ID!
-  blockNumber: Int!
-  timestamp: Int!
+  token: String!
   from: String!
-  to: String
-}
-
-type Stake @entity {
-  id: ID!
-  contract: String!
-
-  account: String!
-  token: TokenAddress!
+  to: String!
   amount: BigInt!
   amountUsd: BigInt!
+  timestamp: BigInt!
+}
 
-  transaction: Transaction!
-  timestamp: Int!
+type Claim @entity(immutable: true) {
+  id: ID!
+  receiver: String!
+  amount: BigInt!
+  amountUsd: BigInt!
 }
 
 
-type IncreasePosition @entity {
+
+type IncreasePosition @entity(immutable: true) {
   id: ID!
   timestamp: Int!
 
@@ -93,7 +89,7 @@ type IncreasePosition @entity {
   fee: BigInt!
 }
 
-type DecreasePosition @entity {
+type DecreasePosition @entity(immutable: true) {
   id: ID!
   timestamp: Int!
 
@@ -109,7 +105,7 @@ type DecreasePosition @entity {
   fee: BigInt!
 }
 
-type UpdatePosition @entity {
+type UpdatePosition @entity(immutable: true) {
   id: ID!
   timestamp: Int!
 
@@ -125,7 +121,18 @@ type UpdatePosition @entity {
   markPrice: BigInt!
 }
 
-type ClosePosition @entity {
+type ReferralAdjustment @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+
+  account: String!
+  sizeDelta: BigInt!
+  marginFeeBasisPoints: BigInt!
+  referralCode: String!
+  referrer: String!
+}
+
+type ClosePosition @entity(immutable: true) {
   id: ID!
   timestamp: Int!
 
@@ -139,7 +146,7 @@ type ClosePosition @entity {
   entryFundingRate: BigInt!
 }
 
-type LiquidatePosition @entity {
+type LiquidatePosition @entity(immutable: true) {
   id: ID!
   timestamp: Int!
 
@@ -187,6 +194,9 @@ type Trade @entity { # extends IncreasePosition
   averagePrice: BigInt!
   realisedPnl: BigInt!  
   realisedPnlPercentage: BigInt
+  entryFundingRate: BigInt!
+  entryReferralCode: String!
+  entryReferrer: String!
 
   # Settlement
   settledTimestamp: Int

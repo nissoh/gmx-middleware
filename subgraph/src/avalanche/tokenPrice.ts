@@ -1,8 +1,7 @@
-import { BigInt } from '@graphprotocol/graph-ts'
 import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Sync } from '../../generated/GmxPrice/TraderJoePool'
-import { getTokenUsdAmount, TokenDecimals, _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
+import { BI_18_PRECISION, getTokenUsdAmount, TokenDecimals, _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
 import { GLP, GMX, WAVAX } from './constant'
 
 
@@ -21,7 +20,7 @@ export function handleRemoveLiquidity(event: RemoveLiquidity): void {
 }
 
 export function handleTraderJoeGmxAvaxSwap(event: Sync): void {
-  const avaxPerGmx = event.params.reserve0.times(BigInt.fromI32(TokenDecimals.GMX)).div(event.params.reserve1).abs()
+  const avaxPerGmx = event.params.reserve0.times(BI_18_PRECISION).div(event.params.reserve1).abs()
   const price = getTokenUsdAmount(avaxPerGmx, WAVAX, TokenDecimals.AVAX)
 
   _storeDefaultPricefeed(GMX, event, price)

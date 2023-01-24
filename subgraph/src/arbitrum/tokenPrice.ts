@@ -1,7 +1,7 @@
 import { AnswerUpdated } from '../../generated/ChainlinkAggregatorETH/ChainlinkAggregator'
 import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
-import { Swap } from '../../generated/UniswapPool/UniswapPoolV3'
+import { Swap } from '../../generated/GmxPrice/UniswapPoolV3'
 import { getTokenUsdAmount, BI_22_PRECISION, TokenDecimals, _storeDefaultPricefeed, BI_18_PRECISION, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
 import { GLP, GMX, LINK, UNI, WBTC, WETH } from './constant'
 
