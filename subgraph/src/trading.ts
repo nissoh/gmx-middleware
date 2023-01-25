@@ -72,10 +72,10 @@ export function handleIncreasePosition(event: contract.IncreasePosition): void {
 
 
   const referralStorageInstance = referralStorage.ReferralStorage.bind(Address.fromString(ReferralStorage))
-  const refInfo = referralStorageInstance.getTraderReferralInfo(event.params.account)
+  const refInfo = referralStorageInstance.try_getTraderReferralInfo(event.params.account)
 
-  const referralCode = refInfo.value0.toHex()
-  const referrer = refInfo.value1.toHex()
+  const referralCode = refInfo.reverted ? ZERO_BYTES32 : refInfo.value.value0.toHex()
+  const referrer = refInfo.reverted ? ADDRESS_ZERO : refInfo.value.value1.toHex()
 
   if (aggTrade === null) {
     aggTrade = new Trade(activeAggTradeKey)
@@ -151,14 +151,17 @@ export function handleDecreasePosition(event: contract.DecreasePosition): void {
 
   if (aggTrade) {
     const referralStorageInstance = referralStorage.ReferralStorage.bind(Address.fromString(ReferralStorage))
-    const refInfo = referralStorageInstance.getTraderReferralInfo(event.params.account)
+    const refInfo = referralStorageInstance.try_getTraderReferralInfo(event.params.account)
 
-    const referrer = refInfo.value1.toHex()
 
-    if (refInfo.value1.notEqual(Address.fromString(aggTrade.entryReferrer))) {
-      log.warning('referrer :' + referrer + ' entry: ' + aggTrade.entryReferrer, [])
-      aggTrade.entryReferralCode = ZERO_BYTES32
-      aggTrade.entryReferrer = ADDRESS_ZERO
+    if (!refInfo.reverted) {
+      const referrer = refInfo.value.value1.toHex()
+
+      if (refInfo.value.value1.notEqual(Address.fromString(aggTrade.entryReferrer))) {
+        log.warning('referrer :' + referrer + ' entry: ' + aggTrade.entryReferrer, [])
+        aggTrade.entryReferralCode = ZERO_BYTES32
+        aggTrade.entryReferrer = ADDRESS_ZERO
+      }
     }
 
     const decreaseList = aggTrade.decreaseList

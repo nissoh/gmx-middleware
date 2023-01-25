@@ -3,6 +3,67 @@ schema:
   file: ./schema.graphql
 dataSources:
 
+  - kind: ethereum/contract
+    name: transferGmx
+    network: avalanche
+    source:
+      address: "0x62edc0692bd897d2295872a9ffcac5425011c661"
+      abi: ERC20
+      startBlock: 8352150
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGmxTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferEsGmx
+    network: avalanche
+    source:
+      address: "0xff1489227bbaac61a9209a08929e4c2a526ddd17"
+      abi: ERC20
+      startBlock: 8352193
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleEsGmxTransfer
+      file: ./src/arbitrum/reward.ts
+  - kind: ethereum/contract
+    name: transferGlp
+    network: avalanche
+    source:
+      address: "0x01234181085565ed162a948b6a5e88758cd7c7b8"
+      abi: ERC20
+      startBlock: 8351255
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleGlpTransfer
+      file: ./src/arbitrum/reward.ts
+
 
   - kind: ethereum/contract
     name: FastPriceFeed
