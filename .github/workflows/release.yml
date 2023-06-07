@@ -34,9 +34,3 @@ jobs:
 
       - name: Build
         run: yarn build
-
-      - name: Publish if versioned
-        if: contains(github.ref, 'master')
-        run: yarn publish
-        env:
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH }}
