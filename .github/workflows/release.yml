@@ -18,19 +18,8 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Check if commit includes version information
-        # Run `yarn version check --interactive` before committing
-        if: contains(github.ref, 'master')
-        run: yarn version check
-
-      # - name: set checksum behavior
-      #   run: set -x YARN_CHECKSUM_BEHAVIOR update
-
       - name: Install Dependencies
-        run: yarn install --immutable
-
-      - name: Lint
-        run: yarn eslint
+        run: pnpm i
 
       - name: Build
-        run: yarn build
+        run: pnpm run build
