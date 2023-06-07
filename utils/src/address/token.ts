@@ -1,136 +1,170 @@
-import { CHAIN } from "../constant"
-import { TokenDescription } from "../types"
-import { ARBITRUM_TRADEABLE_ADDRESS, ARBITRUM_USD_COINS } from "./arbitrum"
-import { AVALANCHE_TRADEABLE_ADDRESS, AVALANCHE_USD_COINS } from "./avalanche"
-import { TOKEN_SYMBOL } from "./symbol"
+import { CHAIN } from "middleware-const"
+import { ITokenDescription } from "../types.js"
+import { groupByKey } from "../utils.js"
+import { ARBITRUM_ADDRESS } from "./arbitrum.js"
+import { AVALANCHE_ADDRESS } from "./avalanche.js"
+import { TOKEN_SYMBOL } from "./symbol.js"
 
 
-export const AddressZero = "0x0000000000000000000000000000000000000000"
 
-
-const TOKEN_DESCRIPTION_LIST = [
+export const TOKEN_DESCRIPTION_LIST = [
+  {
+    name: "GLP",
+    symbol: TOKEN_SYMBOL.GLP,
+    decimals: 18,
+    isStable: false,
+  },
+  {
+    name: "GMX",
+    symbol: TOKEN_SYMBOL.GMX,
+    decimals: 18,
+    isStable: false,
+  },
+  {
+    name: "Escrow GMX",
+    symbol: TOKEN_SYMBOL.ESGMX,
+    decimals: 18,
+    isStable: false,
+  },
   {
     name: "Avalanche",
     symbol: TOKEN_SYMBOL.AVAX,
     decimals: 18,
+    isStable: false,
+  },
+  {
+    name: "Wrapped AVAX",
+    symbol: TOKEN_SYMBOL.WAVAX,
+    decimals: 18,
+    isStable: false,
   },
   {
     name: "Chainlink",
     symbol: TOKEN_SYMBOL.LINK,
     decimals: 18,
+    isStable: false,
   },
   {
-    name: "Bitcoin",
-    symbol: TOKEN_SYMBOL.BTC,
-    decimals: 18,
+    name: "Bitcoin (WBTC.e)",
+    symbol: TOKEN_SYMBOL.WBTCE,
+    decimals: 8,
+    isStable: false,
+  },
+  {
+    name: "Wrapped Bitcoin",
+    symbol: TOKEN_SYMBOL.WBTC,
+    decimals: 8,
+    isStable: false,
+  },
+  {
+    name: "Bitcoin (BTC.b)",
+    symbol: TOKEN_SYMBOL.BTCB,
+    decimals: 8,
+    isStable: false,
   },
   {
     name: "Ethereum",
     symbol: TOKEN_SYMBOL.ETH,
     decimals: 18,
+    isStable: false,
+  },
+  {
+    name: "Wrapped Ethereum",
+    symbol: TOKEN_SYMBOL.WETH,
+    decimals: 18,
+    isStable: false,
   },
   {
     name: "Uniswap",
     symbol: TOKEN_SYMBOL.UNI,
     decimals: 18,
+    isStable: false,
   },
-] as TokenDescription[]
+  {
+    name: "USD Coin",
+    symbol: TOKEN_SYMBOL.USDC,
+    decimals: 6,
+    isStable: true,
+  },
+  {
+    name: "USD Coin (USDC.e)",
+    symbol: TOKEN_SYMBOL.USDCE,
+    decimals: 6,
+    isStable: true,
+  },
+  {
+    name: "Tether",
+    symbol: TOKEN_SYMBOL.USDT,
+    decimals: 6,
+    isStable: true,
+  },
+  {
+    name: "Dai",
+    symbol: TOKEN_SYMBOL.DAI,
+    decimals: 18,
+    isStable: true,
+  },
+  {
+    name: "Frax",
+    symbol: TOKEN_SYMBOL.FRAX,
+    decimals: 18,
+    isStable: true,
+  },
+  {
+    name: "Magic Internet Money",
+    symbol: TOKEN_SYMBOL.MIM,
+    decimals: 18,
+    isStable: true,
+  },
+  
+] as ITokenDescription[]
 
 
+export const TOKEN_DESCRIPTION_MAP = groupByKey(TOKEN_DESCRIPTION_LIST, token => token.symbol)
 
-export function groupByMapMany<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
-  const map: { [P in B]: A[] } = {} as any
 
-  list.forEach(item => {
-    const key = getKey(item)
+export const CHAIN_NATIVE_TO_SYMBOL = {
+  [CHAIN.AVALANCHE]: TOKEN_SYMBOL.AVAX,
+  [CHAIN.ARBITRUM]: TOKEN_SYMBOL.ETH,
+} as const
 
-    map[key] ??= []
-    map[key].push(item)
-  })
-
-  return map
+export const CHAIN_ADDRESS_MAP = {
+  [CHAIN.AVALANCHE]: AVALANCHE_ADDRESS,
+  [CHAIN.ARBITRUM]: ARBITRUM_ADDRESS,
 }
-
-export function getMappedKeyByValue<T>(map: { [P in keyof T]: T[P] }, match: T[keyof T]): keyof T {
-  const entires = Object.entries(map)
-  const [tokenAddress]: any[] = entires.find(([_, symb]) => symb === match) || []
-
-  if (!tokenAddress) {
-    throw new Error(`No token ${match} matched`)
-  }
-
-  return tokenAddress
-}
-
-export function groupByMap<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
-  const map: { [P in B]: A } = {} as any
-
-  list.forEach((item) => {
-    const key = getKey(item)
-
-    if (map[key]) {
-      console.warn(new Error(`${groupByMap.name}() is overwriting property: ${key}`))
-    }
-
-    map[key] = item
-  })
-
-  return map
-}
-
-export const TOKEN_DESCRIPTION_MAP = groupByMap(TOKEN_DESCRIPTION_LIST, token => token.symbol)
-
 
 export const TOKEN_ADDRESS_TO_SYMBOL = {
-  [ARBITRUM_TRADEABLE_ADDRESS.LINK]: TOKEN_SYMBOL.LINK,
-  [ARBITRUM_TRADEABLE_ADDRESS.UNI]: TOKEN_SYMBOL.UNI,
-  [ARBITRUM_TRADEABLE_ADDRESS.WBTC]: TOKEN_SYMBOL.BTC,
-  [ARBITRUM_TRADEABLE_ADDRESS.WETH]: TOKEN_SYMBOL.ETH,
-  [ARBITRUM_USD_COINS.DAI]: TOKEN_SYMBOL.DAI,
-  [ARBITRUM_USD_COINS.FRAX]: TOKEN_SYMBOL.FRAX,
-  [ARBITRUM_USD_COINS.MIM]: TOKEN_SYMBOL.MIM,
-  [ARBITRUM_USD_COINS.USDC]: TOKEN_SYMBOL.USDC,
-  [ARBITRUM_USD_COINS.USDT]: TOKEN_SYMBOL.USDT,
+  [ARBITRUM_ADDRESS.NATIVE_TOKEN]: TOKEN_SYMBOL.WETH,
 
-  [AVALANCHE_TRADEABLE_ADDRESS.WAVAX]: TOKEN_SYMBOL.AVAX,
-  [AVALANCHE_TRADEABLE_ADDRESS.WBTCE]: TOKEN_SYMBOL.BTC,
-  [AVALANCHE_TRADEABLE_ADDRESS.BTCB]: TOKEN_SYMBOL.BTC,
-  [AVALANCHE_TRADEABLE_ADDRESS.WETHE]: TOKEN_SYMBOL.ETH,
-  [AVALANCHE_USD_COINS.MIM]: TOKEN_SYMBOL.MIM,
-  [AVALANCHE_USD_COINS.USDC]: TOKEN_SYMBOL.USDC,
-  [AVALANCHE_USD_COINS.USDCE]: TOKEN_SYMBOL.USDC,
+  [ARBITRUM_ADDRESS.GLP]: TOKEN_SYMBOL.GLP,
+  [ARBITRUM_ADDRESS.GMX]: TOKEN_SYMBOL.GMX,
+  [ARBITRUM_ADDRESS.ES_GMX]: TOKEN_SYMBOL.ESGMX,
+
+  [ARBITRUM_ADDRESS.LINK]: TOKEN_SYMBOL.LINK,
+  [ARBITRUM_ADDRESS.UNI]: TOKEN_SYMBOL.UNI,
+  [ARBITRUM_ADDRESS.WBTC]: TOKEN_SYMBOL.WBTC,
+
+  [ARBITRUM_ADDRESS.DAI]: TOKEN_SYMBOL.DAI,
+  [ARBITRUM_ADDRESS.FRAX]: TOKEN_SYMBOL.FRAX,
+  [ARBITRUM_ADDRESS.MIM]: TOKEN_SYMBOL.MIM,
+  [ARBITRUM_ADDRESS.USDC]: TOKEN_SYMBOL.USDC,
+  [ARBITRUM_ADDRESS.USDT]: TOKEN_SYMBOL.USDT,
+
+
+  [AVALANCHE_ADDRESS.NATIVE_TOKEN]: TOKEN_SYMBOL.WAVAX,
+
+  [AVALANCHE_ADDRESS.GMX]: TOKEN_SYMBOL.GMX,
+  [AVALANCHE_ADDRESS.GLP]: TOKEN_SYMBOL.GLP,
+  [AVALANCHE_ADDRESS.ES_GMX]: TOKEN_SYMBOL.ESGMX,
+
+  [AVALANCHE_ADDRESS.WBTCE]: TOKEN_SYMBOL.WBTC,
+  [AVALANCHE_ADDRESS.BTCB]: TOKEN_SYMBOL.BTCB,
+  [AVALANCHE_ADDRESS.WETHE]: TOKEN_SYMBOL.ETH,
+  [AVALANCHE_ADDRESS.MIM]: TOKEN_SYMBOL.MIM,
+  [AVALANCHE_ADDRESS.USDC]: TOKEN_SYMBOL.USDC,
+  [AVALANCHE_ADDRESS.USDCE]: TOKEN_SYMBOL.USDCE,
 }
 
-export const CHAIN_TOKEN_ADDRESS_TO_SYMBOL = {
-  [CHAIN.ARBITRUM]: {
-    [ARBITRUM_TRADEABLE_ADDRESS.LINK]: TOKEN_SYMBOL.LINK,
-    [ARBITRUM_TRADEABLE_ADDRESS.UNI]: TOKEN_SYMBOL.UNI,
-    [ARBITRUM_TRADEABLE_ADDRESS.WBTC]: TOKEN_SYMBOL.BTC,
-    [ARBITRUM_TRADEABLE_ADDRESS.WETH]: TOKEN_SYMBOL.ETH,
-    [ARBITRUM_USD_COINS.DAI]: TOKEN_SYMBOL.DAI,
-    [ARBITRUM_USD_COINS.FRAX]: TOKEN_SYMBOL.FRAX,
-    [ARBITRUM_USD_COINS.MIM]: TOKEN_SYMBOL.MIM,
-    [ARBITRUM_USD_COINS.USDC]: TOKEN_SYMBOL.USDC,
-    [ARBITRUM_USD_COINS.USDT]: TOKEN_SYMBOL.USDT,
-  },
-  [CHAIN.AVALANCHE]: {
-    [AVALANCHE_TRADEABLE_ADDRESS.WAVAX]: TOKEN_SYMBOL.AVAX,
-    [AVALANCHE_TRADEABLE_ADDRESS.WBTCE]: TOKEN_SYMBOL.BTC,
-    [AVALANCHE_TRADEABLE_ADDRESS.BTCB]: TOKEN_SYMBOL.BTC,
-    [AVALANCHE_TRADEABLE_ADDRESS.WETHE]: TOKEN_SYMBOL.ETH,
-    [AVALANCHE_USD_COINS.MIM]: TOKEN_SYMBOL.MIM,
-    [AVALANCHE_USD_COINS.USDC]: TOKEN_SYMBOL.USDC,
-    [AVALANCHE_USD_COINS.USDCE]: TOKEN_SYMBOL.USDC,
-  }
-}
-
-
-export function getTokenDescription(indexToken: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS) {
-  const ticker = TOKEN_ADDRESS_TO_SYMBOL[indexToken]
-  const tokenDesc = TOKEN_DESCRIPTION_MAP[ticker]
-
-  return tokenDesc
-}
 
 
 

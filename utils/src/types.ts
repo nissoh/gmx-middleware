@@ -1,19 +1,46 @@
-import { ARBITRUM_TRADEABLE_ADDRESS, ARBITRUM_USD_COINS, AVALANCHE_TRADEABLE_ADDRESS, AVALANCHE_USD_COINS, TOKEN_SYMBOL } from "./address"
-import { CHAIN, intervalInMsMap } from "./constant"
+import { CHAIN } from "middleware-const"
+import { Address, CallParameters, Chain, GetEventArgs, GetFunctionArgs, InferEventName, InferFunctionName, PublicClient, ReadContractParameters, SimulateContractParameters, Transport, WatchContractEventParameters, WatchEventParameters } from "viem"
+import { Abi, AbiEvent, AbiStateMutability, Narrow } from "abitype"
+import { ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, ArbitrumAddress } from "./address/arbitrum.js"
+import { AVALANCHE_ADDRESS_INDEX, AVALANCHE_ADDRESS_STABLE, AvalancheAddress } from "./address/avalanche.js"
+import { TOKEN_SYMBOL } from "./address/symbol.js"
+import { IntervalTime } from "./constant.js"
+import { Stream } from "@most/types"
 
 
+export type ITokenIndex = AVALANCHE_ADDRESS_INDEX | ARBITRUM_ADDRESS_INDEX
+export type ITokenStable = AVALANCHE_ADDRESS_STABLE | ARBITRUM_ADDRESS_STABLE
 
-export type Address = string
+export type ITokenTrade = ITokenIndex | ITokenStable
+export type ITokenInput = ITokenTrade | "0x0000000000000000000000000000000000000000"
+
+export type ITokenPricefeed = ITokenTrade | ArbitrumAddress['GLP'] | AvalancheAddress['GLP'] | ArbitrumAddress['GMX'] | AvalancheAddress['GMX']
 
 
-export interface TokenDescription {
+export interface ITokenDescription {
   name: string
   symbol: TOKEN_SYMBOL
+  isStable: boolean
   decimals: number
 }
 
-export interface Transaction {
-  token: TokenDescription,
+
+export interface IEnsRegistration {
+  id: string
+  labelName: string
+  expiryDate: number
+  domain: {
+    resolvedAddress: {
+      id: string
+    }
+    resolver: {
+      texts: string[]
+    }
+  }
+}
+
+export interface ITransaction {
+  token: ITokenDescription,
   from: Address
   to: Address
   value: bigint
@@ -30,20 +57,18 @@ export interface IEntityIndexed extends IIdentifiableEntity {
 export type TypeName<T extends string> = { __typename: T }
 export type IndexedType<T extends string> = TypeName<T> & IEntityIndexed
 
-export interface IPositionDelta {
-  delta: bigint
-  deltaPercentage: bigint
+export interface IAbstractPositionIdentity {
+  indexToken: ITokenIndex
+  collateralToken: ITokenIndex | ITokenStable
+  account: Address
+  isLong: boolean
 }
 
-export interface IAbstractPosition {
-  account: Address
-  collateralToken: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS | ARBITRUM_USD_COINS | AVALANCHE_USD_COINS
-  indexToken: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
-  isLong: boolean
+export type IAbstractPositionKey = {
   key: string
 }
 
-export type IAbstractPositionDelta = {
+export type IAbstractPositionAdjustment = {
   collateralDelta: bigint
   sizeDelta: bigint
 }
@@ -51,38 +76,80 @@ export type IAbstractPositionDelta = {
 export type IAbstractPositionStake = {
   collateral: bigint
   size: bigint
-}
-
-export type IAbstractRealisedPosition = IAbstractPositionStake & {
   realisedPnl: bigint
-  realisedPnlPercentage: bigint
+  averagePrice: bigint
 }
 
-export type IPositionIncrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'IncreasePosition'> & { price: bigint,  fee: bigint }
-export type IPositionDecrease = IAbstractPosition & IAbstractPositionDelta & IndexedType<'DecreasePosition'> & { price: bigint,  fee: bigint }
+export type IAbstractPosition = IAbstractPositionStake & IAbstractPositionIdentity
 
-export type IPositionUpdate = IAbstractPositionStake & {
+
+export interface IVaultPosition extends IAbstractPositionStake {
+  entryFundingRate: bigint
+  reserveAmount: bigint
+  lastIncreasedTime: bigint
+}
+
+
+export interface IPositionIncrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IndexedType<'IncreasePosition'> {
+  price: bigint, fee: bigint, key: string
+}
+export interface IPositionDecrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IndexedType<'DecreasePosition'> {
+  price: bigint, fee: bigint, key: string
+}
+
+export interface IPositionUpdate extends IAbstractPositionStake, IAbstractPositionKey, IndexedType<'UpdatePosition'> {
+  markPrice: bigint
+  averagePrice: bigint
+  entryFundingRate: bigint
+  reserveAmount: bigint
   key: string
-  averagePrice: bigint
-  realisedPnl: bigint
-  markPrice: bigint
-  entryFundingRate: bigint
-  reserveAmount: bigint
-} & IndexedType<'UpdatePosition'>
+}
 
-export type IPositionLiquidated = IAbstractPositionStake & {
-  reserveAmount: bigint
-  realisedPnl: bigint
+export interface IPositionLiquidated extends IAbstractPosition, IndexedType<'LiquidatePosition'> {
   markPrice: bigint
-} & IndexedType<'LiquidatePosition'>
-
-export type IPositionClose = IAbstractPosition & IAbstractPositionStake & {
-  size: bigint
-  averagePrice: bigint
-  realisedPnl: bigint
-  entryFundingRate: bigint
   reserveAmount: bigint
-} & IndexedType<'ClosePosition'>
+  key: string
+}
+
+export interface IPositionClose extends IAbstractPosition, IndexedType<'ClosePosition'> {
+  entryFundingRate: bigint
+  averagePrice: bigint
+  reserveAmount: bigint
+  key: string
+}
+
+export interface KeeperIncreaseRequest {
+  account: Address
+  path: string[]
+  indexToken: string
+  amountIn: bigint
+  minOut: bigint
+  sizeDelta: bigint
+  isLong: boolean
+  acceptablePrice: bigint
+  executionFee: bigint
+  blockGap: bigint
+  timeGap: bigint
+  // key: string
+}
+
+
+export interface KeeperDecreaseRequest {
+  account: Address
+  path: string[]
+  indexToken: string
+  collateralDelta: bigint
+  sizeDelta: bigint
+  isLong: boolean
+  receiver: string
+  acceptablePrice: bigint
+  minOut: bigint
+  executionFee: bigint
+  blockGap: bigint
+  timeGap: bigint
+  // key: string
+}
+
 
 
 export enum TradeStatus {
@@ -91,13 +158,14 @@ export enum TradeStatus {
   LIQUIDATED = 'liquidated',
 }
 
-export type IAbstractTrade = IAbstractPositionDelta & IAbstractRealisedPosition & IAbstractPositionStake
+export type IAbstractTrade = IAbstractPositionAdjustment & IAbstractPositionStake
 
-interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityIndexed, IAbstractTrade, IAbstractPosition {
+interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityIndexed, IVaultPosition, IAbstractPositionIdentity {
   account: Address
   status: T
   averagePrice: bigint
   fee: bigint
+  key: string
 
   increaseList: IPositionIncrease[]
   decreaseList: IPositionDecrease[]
@@ -105,20 +173,46 @@ interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityInd
 }
 
 export type ITradeOpen = ITradeAbstract<TradeStatus.OPEN>
-export type ITradeClosed = ITradeAbstract<TradeStatus.CLOSED> & {settledTimestamp: number, closedPosition: IPositionClose}
-export type ITradeLiquidated = ITradeAbstract<TradeStatus.LIQUIDATED> & {settledTimestamp: number, liquidatedPosition: IPositionLiquidated}
+export type ITradeClosed = ITradeAbstract<TradeStatus.CLOSED> & { settledTimestamp: number, closedPosition: IPositionClose }
+export type ITradeLiquidated = ITradeAbstract<TradeStatus.LIQUIDATED> & { settledTimestamp: number, liquidatedPosition: IPositionLiquidated }
 export type ITradeSettled = ITradeClosed | ITradeLiquidated
 export type ITrade = ITradeSettled | ITradeOpen
 
-export interface IAccountSummary extends IAbstractTrade {
-  account: string
-  fee: bigint
-  settledTradeCount: number
-  winTradeCount: number
-  openTradeCount: number
-  claim: IClaim | null,
+export interface IStake extends IndexedType<"Stake"> {
+  id: string
+  account: Address
+  contract: string
+  token: string
+  amount: bigint
+  amountUsd: bigint
+  timestamp: number
 }
 
+
+export interface IAccountSummary {
+  realisedPnl: bigint
+  cumSize: bigint
+  cumCollateral: bigint
+  avgCollateral: bigint
+  avgSize: bigint
+  account: Address
+  fee: bigint
+  winCount: number
+  lossCount: number
+  maxCollateral: bigint
+  avgLeverage: bigint
+  openPnl: bigint
+  pnl: bigint
+  cumulativeLeverage: bigint
+}
+
+
+export interface IPriceTimeline {
+  id: string
+  value: bigint
+  tokenAddress: ITokenIndex
+  timestamp: string
+}
 
 export interface IPricefeed extends IndexedType<'Pricefeed'> {
   timestamp: number
@@ -126,84 +220,80 @@ export interface IPricefeed extends IndexedType<'Pricefeed'> {
   h: bigint
   l: bigint
   c: bigint
-  tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
+  tokenAddress: ITokenPricefeed
 }
 
 export interface IPriceLatest extends IndexedType<'PriceLatest'> {
   value: bigint
-  id: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS
+  id: ITokenPricefeed
   timestamp: number
 }
 
 export type IPriceLatestMap = {
-  [P in ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS]: IPriceLatest
+  [P in ITokenPricefeed]: IPriceLatest
 }
 
-export enum IClaimSource {
-  TWITTER = 'TWITTER',
-  ENS = 'ENS',
-}
-
-
-export interface IClaim {
-  name: string
-  account: Address
-  sourceType: IClaimSource
-  data: string
-}
-
-export interface Account {
-  address: string
-  settledPositionCount: number
-  profitablePositionsCount: number
-  realisedPnl: bigint
-  claim: IClaim | null
-}
 
 export interface IChainParamApi {
-  chain: CHAIN.AVALANCHE | CHAIN.ARBITRUM
+  chain: CHAIN
 }
 
-export interface IAccountQueryParamApi {
-  account: Address
-}
 
-export interface AccountHistoricalDataApi extends IAccountQueryParamApi {
-  timeInterval: intervalInMsMap
-}
-
-export interface ITimerangeParamApi {
+export interface IRequestTimerangeApi {
   from: number
   to: number
 }
 
-export interface IPagePositionParamApi {
+export interface IRequestPagePositionApi {
   offset: number
   pageSize: number
 }
 
-export interface ISortParamApi<T extends string | number | symbol> {
-  sortBy: T
-  sortDirection: 'desc' | 'asc'
+export interface IRequestSortApi<T> {
+  selector: keyof T
+  direction: 'desc' | 'asc'
 }
 
-export interface IPageParapApi<T> extends IPagePositionParamApi {
+
+
+export type IRequestAccountTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestAccountApi & { status?: TradeStatus }
+export type IRequestPageApi = IRequestPagePositionApi & IChainParamApi & IRequestTimerangeApi
+
+
+
+export type IRequestAccountApi = IChainParamApi & { account: Address }
+
+export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: ITokenPricefeed }
+export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
+export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: ITokenPricefeed }
+export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof ITradeAbstract> & { status: TradeStatus }
+
+
+export interface IRequestGraphEntityApi extends IChainParamApi, IIdentifiableEntity { }
+
+
+
+export interface IResponsePageApi<T> extends IRequestPagePositionApi {
   page: T[]
 }
 
-
-export interface ILeaderboardRequest extends IPagePositionParamApi, IChainParamApi, ISortParamApi<keyof IAccountSummary> {
-  timeInterval: intervalInMsMap.HR24 | intervalInMsMap.DAY7 | intervalInMsMap.MONTH
+export type StreamInputArray<T extends readonly unknown[]> = {
+  [P in keyof T]: Stream<T[P]>;
 }
 
+export type StreamInput<T> = {
+  [P in keyof T]: Stream<T[P]> | T[P]
+}
 
-export type IPriceTimelineParamApi = IChainParamApi & ITimerangeParamApi & { tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS }
-
-export type IOpenTradesParamApi = IChainParamApi & IPagePositionParamApi & ISortParamApi<keyof ITradeOpen>
-export type IAccountTradeListParamApi = IChainParamApi & IAccountQueryParamApi
-export type IPricefeedParamApi = IChainParamApi & ITimerangeParamApi & { interval: intervalInMsMap, tokenAddress: ARBITRUM_TRADEABLE_ADDRESS | AVALANCHE_TRADEABLE_ADDRESS }
-
-
-
-export interface IRequestTradeQueryparam extends IChainParamApi, IIdentifiableEntity { }
-
+export type ContractFunctionConfig<
+  TAddress,
+  TAbi extends Abi,
+  TTransport extends Transport,
+  TChain extends Chain,
+  TIncludeActions extends boolean,
+  TPublicClient extends PublicClient<TTransport, TChain, TIncludeActions>,
+> = {
+  abi: Narrow<TAbi>
+  address: TAddress
+  client: TPublicClient
+}

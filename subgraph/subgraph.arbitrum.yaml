@@ -1,4 +1,5 @@
 specVersion: 0.0.2
+description: gmx subgraph middlware for arbitrum-one
 schema:
   file: ./schema.graphql
 dataSources:

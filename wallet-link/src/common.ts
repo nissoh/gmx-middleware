@@ -1,6 +1,6 @@
 import { fromCallback, O, Op } from "@aelea/core"
 import type { BaseProvider, EventType, ExternalProvider } from "@ethersproject/providers"
-import { CHAIN, EXPLORER_URL } from "@gambitdao/gmx-middleware"
+import { CHAIN, EXPLORER_URL } from "middleware-const"
 import { at, awaitPromises, chain, continueWith, empty, filter, map, recoverWith, switchLatest, take } from "@most/core"
 import { disposeWith } from "@most/disposable"
 import { Stream } from "@most/types"

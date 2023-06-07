@@ -1,11 +1,21 @@
-import { CHAIN, EXPLORER_URL, intervalInMsMap, NETWORK_METADATA, USD_DECIMALS } from "./constant"
-import { IPageParapApi, IPagePositionParamApi, ISortParamApi } from "./types"
+import { combineObject, O, Op, replayLatest } from "@aelea/core"
+import { AnimationFrames } from "@aelea/dom"
+import { CHAIN, EXPLORER_URL, NETWORK_METADATA } from "middleware-const"
+import { at, awaitPromises, constant, continueWith, empty, filter, fromPromise, map, merge, multicast, now, recoverWith, switchLatest, takeWhile, zipArray } from "@most/core"
+import { disposeNone } from "@most/disposable"
+import { curry2 } from "@most/prelude"
+import { Disposable, Scheduler, Sink, Stream } from "@most/types"
+import { ClientOptions, createClient } from "@urql/core"
+import { IntervalTime, intervalTimeMap, USD_DECIMALS } from "./constant.js"
+import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
+import { Address, decodeAbiParameters, encodePacked, keccak256, toHex } from "viem"
+export * as GraphQL from '@urql/core'
+
 
 export const ETH_ADDRESS_REGEXP = /^0x[a-fA-F0-9]{40}$/i
 export const TX_HASH_REGEX = /^0x([A-Fa-f0-9]{64})$/i
 export const VALID_FRACTIONAL_NUMBER_REGEXP = /^-?(0|[1-9]\d*)(\.\d+)?$/
 
-const EMPTY_MESSAGE = '-'
 
 
 
@@ -13,46 +23,81 @@ const EMPTY_MESSAGE = '-'
 let zeros = "0"
 while (zeros.length < 256) { zeros += zeros }
 
-export function isAddress(address: string) {
+export function isAddress(address: any): address is Address {
   return ETH_ADDRESS_REGEXP.test(address)
 }
 
 export function shortenAddress(address: string, padRight = 4, padLeft = 6) {
-  return address.slice(0, padLeft) + "..." + address.slice(address.length -padRight, address.length)
+  return address.slice(0, padLeft) + "..." + address.slice(address.length - padRight, address.length)
 }
 
 export function shortPostAdress(address: string) {
-  return address.slice(address.length -4, address.length)
+  return address.slice(address.length - 4, address.length)
 }
 
-export function readableNumber(ammount: number, showDecimals = true) {
-  const parts = ammount.toString().split('.')
-  const [whole = '', decimal = ''] = parts
+export function parseReadableNumber(stringNumber: string, locale?: Intl.NumberFormatOptions) {
+  const thousandSeparator = Intl.NumberFormat('en-US', locale).format(11111).replace(/\p{Number}/gu, '')
+  const decimalSeparator = Intl.NumberFormat('en-US', locale).format(1.1).replace(/\p{Number}/gu, '')
 
-  if (whole === '' && decimal === '') {
-    return EMPTY_MESSAGE
-  }
-
-  if (whole.replace(/^-/, '') === '0' || whole.length < 3) {
-    const shortDecimal = decimal.slice(0, 2)
-    return whole + (shortDecimal && showDecimals ? '.' + shortDecimal  : '')
-  }
-
-
-  return Number(whole).toLocaleString()
+  const parsed = parseFloat(stringNumber
+    .replace(new RegExp('\\' + thousandSeparator, 'g'), '')
+    .replace(new RegExp('\\' + decimalSeparator), '.')
+  )
+  return parsed
 }
 
-export function formatReadableUSD(ammount: bigint) {
-  const str = formatFixed(ammount, USD_DECIMALS)
-  return readableNumber(str)
+export const readableAccountingNumber = Intl.NumberFormat("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+
+export const readableLargeNumber = Intl.NumberFormat("en-US", { maximumFractionDigits: 0 })
+export const readableTinyNumber = Intl.NumberFormat("en-US", { maximumSignificantDigits: 2, minimumSignificantDigits: 2 })
+
+export function readableNumber(ammount: number | bigint) {
+  const absAmount = typeof ammount === 'bigint' ? ammount > 0n ? ammount : -ammount : Math.abs(ammount)
+
+  if (absAmount >= 1000) {
+    return readableLargeNumber.format(ammount)
+  }
+
+  if (absAmount >= 1) {
+    return readableAccountingNumber.format(ammount)
+  }
+
+
+  return readableTinyNumber.format(ammount)
+}
+
+
+
+const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }
+
+export function readableDate(timestamp: number) {
+  return new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
+}
+
+export function formatReadableUSD(ammount: bigint | number, displayDecimals = true) {
+  if (ammount === 0n) {
+    return '$0'
+  }
+
+  const amountUsd = typeof ammount === 'bigint' ? formatFixed(ammount, USD_DECIMALS) : ammount
+
+  if (displayDecimals) {
+    return '$' + readableNumber(amountUsd)
+  }
+
+  return '$' + readableNumber(amountUsd).replace(/\.\d+/, '')
 }
 
 export function shortenTxAddress(address: string) {
   return shortenAddress(address, 8, 6)
 }
 
+export function getDenominator(decimals: number) {
+  return 10n ** BigInt(decimals)
+}
+
 export function expandDecimals(n: bigint, decimals: number) {
-  return n * (10n ** BigInt(decimals))
+  return n * getDenominator(decimals)
 }
 
 function getMultiplier(decimals: number): string {
@@ -130,65 +175,11 @@ export function parseFixed(input: string | number, decimals = 18) {
   const wholeValue = BigInt(whole)
   const fractionValue = BigInt(fraction)
 
-  let wei = (wholeValue * BigInt(multiplier)) + fractionValue
+  const wei = (wholeValue * BigInt(multiplier)) + fractionValue
 
-  if (negative) {
-    wei = wei - -1n
-  }
-
-  return wei
+  return negative ? -wei : wei
 }
 
-export const trimZeroDecimals = (amount: string) => {
-  if (parseFloat(amount) === parseInt(amount)) {
-    return parseInt(amount).toString()
-  }
-  return amount
-}
-
-export const limitDecimals = (amount: string, maxDecimals: number) => {
-  let amountStr = amount.toString()
-
-  if (maxDecimals === 0) {
-    return amountStr.split(".")[0]
-  }
-  const dotIndex = amountStr.indexOf(".")
-  if (dotIndex !== -1) {
-    const decimals = amountStr.length - dotIndex - 1
-    if (decimals > maxDecimals) {
-      amountStr = amountStr.substr(0, amountStr.length - (decimals - maxDecimals))
-    }
-  }
-  return amountStr
-}
-
-export const padDecimals = (amount: string, minDecimals: number) => {
-  let amountStr = amount.toString()
-  const dotIndex = amountStr.indexOf(".")
-  if (dotIndex !== -1) {
-    const decimals = amountStr.length - dotIndex - 1
-    if (decimals < minDecimals) {
-      amountStr = amountStr.padEnd(amountStr.length + (minDecimals - decimals), "0")
-    }
-  } else {
-    amountStr = amountStr + ".0000"
-  }
-  return amountStr
-}
-
-
-/* converts bigInt(positive) to hex */
-export function bnToHex(n: bigint) {
-  if (n < 0n) {
-    throw new Error('expected positive integer')
-  }
-
-  let hex = n.toString(16)
-  if (hex.length % 2) {
-    hex = 'x' + hex
-  }
-  return hex
-}
 
 export function bytesToHex(uint8a: Uint8Array): string {
   let hex = ''
@@ -238,11 +229,11 @@ export type TimelineTime = {
 }
 
 export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTime> {
-  interval: intervalInMsMap
+  interval: number
   getTime: (t: T) => number
   seed: R & TimelineTime
   source: T[]
-  
+
   fillMap: (prev: RTime, next: T) => R
   fillGapMap?: (prev: RTime, next: T) => R
   squashMap?: (prev: RTime, next: T) => R
@@ -254,7 +245,6 @@ export function intervalListFillOrderMap<T, R, RTime extends R & TimelineTime = 
   fillMap, squashMap = fillMap, fillGapMap = (prev, _next) => prev
 }: IFillGap<T, R, RTime>) {
 
-  
 
   const sortedSource = [...source].sort((a, b) => getTime(a) - getTime(b))
 
@@ -305,27 +295,28 @@ export function intervalListFillOrderMap<T, R, RTime extends R & TimelineTime = 
     }
 
     return timeline
-  },
-  [normalizedSeed])
+  }, [normalizedSeed])
 }
 
 
+function defaultComperator<T>(queryParams: IRequestSortApi<T>) {
+  return function (a: T, b: T) {
+    return queryParams.direction === 'desc'
+      ? Number(b[queryParams.selector]) - Number(a[queryParams.selector])
+      : Number(a[queryParams.selector]) - Number(b[queryParams.selector])
+  }
+}
 
-export async function pagingQuery<T, ReqParams extends IPagePositionParamApi & (ISortParamApi<keyof T> | {})>(
+export function pagingQuery<T, ReqParams extends IRequestPagePositionApi & (IRequestSortApi<T> | object)>(
   queryParams: ReqParams,
-  query: Promise<T[]>,
+  res: T[],
   customComperator?: (a: T, b: T) => number
-): Promise<IPageParapApi<T>> {
-  const res = await query
+): IResponsePageApi<T> {
   let list = res
-  if ('sortBy' in queryParams) {
-    const sortBy = queryParams.sortBy
-
-    const comperator = typeof customComperator === 'function' ? customComperator : (a: T, b: T) =>
-      queryParams.sortDirection === 'asc'
-        ? Number(b[sortBy]) - Number(a[sortBy])
-        : Number(a[sortBy]) - Number(b[sortBy])
-    
+  if ('selector' in queryParams) {
+    const comperator = typeof customComperator === 'function'
+      ? customComperator
+      : defaultComperator(queryParams)
 
     list = res.sort(comperator)
   }
@@ -336,6 +327,7 @@ export async function pagingQuery<T, ReqParams extends IPagePositionParamApi & (
 }
 
 
+
 export const unixTimestampNow = () => Math.floor(Date.now() / 1000)
 
 export const getChainName = (chain: CHAIN) => NETWORK_METADATA[chain].chainName
@@ -344,7 +336,375 @@ export const getTxExplorerUrl = (chain: CHAIN, hash: string) => {
   return EXPLORER_URL[chain] + 'tx/' + hash
 }
 
-export function getAccountExplorerUrl(chain: CHAIN, account: string) {
+export function getAccountExplorerUrl(chain: CHAIN, account: Address) {
   return EXPLORER_URL[chain] + "address/" + account
+}
+
+export function getDebankProfileUrl(account: Address) {
+  return `https://debank.com/profile/` + account
+}
+
+
+class WithAnimationFrame<T> {
+  constructor(private afp: AnimationFrames, private source: Stream<T>) { }
+
+  run(sink: Sink<T>, scheduler: Scheduler): Disposable {
+
+    const frameSink = this.source.run(new WithAnimationFrameSink(this.afp, sink), scheduler)
+
+    return frameSink
+  }
+}
+
+
+
+class WithAnimationFrameSink<T> implements Sink<T> {
+  latestPendingFrame = -1
+
+  constructor(private afp: AnimationFrames, private sink: Sink<T>) { }
+
+  event(time: number, value: T): void {
+
+    if (this.latestPendingFrame > -1) {
+      this.afp.cancelAnimationFrame(this.latestPendingFrame)
+    }
+
+    this.latestPendingFrame = this.afp.requestAnimationFrame(() => {
+      this.latestPendingFrame = -1
+      eventThenEnd(time, this.sink, value)
+    })
+  }
+
+  end(): void {
+    if (this.latestPendingFrame > -1) {
+      this.afp.cancelAnimationFrame(this.latestPendingFrame)
+    }
+  }
+
+  error(time: number, err: Error): void {
+    this.end()
+    this.sink.error(time, err)
+  }
+}
+
+const eventThenEnd = <T>(requestTime: number, sink: Sink<T>, value: T) => {
+  sink.event(requestTime, value)
+}
+
+export const drawWithinFrame = <T>(source: Stream<T>, afp: AnimationFrames = window): Stream<T> =>
+  new WithAnimationFrame(afp, source)
+
+
+
+export type StateStream<T> = {
+  [P in keyof T]: Stream<T[P]>
+}
+
+export function replayState<A>(state: StateStream<A>): Stream<A> {
+  return replayLatest(multicast(combineObject(state)))
+}
+
+export function zipState<A, K extends keyof A = keyof A>(state: StateStream<A>): Stream<A> {
+  const entries = Object.entries(state) as [keyof A, Stream<A[K]>][]
+  const streams = entries.map(([_, stream]) => stream)
+
+  const zipped = zipArray((...arrgs: A[K][]) => {
+    return arrgs.reduce((seed, val, idx) => {
+      const key = entries[idx][0]
+      seed[key] = val
+
+      return seed
+    }, {} as A)
+  }, streams)
+
+  return zipped
+}
+
+export function takeUntilLast<T>(fn: (t: T) => boolean, s: Stream<T>) {
+  let last: T
+
+  return continueWith(() => now(last), takeWhile(x => {
+    const res = !fn(x)
+    last = x
+    return res
+  }, s))
+}
+
+interface ISwitchMapCurry2 {
+  <T, R>(cb: (t: T) => Stream<R>, s: Stream<T>): Stream<R>
+  <T, R>(cb: (t: T) => Stream<R>): (s: Stream<T>) => Stream<R>
+}
+
+
+function switchMapFn<T, R>(cb: (t: T) => Stream<R>, s: Stream<T>) {
+  return switchLatest(map(cb, s))
+}
+
+export const switchMap: ISwitchMapCurry2 = curry2(switchMapFn)
+
+
+
+export function getPositionKey(account: Address, collateralToken: Address, indexToken: Address, isLong: boolean) {
+  return keccak256(encodePacked(
+    ["address", "address", "address", "bool"],
+    [account, collateralToken, indexToken, isLong]
+  ))
+}
+
+
+export interface IPeriodRun<T> {
+  actionOp: Op<number, Promise<T>>
+
+  interval?: number
+  startImmediate?: boolean
+  recoverError?: boolean
+}
+
+export const filterNull = <T>(prov: Stream<T | null>) => filter((provider): provider is T => provider !== null, prov)
+
+
+export const periodicRun = <T>({ actionOp, interval = 1000, startImmediate = true, recoverError = true }: IPeriodRun<T>): Stream<T> => {
+  const tickDelay = at(interval, null)
+  const tick = startImmediate ? merge(now(null), tickDelay) : tickDelay
+
+  return O(
+    constant(performance.now()),
+    actionOp,
+    awaitPromises,
+    recoverError
+      ? recoverWith(err => {
+        console.error(err)
+
+        return periodicRun({ interval: interval * 2, actionOp, recoverError, startImmediate: false })
+      })
+      : O(),
+    continueWith(() => {
+      return periodicRun({ interval, actionOp, recoverError, startImmediate: false, })
+    }),
+  )(tick)
+}
+
+export interface IPeriodSample<T> {
+  interval?: number
+  startImmediate?: boolean
+  recoverError?: boolean
+}
+
+const defaultSampleArgs = { interval: 1000, startImmediate: true, recoverError: true }
+
+export const periodicSample = <T>(sample: Stream<T>, options: IPeriodSample<T> = defaultSampleArgs): Stream<T> => {
+  const params = { ...defaultSampleArgs, ...options }
+
+  const tickDelay = at(params.interval, null)
+  const tick = params.startImmediate ? merge(now(null), tickDelay) : tickDelay
+
+  return O(
+    constant(performance.now()),
+    map(() => sample),
+    switchLatest,
+    params.recoverError
+      ? recoverWith(err => {
+        console.error(err)
+
+        return periodicSample(sample, { ...params, interval: params.interval * 2, })
+      })
+      : O(),
+    continueWith(() => {
+      return periodicSample(sample, { ...params, startImmediate: false })
+    }),
+  )(tick)
+}
+
+export const switchFailedSources = <T>(sourceList: Stream<T>[], activeSource = 0): Stream<T> => {
+  const source = sourceList[activeSource]
+  return recoverWith((err) => {
+    console.warn(err)
+    const nextActive = activeSource + 1
+    if (!sourceList[nextActive]) {
+      console.warn(new Error('No sources left to recover with'))
+
+      return empty()
+    }
+
+    return switchFailedSources(sourceList, nextActive)
+  }, source)
+}
+
+
+export const timespanPassedSinceInvoke = (timespan: number) => {
+  let lastTimePasses = unixTimestampNow()
+
+  return () => {
+    const nowTime = unixTimestampNow()
+    const delta = nowTime - lastTimePasses
+    if (delta > timespan) {
+      lastTimePasses = nowTime
+      return true
+    }
+
+    return false
+  }
+}
+
+interface ICacheItem<T> {
+  item: Promise<T>
+  lifespanFn: () => boolean
+}
+
+
+export const cacheMap = (cacheMap: { [k: string]: ICacheItem<any> }) => <T>(key: string, lifespan: number, cacheFn: () => Promise<T>): Promise<T> => {
+  const cacheEntry = cacheMap[key]
+
+  if (cacheEntry && !cacheMap[key].lifespanFn()) {
+    return cacheEntry.item
+  } else {
+    const lifespanFn = cacheMap[key]?.lifespanFn ?? timespanPassedSinceInvoke(lifespan)
+    const newLocal = { item: cacheFn(), lifespanFn }
+    cacheMap[key] = newLocal
+    return cacheMap[key].item
+  }
+}
+
+
+
+export function groupByMapMany<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
+  const map: { [P in B]: A[] } = {} as any
+
+  list.forEach(item => {
+    const key = getKey(item)
+
+    map[key] ??= []
+    map[key].push(item)
+  })
+
+  return map
+}
+
+
+
+export function groupByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
+  return groupByKeyMap(list, getKey, (x) => x)
+}
+
+export function groupByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
+  const gmap = {} as { [P in B]: R }
+
+  list.forEach((item) => {
+    const key = getKey(item)
+
+    if (gmap[key]) {
+      console.warn(new Error(`${groupByKey.name}() is overwriting property: ${String(key)}`))
+    }
+
+    gmap[key] = mapFn(item)
+  })
+
+  return gmap
+}
+
+
+export const createSubgraphClient = (opts: ClientOptions) => {
+  return async <Data, Variables extends object = object>(document: any, params: Variables, context?: any): Promise<any> => {
+    const client = createClient(opts)
+
+    const result = await client.query(document, params, context)
+      .toPromise()
+
+    if (result.error) {
+      throw new Error(result.error.message)
+    }
+
+    return result.data!
+  }
+}
+
+export function getSafeMappedValue<T extends object>(contractMap: T, prop: any, fallbackProp: keyof T): T[keyof T] {
+  return prop in contractMap
+    ? contractMap[prop as keyof T]
+    : contractMap[fallbackProp]
+}
+
+export function getMappedValue<TMap extends object, TMapkey extends keyof TMap>(contractMap: TMap, prop: unknown): TMap[TMapkey] {
+  if (contractMap[prop as TMapkey]) {
+    return contractMap[prop as TMapkey]
+  }
+
+  throw new Error(`prop ${String(prop)} does not exist in object`)
+}
+
+export function easeInExpo(x: number) {
+  return x === 0 ? 0 : Math.pow(2, 10 * x - 10)
+}
+
+
+
+export function getTargetUsdgAmount(weight: bigint, usdgSupply: bigint, totalTokenWeights: bigint) {
+  if (usdgSupply === 0n) {
+    return 0n
+  }
+
+  return weight * usdgSupply / totalTokenWeights
+}
+
+export function getFeeBasisPoints(
+  debtUsd: bigint,
+  weight: bigint,
+
+  amountUsd: bigint,
+  feeBasisPoints: bigint,
+  taxBasisPoints: bigint,
+  increment: boolean,
+  usdgSupply: bigint,
+  totalTokenWeights: bigint
+) {
+
+  const nextAmount = increment
+    ? debtUsd + amountUsd
+    : amountUsd > debtUsd
+      ? 0n
+      : debtUsd - amountUsd
+
+  const targetAmount = getTargetUsdgAmount(weight, usdgSupply, totalTokenWeights)
+
+  if (targetAmount === 0n) {
+    return feeBasisPoints
+  }
+
+  const initialDiff = debtUsd > targetAmount ? debtUsd - targetAmount : targetAmount - debtUsd
+  const nextDiff = nextAmount > targetAmount ? nextAmount - targetAmount : targetAmount - nextAmount
+
+  if (nextDiff < initialDiff) {
+    const rebateBps = taxBasisPoints * initialDiff / targetAmount
+    return rebateBps > feeBasisPoints ? 0n : feeBasisPoints - rebateBps
+  }
+
+  let averageDiff = (initialDiff + nextDiff) / 2n
+
+  if (averageDiff > targetAmount) {
+    averageDiff = targetAmount
+  }
+
+  const taxBps = taxBasisPoints * averageDiff / targetAmount
+
+  return feeBasisPoints + taxBps
+}
+
+export function importGlobal<T extends { default: any }>(query: Promise<T>): Stream<T['default']> {
+  let cache: T['default'] | null = null
+
+  return {
+    run(sink, scheduler) {
+      if (cache === null) {
+        fromPromise(query.then(res => {
+          cache = (res as any).default
+          sink.event(scheduler.currentTime(), cache)
+        }))
+      } else {
+        sink.event(scheduler.currentTime(), cache)
+      }
+
+      return disposeNone()
+    },
+  }
 }
 

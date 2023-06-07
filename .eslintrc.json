@@ -1,49 +1,17 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "rules": {
-        "@typescript-eslint/explicit-module-boundary-types": 0,
-        "@typescript-eslint/ban-ts-comment": 0,
-        "@typescript-eslint/ban-types": 0,
-        "@typescript-eslint/no-empty-interface": 0,
-        "@typescript-eslint/no-empty-function": 0,
-        "@typescript-eslint/no-non-null-assertion": 0,
-        "@typescript-eslint/no-var-requires": 0,
-        "semi": [
-            "error",
-            "never"
-        ],
-        "quote-props": [
-            "error",
-            "as-needed",
-            {
-                "keywords": true
-            }
-        ],
-        "comma-spacing": 1,
-        "object-curly-spacing": [
-            "error",
-            "always"
-        ],
-        "@typescript-eslint/indent": [
-            1,
-            2,
-            {
-                "FunctionExpression": {
-                    "parameters": "first"
-                }
-            }
-        ]
-    },
     "plugins": [
         "@typescript-eslint"
     ],
+    "rules": {
+        // Note: you must disable the base rule as it can report incorrect errors
+        "no-empty-function": "off",
+        "@typescript-eslint/no-empty-function": "error"
+    },
     "extends": [
         "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
-    ],
-    "ignorePatterns": [
-        "node_modules",
-        ".dist"
     ]
 }
