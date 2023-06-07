@@ -1,5 +1,5 @@
 import { O } from "@aelea/core"
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { awaitPromises, map } from "@most/core"
 import { Stream } from "@most/types"
 import { cacheExchange, fetchExchange, gql } from "@urql/core"
@@ -168,7 +168,7 @@ export const getGmxIoPricefeed = O(
     const intervalLabel = getMappedValue(gmxIoPricefeedIntervalLabel, queryParams.interval)
     const symbol = derievedSymbolMapping[tokenDesc.symbol] || tokenDesc.symbol
     const res = fetch(`https://stats.gmx.io/api/candles/${symbol}?preferableChainId=${queryParams.chain}&period=${intervalLabel}&from=${queryParams.from}&preferableSource=fast`)
-      .then(async res => {
+      .then(async (res: any) => {
         const parsed = await res.json()
         return parsed.prices.map((json: any) => ({ o: parseFixed(json.o, 30), h: parseFixed(json.h, 30), l: parseFixed(json.l, 30), c: parseFixed(json.c, 30), timestamp: json.t }))
       })

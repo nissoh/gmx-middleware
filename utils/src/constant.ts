@@ -1,4 +1,4 @@
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { ARBITRUM_ADDRESS } from "./address/arbitrum.js"
 import { AVALANCHE_ADDRESS } from "./address/avalanche.js"
 import { Address } from "viem"

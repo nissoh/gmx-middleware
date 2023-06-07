@@ -1,4 +1,4 @@
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { ITokenDescription } from "../types.js"
 import { groupByKey } from "../utils.js"
 import { ARBITRUM_ADDRESS } from "./arbitrum.js"

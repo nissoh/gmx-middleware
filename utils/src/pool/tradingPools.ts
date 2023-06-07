@@ -3,7 +3,7 @@ import { Address, PublicClient } from "viem"
 import { abi } from '../abi/index.js'
 import { expandDecimals, getDenominator, getMappedValue, zipState } from "../utils.js"
 import { ARBITRUM_ADDRESS, AVALANCHE_ADDRESS, TOKEN_DESCRIPTION_MAP, USD_PERCISION, getNativeTokenDescription } from "../index.js"
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { Stream } from "@most/types"
 import { awaitPromises, map } from "@most/core"
 

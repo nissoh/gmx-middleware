@@ -1,5 +1,5 @@
 {
-    "name": "middleware-const",
+    "name": "gmx-middleware-const",
     "version": "0.0.0",
     "license": "MIT",
     "module": ".dist/esm/index.js",

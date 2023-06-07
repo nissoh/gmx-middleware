@@ -16,8 +16,8 @@
     "dependencies": {
         "@aelea/core": "1.3.0",
         "@ethersproject/providers": "5.7.2",
-        "middleware-utils": "workspace:*",
-        "middleware-const": "workspace:*",
+        "gmx-middleware-utils": "workspace:*",
+        "gmx-middleware-const": "workspace:*",
         "@most/core": "1.6.1",
         "@most/disposable": "1.3.0",
         "@most/prelude": "1.8.0",

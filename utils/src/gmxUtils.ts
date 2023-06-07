@@ -1,5 +1,5 @@
 import { CHAIN_NATIVE_TO_SYMBOL, TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP } from "./address/token.js"
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { BASIS_POINTS_DIVISOR, FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE } from "./constant.js"
 import {
   ITrade, ITradeSettled, ITradeClosed, ITradeLiquidated, ITradeOpen,

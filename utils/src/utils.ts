@@ -1,14 +1,13 @@
 import { combineObject, O, Op, replayLatest } from "@aelea/core"
-import { AnimationFrames } from "@aelea/dom"
-import { CHAIN, EXPLORER_URL, NETWORK_METADATA } from "middleware-const"
 import { at, awaitPromises, constant, continueWith, empty, filter, fromPromise, map, merge, multicast, now, recoverWith, switchLatest, takeWhile, zipArray } from "@most/core"
 import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
-import { Disposable, Scheduler, Sink, Stream } from "@most/types"
+import { Stream } from "@most/types"
 import { ClientOptions, createClient } from "@urql/core"
-import { IntervalTime, intervalTimeMap, USD_DECIMALS } from "./constant.js"
+import { CHAIN, EXPLORER_URL, NETWORK_METADATA } from "gmx-middleware-const"
+import { Address, encodePacked, keccak256 } from "viem"
+import { USD_DECIMALS } from "./constant.js"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
-import { Address, decodeAbiParameters, encodePacked, keccak256, toHex } from "viem"
 export * as GraphQL from '@urql/core'
 
 
@@ -343,57 +342,6 @@ export function getAccountExplorerUrl(chain: CHAIN, account: Address) {
 export function getDebankProfileUrl(account: Address) {
   return `https://debank.com/profile/` + account
 }
-
-
-class WithAnimationFrame<T> {
-  constructor(private afp: AnimationFrames, private source: Stream<T>) { }
-
-  run(sink: Sink<T>, scheduler: Scheduler): Disposable {
-
-    const frameSink = this.source.run(new WithAnimationFrameSink(this.afp, sink), scheduler)
-
-    return frameSink
-  }
-}
-
-
-
-class WithAnimationFrameSink<T> implements Sink<T> {
-  latestPendingFrame = -1
-
-  constructor(private afp: AnimationFrames, private sink: Sink<T>) { }
-
-  event(time: number, value: T): void {
-
-    if (this.latestPendingFrame > -1) {
-      this.afp.cancelAnimationFrame(this.latestPendingFrame)
-    }
-
-    this.latestPendingFrame = this.afp.requestAnimationFrame(() => {
-      this.latestPendingFrame = -1
-      eventThenEnd(time, this.sink, value)
-    })
-  }
-
-  end(): void {
-    if (this.latestPendingFrame > -1) {
-      this.afp.cancelAnimationFrame(this.latestPendingFrame)
-    }
-  }
-
-  error(time: number, err: Error): void {
-    this.end()
-    this.sink.error(time, err)
-  }
-}
-
-const eventThenEnd = <T>(requestTime: number, sink: Sink<T>, value: T) => {
-  sink.event(requestTime, value)
-}
-
-export const drawWithinFrame = <T>(source: Stream<T>, afp: AnimationFrames = window): Stream<T> =>
-  new WithAnimationFrame(afp, source)
-
 
 
 export type StateStream<T> = {

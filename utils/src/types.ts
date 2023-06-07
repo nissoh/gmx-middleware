@@ -1,4 +1,4 @@
-import { CHAIN } from "middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { Address, CallParameters, Chain, GetEventArgs, GetFunctionArgs, InferEventName, InferFunctionName, PublicClient, ReadContractParameters, SimulateContractParameters, Transport, WatchContractEventParameters, WatchEventParameters } from "viem"
 import { Abi, AbiEvent, AbiStateMutability, Narrow } from "abitype"
 import { ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, ArbitrumAddress } from "./address/arbitrum.js"

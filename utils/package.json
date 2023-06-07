@@ -1,5 +1,5 @@
 {
-    "name": "middleware-utils",
+    "name": "gmx-middleware-utils",
     "version": "0.7.0",
     "license": "MIT",
     "type": "module",
@@ -18,7 +18,7 @@
         "@aelea/core": "^1.3.2",
         "@aelea/dom": "^0.2.1",
         "@most/core": "^1.6.1",
-        "middleware-const": "workspace:*",
+        "gmx-middleware-const": "workspace:*",
         "@most/disposable": "^1.3.0",
         "@most/prelude": "^1.8.0",
         "@most/scheduler": "^1.3.0",
