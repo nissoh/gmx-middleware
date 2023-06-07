@@ -4,22 +4,21 @@ on: push
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-version: [15]
     steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          # https://yarnpkg.com/features/release-workflow/#ensuring-that-versions-are-bumped-ci
-          fetch-depth: 0
-
-      - name: Use specific Node.js version
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-
-      - name: Install Dependencies
-        run: pnpm i
-
-      - name: Build
-        run: pnpm run build
+    - uses: actions/checkout@v3
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 7
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+    - name: Install dependencies
+      run: pnpm install
+    - name: Build
+      run: pnpm run build
