@@ -1,9 +1,8 @@
-import { CHAIN } from "gmx-middleware-const"
-import { ITokenDescription } from "../types.js"
-import { groupByKey } from "../utils.js"
-import { ARBITRUM_ADDRESS } from "./arbitrum.js"
-import { AVALANCHE_ADDRESS } from "./avalanche.js"
+import { ARBITRUM_ADDRESS } from "./chain/arbitrum.js"
+import { AVALANCHE_ADDRESS } from "./chain/avalanche.js"
+import { CHAIN } from "./common.js"
 import { TOKEN_SYMBOL } from "./symbol.js"
+import { groupByKeyMap } from "./utils.js"
 
 
 
@@ -117,10 +116,9 @@ export const TOKEN_DESCRIPTION_LIST = [
     isStable: true,
   },
   
-] as ITokenDescription[]
+]
 
-
-export const TOKEN_DESCRIPTION_MAP = groupByKey(TOKEN_DESCRIPTION_LIST, token => token.symbol)
+export const TOKEN_DESCRIPTION_MAP = groupByKeyMap(TOKEN_DESCRIPTION_LIST, token => token.symbol, x => x)
 
 
 export const CHAIN_NATIVE_TO_SYMBOL = {

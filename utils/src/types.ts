@@ -1,11 +1,7 @@
-import { CHAIN } from "gmx-middleware-const"
-import { Address, CallParameters, Chain, GetEventArgs, GetFunctionArgs, InferEventName, InferFunctionName, PublicClient, ReadContractParameters, SimulateContractParameters, Transport, WatchContractEventParameters, WatchEventParameters } from "viem"
-import { Abi, AbiEvent, AbiStateMutability, Narrow } from "abitype"
-import { ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, ArbitrumAddress } from "./address/arbitrum.js"
-import { AVALANCHE_ADDRESS_INDEX, AVALANCHE_ADDRESS_STABLE, AvalancheAddress } from "./address/avalanche.js"
-import { TOKEN_SYMBOL } from "./address/symbol.js"
-import { IntervalTime } from "./constant.js"
 import { Stream } from "@most/types"
+import { Abi, Narrow } from "abitype"
+import { AVALANCHE_ADDRESS_INDEX, CHAIN, IntervalTime, TOKEN_SYMBOL, ArbitrumAddress, AvalancheAddress, ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, AVALANCHE_ADDRESS_STABLE } from "gmx-middleware-const"
+import { Address, Chain, PublicClient, Transport } from "viem"
 
 
 export type ITokenIndex = AVALANCHE_ADDRESS_INDEX | ARBITRUM_ADDRESS_INDEX
@@ -16,10 +12,11 @@ export type ITokenInput = ITokenTrade | "0x0000000000000000000000000000000000000
 
 export type ITokenPricefeed = ITokenTrade | ArbitrumAddress['GLP'] | AvalancheAddress['GLP'] | ArbitrumAddress['GMX'] | AvalancheAddress['GMX']
 
+export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
 
 export interface ITokenDescription {
   name: string
-  symbol: TOKEN_SYMBOL
+  symbol: ITokenSymbol
   isStable: boolean
   decimals: number
 }

@@ -4,9 +4,9 @@ import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
 import { Stream } from "@most/types"
 import { ClientOptions, createClient } from "@urql/core"
-import { CHAIN, EXPLORER_URL, NETWORK_METADATA } from "gmx-middleware-const"
+import { CHAIN, EXPLORER_URL } from "gmx-middleware-const"
 import { Address, encodePacked, keccak256 } from "viem"
-import { USD_DECIMALS } from "./constant.js"
+import { USD_DECIMALS } from "gmx-middleware-const"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
 export * as GraphQL from '@urql/core'
 
@@ -14,7 +14,6 @@ export * as GraphQL from '@urql/core'
 export const ETH_ADDRESS_REGEXP = /^0x[a-fA-F0-9]{40}$/i
 export const TX_HASH_REGEX = /^0x([A-Fa-f0-9]{64})$/i
 export const VALID_FRACTIONAL_NUMBER_REGEXP = /^-?(0|[1-9]\d*)(\.\d+)?$/
-
 
 
 
@@ -329,7 +328,6 @@ export function pagingQuery<T, ReqParams extends IRequestPagePositionApi & (IReq
 
 export const unixTimestampNow = () => Math.floor(Date.now() / 1000)
 
-export const getChainName = (chain: CHAIN) => NETWORK_METADATA[chain].chainName
 
 export const getTxExplorerUrl = (chain: CHAIN, hash: string) => {
   return EXPLORER_URL[chain] + 'tx/' + hash
@@ -534,18 +532,14 @@ export function groupByKey<A, B extends string | symbol | number>(list: A[], get
   return groupByKeyMap(list, getKey, (x) => x)
 }
 
+
 export function groupByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
   const gmap = {} as { [P in B]: R }
 
-  list.forEach((item) => {
+  for (const item of list) {
     const key = getKey(item)
-
-    if (gmap[key]) {
-      console.warn(new Error(`${groupByKey.name}() is overwriting property: ${String(key)}`))
-    }
-
     gmap[key] = mapFn(item)
-  })
+  }
 
   return gmap
 }

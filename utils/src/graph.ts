@@ -4,8 +4,8 @@ import { awaitPromises, map } from "@most/core"
 import { Stream } from "@most/types"
 import { cacheExchange, fetchExchange, gql } from "@urql/core"
 import fetch from "isomorphic-fetch"
-import { TOKEN_SYMBOL } from "./address/symbol.js"
-import { intervalTimeMap } from "./constant.js"
+import { TOKEN_SYMBOL } from "gmx-middleware-const"
+import { intervalTimeMap } from "gmx-middleware-const"
 import * as fromJson from "./fromJson.js"
 import { getTokenDescription } from "./gmxUtils.js"
 import {
@@ -21,13 +21,14 @@ import {
   IRequestPricefeedApi,
   IRequestTimerangeApi,
   IStake,
+  ITokenSymbol,
   ITrade,
   ITradeOpen,
   ITradeSettled,
   TradeStatus
 } from "./types.js"
 import {
-  createSubgraphClient, getChainName, getMappedValue, groupByKeyMap, pagingQuery, parseFixed,
+  createSubgraphClient, getMappedValue, groupByKeyMap, pagingQuery, parseFixed,
   switchFailedSources, unixTimestampNow
 } from "./utils.js"
 
@@ -81,7 +82,7 @@ const gmxIoPricefeedIntervalLabel = {
   [intervalTimeMap.HR24]: '1d',
 }
 
-const derievedSymbolMapping: { [k: string]: TOKEN_SYMBOL } = {
+const derievedSymbolMapping: { [k: string]: ITokenSymbol } = {
   [TOKEN_SYMBOL.WETH]: TOKEN_SYMBOL.ETH,
   [TOKEN_SYMBOL.WBTC]: TOKEN_SYMBOL.BTC,
   [TOKEN_SYMBOL.BTCB]: TOKEN_SYMBOL.BTC,
@@ -334,7 +335,7 @@ async function querySubgraph<T extends IChainParamApi>(params: T, document: stri
   const queryProvider = subgraphChainMap[params.chain]
 
   if (!queryProvider) {
-    throw new Error(`Chain ${getChainName(params.chain) || params.chain} is not supported`)
+    throw new Error(`Chain ${params.chain} is not supported`)
   }
 
   return queryProvider(gql(document) as any, {})

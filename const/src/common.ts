@@ -1,7 +1,21 @@
-import { CHAIN } from "gmx-middleware-const"
-import { ARBITRUM_ADDRESS } from "./address/arbitrum.js"
-import { AVALANCHE_ADDRESS } from "./address/avalanche.js"
-import { Address } from "viem"
+import { ARBITRUM_ADDRESS } from "./chain/arbitrum.js"
+import { AVALANCHE_ADDRESS } from "./chain/avalanche.js"
+
+
+export enum CHAIN {
+  ETH = 1,
+  ETH_ROPSTEN = 3,
+  ETH_KOVAN = 42,
+  ETH_RINKBY = 4,
+  ETH_GOERLI = 5,
+
+  BSC = 56,
+  BSC_TESTNET = 97,
+
+  ARBITRUM = 42161,
+  ARBITRUM_RINKBY = 421611,
+  AVALANCHE = 43114
+}
 
 export const AddressZero = "0x0000000000000000000000000000000000000000" as const
 
@@ -55,3 +69,21 @@ export const TRADE_CONTRACT_MAPPING = {
 } as const
 
 export type ContractChain = keyof typeof TRADE_CONTRACT_MAPPING
+
+
+export const EXPLORER_URL = {
+  [CHAIN.ETH]: "https://etherscan.io/",
+  [CHAIN.ETH_KOVAN]: "https://kovan.etherscan.io/",
+  [CHAIN.ETH_ROPSTEN]: "https://ropsten.etherscan.io/",
+  [CHAIN.ETH_RINKBY]: "https://rinkeby.etherscan.io/",
+  [CHAIN.ETH_GOERLI]: "https://goerli.etherscan.io/",
+
+  [CHAIN.BSC]: "https://bscscan.com/",
+  [CHAIN.BSC_TESTNET]: "https://testnet.bscscan.com/",
+
+  [CHAIN.ARBITRUM]: "https://arbiscan.io/",
+  [CHAIN.ARBITRUM_RINKBY]: "https://testnet.arbiscan.io/",
+  [CHAIN.AVALANCHE]: "https://snowtrace.io/",
+}
+
+

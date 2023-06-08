@@ -1,1 +1,0 @@
-export * as abi from './abi.js'

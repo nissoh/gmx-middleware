@@ -1,9 +1,9 @@
 import { BaseProvider, TransactionReceipt, Web3Provider } from "@ethersproject/providers"
-import { CHAIN, NETWORK_METADATA } from "gmx-middleware-const"
+import { CHAIN } from "gmx-middleware-const"
 import { awaitPromises, constant, map, merge, mergeArray, snapshot } from "@most/core"
 import { Stream } from "@most/types"
 import { EIP1193Provider, ProviderInfo, ProviderRpcError } from "eip1193-provider"
-import { eip1193ProviderEvent, parseError, providerAction } from "./common"
+import { parseError, providerAction } from "./common.js"
 
 
 export interface IWalletLink<T extends EIP1193Provider = EIP1193Provider> {
@@ -86,36 +86,6 @@ export function initWalletLink<T extends EIP1193Provider>(walletChange: Stream<T
 }
 
 
-// https://eips.ethereum.org/EIPS/eip-3085
-export async function attemptToSwitchNetwork(metamask: EIP1193Provider, chain: CHAIN) {
-  try {
-    // check if the chain to connect to is installed
-    await metamask.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: '0x' + chain.toString(16) }], // chainId must be in hexadecimal numbers
-    })
-  } catch (error: any) {
-    if (!NETWORK_METADATA[chain]) {
-      throw new Error(`Could not add metamask network, chainId ${chain} is not supported`)
-    }
-    // This error code indicates that the chain has not been added to MetaMask
-    // if it is not, then install it into the user MetaMask
-    if (error.code === 4902) {
-      try {
-        await metamask.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            NETWORK_METADATA[chain]
-          ],
-        })
-      } catch (addError: any) {
-        throw parseError(addError)
-      }
-    }
-
-    throw parseError(parseError(error))
-  }
-}
 
 export { parseError }
  

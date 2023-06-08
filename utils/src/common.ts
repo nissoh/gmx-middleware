@@ -1,5 +1,5 @@
 import { map, periodic } from "@most/core"
-import { intervalTimeMap } from "./constant.js"
+import { intervalTimeMap } from "gmx-middleware-const"
 import { unixTimestampNow } from "./utils.js"
 
 

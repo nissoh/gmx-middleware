@@ -2,14 +2,14 @@
     "name": "gmx-middleware-utils",
     "version": "0.7.0",
     "license": "MIT",
-    "type": "module",
-    "module": ".dist/esm/index.js",
     "main": ".dist/cjs/index.js",
+    "module": ".dist/esm/index.js",
+    "types": ".dist/types/index.d.ts",
+    "type": "module",
     "sideEffects": false,
     "files": [
         ".dist"
     ],
-    "types": ".dist/types/index.d.ts",
     "scripts": {
         "clean": "rm -fr .dist",
         "build": "tsc -b"
@@ -26,6 +26,7 @@
         "@urql/core": "4.0.7",
         "abitype": "^0.8.7",
         "graphql": "^16.6.0",
+        "@types/isomorphic-fetch": "^0.0.36",
         "isomorphic-fetch": "^3.0.0",
         "isomorphic-ws": "^5.0.0",
         "viem": "^1.0.0"

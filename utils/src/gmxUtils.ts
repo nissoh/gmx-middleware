@@ -1,6 +1,7 @@
-import { CHAIN_NATIVE_TO_SYMBOL, TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP } from "./address/token.js"
-import { CHAIN } from "gmx-middleware-const"
-import { BASIS_POINTS_DIVISOR, FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE } from "./constant.js"
+import {
+  CHAIN_NATIVE_TO_SYMBOL, TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, CHAIN, BASIS_POINTS_DIVISOR,
+  FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE
+} from "gmx-middleware-const"
 import {
   ITrade, ITradeSettled, ITradeClosed, ITradeLiquidated, ITradeOpen,
   TradeStatus, IAccountSummary as IAccountSummary, IPositionLiquidated, ITokenDescription

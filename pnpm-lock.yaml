@@ -23,7 +23,11 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4
 
-  const: {}
+  const:
+    dependencies:
+      viem:
+        specifier: ^1.0.0
+        version: 1.0.0(typescript@5.0.4)
 
   subgraph:
     dependencies:
@@ -54,15 +58,15 @@ importers:
       '@most/types':
         specifier: ^1.1.0
         version: 1.1.0
-      '@types/isomorphic-fetch':
-        specifier: ^0.0.36
-        version: 0.0.36
       '@urql/core':
         specifier: 4.0.7
         version: 4.0.7(graphql@16.6.0)
       abitype:
         specifier: ^0.8.7
         version: 0.8.7(typescript@5.0.4)
+      gmx-middleware-const:
+        specifier: workspace:*
+        version: link:../const
       graphql:
         specifier: ^16.6.0
         version: 16.6.0
@@ -72,9 +76,6 @@ importers:
       isomorphic-ws:
         specifier: ^5.0.0
         version: 5.0.0(ws@8.13.0)
-      middleware-const:
-        specifier: workspace:*
-        version: link:../const
       viem:
         specifier: ^1.0.0
         version: 1.0.0(typescript@5.0.4)
@@ -105,10 +106,10 @@ importers:
       eip1193-provider:
         specifier: 1.0.1
         version: 1.0.1
-      middleware-const:
+      gmx-middleware-const:
         specifier: workspace:*
         version: link:../const
-      middleware-utils:
+      gmx-middleware-utils:
         specifier: workspace:*
         version: link:../utils
 
@@ -750,10 +751,6 @@ packages:
     dependencies:
       ci-info: 3.8.0
     dev: true
-
-  /@types/isomorphic-fetch@0.0.36:
-    resolution: {integrity: sha512-ulw4d+vW1HKn4oErSmNN2HYEcHGq0N1C5exlrMM0CRqX1UUpFhGb5lwiom5j9KN3LBJJDLRmYIZz1ghm7FIzZw==}
-    dev: false
 
   /@types/json-schema@7.0.12:
     resolution: {integrity: sha512-Hr5Jfhc9eYOQNPYO5WLDq/n4jqijdHNlDXjuAQkkt+mWdQR+XJToOHrsD4cPaMXpn6KO7y2+wM8AZEs8VpBLVA==}
