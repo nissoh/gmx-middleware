@@ -1,5 +1,6 @@
 import { arbitrum } from "viem/chains";
 import * as abi from "./abi.js";
+import { erc20Abi } from "abitype/test"
 
 export const CONTRACT = {
     [arbitrum.id]: {
@@ -23,5 +24,18 @@ export const CONTRACT = {
             address: "0xaBBc5F99639c9B6bCb58544ddf04EFA6802F4064",
             abi: abi.routerfeed
         },
+        USDG: {
+            address: "0x45096e7aA921f27590f8F19e457794EB09678141",
+            abi: erc20Abi
+        },
+        GMX: {
+            address: "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a",
+            abi: erc20Abi
+        },
     },
 } as const
+
+// VaultV2: {
+//     address: "0x489ee077994B6658eAfA855C308275EAd8097C4A",
+//         abi: abi.vaultV2
+// },

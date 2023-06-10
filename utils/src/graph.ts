@@ -5,7 +5,7 @@ import { Stream } from "@most/types"
 import { cacheExchange, fetchExchange, gql } from "@urql/core"
 import fetch from "isomorphic-fetch"
 import { TOKEN_SYMBOL } from "gmx-middleware-const"
-import { intervalTimeMap } from "gmx-middleware-const"
+import * as GMX from "gmx-middleware-const"
 import * as fromJson from "./fromJson.js"
 import { getTokenDescription } from "./gmxUtils.js"
 import {
@@ -75,11 +75,11 @@ export const subgraphChainMap: { [p in CHAIN]: typeof arbitrumGraph } = {
 
 
 const gmxIoPricefeedIntervalLabel = {
-  [intervalTimeMap.MIN5]: '5m',
-  [intervalTimeMap.MIN15]: '15m',
-  [intervalTimeMap.MIN60]: '1h',
-  [intervalTimeMap.HR4]: '4h',
-  [intervalTimeMap.HR24]: '1d',
+  [GMX.TIME_INTERVAL_MAP.MIN5]: '5m',
+  [GMX.TIME_INTERVAL_MAP.MIN15]: '15m',
+  [GMX.TIME_INTERVAL_MAP.MIN60]: '1h',
+  [GMX.TIME_INTERVAL_MAP.HR4]: '4h',
+  [GMX.TIME_INTERVAL_MAP.HR24]: '1d',
 }
 
 const derievedSymbolMapping: { [k: string]: ITokenSymbol } = {
@@ -299,7 +299,7 @@ export const fetchTrades = async <T extends IRequestPagePositionApi & IChainPara
   const nextOffset = params.offset + 1000
 
   if (nextOffset > 5000) {
-    console.warn(`query has exceeded 5000 offset at timefram ${intervalTimeMap.DAY7}`)
+    console.warn(`query has exceeded 5000 offset at timefram ${GMX.TIME_INTERVAL_MAP.DAY7}`)
     return list
   }
 
@@ -312,7 +312,7 @@ export const fetchTrades = async <T extends IRequestPagePositionApi & IChainPara
   return list
 }
 
-export const fetchHistoricTrades = async <T extends IRequestPagePositionApi & IChainParamApi & IRequestTimerangeApi, R>(params: T, getList: (res: T) => Promise<R[]>, splitSpan: number = intervalTimeMap.DAY7): Promise<R[]> => {
+export const fetchHistoricTrades = async <T extends IRequestPagePositionApi & IChainParamApi & IRequestTimerangeApi, R>(params: T, getList: (res: T) => Promise<R[]>, splitSpan: number = GMX.TIME_INTERVAL_MAP.DAY7): Promise<R[]> => {
   const deltaTime = params.to - params.from
 
   // splits the queries because the-graph's result limit of 5k items
@@ -364,7 +364,7 @@ export async function getPriceMap(time: number, queryParams: IChainParamApi): Pr
     })
     : await querySubgraph(queryParams, `
       {
-        pricefeeds(where: { timestamp: ${Math.floor((time / intervalTimeMap.MIN5)) * intervalTimeMap.MIN5} }) {
+        pricefeeds(where: { timestamp: ${Math.floor((time / GMX.TIME_INTERVAL_MAP.MIN5)) * GMX.TIME_INTERVAL_MAP.MIN5} }) {
           id
           timestamp
           tokenAddress
@@ -383,7 +383,7 @@ export async function getPriceMap(time: number, queryParams: IChainParamApi): Pr
 
 
 export async function getCompetitionTrades(queryParams: IRequestPageApi & { referralCode: string }) {
-  const interval = intervalTimeMap.HR24 * 3
+  const interval = GMX.TIME_INTERVAL_MAP.HR24 * 3
   const competitionAccountListQuery = fetchHistoricTrades({ ...queryParams, offset: 0, pageSize: 1000 }, async (params) => {
     const res = await subgraphChainMap[queryParams.chain](gql(`
 

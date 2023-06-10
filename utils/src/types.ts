@@ -1,7 +1,7 @@
 import { Stream } from "@most/types"
 import { Abi, Narrow } from "abitype"
 import { AVALANCHE_ADDRESS_INDEX, CHAIN, IntervalTime, TOKEN_SYMBOL, ArbitrumAddress, AvalancheAddress, ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, AVALANCHE_ADDRESS_STABLE } from "gmx-middleware-const"
-import { Address, Chain, PublicClient, Transport } from "viem"
+import * as viem from "viem"
 
 
 export type ITokenIndex = AVALANCHE_ADDRESS_INDEX | ARBITRUM_ADDRESS_INDEX
@@ -38,8 +38,8 @@ export interface IEnsRegistration {
 
 export interface ITransaction {
   token: ITokenDescription,
-  from: Address
-  to: Address
+  from: viem.Address
+  to: viem.Address
   value: bigint
 }
 
@@ -57,7 +57,7 @@ export type IndexedType<T extends string> = TypeName<T> & IEntityIndexed
 export interface IAbstractPositionIdentity {
   indexToken: ITokenIndex
   collateralToken: ITokenIndex | ITokenStable
-  account: Address
+  account: viem.Address
   isLong: boolean
 }
 
@@ -116,7 +116,7 @@ export interface IPositionClose extends IAbstractPosition, IndexedType<'ClosePos
 }
 
 export interface KeeperIncreaseRequest {
-  account: Address
+  account: viem.Address
   path: string[]
   indexToken: string
   amountIn: bigint
@@ -132,7 +132,7 @@ export interface KeeperIncreaseRequest {
 
 
 export interface KeeperDecreaseRequest {
-  account: Address
+  account: viem.Address
   path: string[]
   indexToken: string
   collateralDelta: bigint
@@ -158,7 +158,7 @@ export enum TradeStatus {
 export type IAbstractTrade = IAbstractPositionAdjustment & IAbstractPositionStake
 
 interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityIndexed, IVaultPosition, IAbstractPositionIdentity {
-  account: Address
+  account: viem.Address
   status: T
   averagePrice: bigint
   fee: bigint
@@ -177,7 +177,7 @@ export type ITrade = ITradeSettled | ITradeOpen
 
 export interface IStake extends IndexedType<"Stake"> {
   id: string
-  account: Address
+  account: viem.Address
   contract: string
   token: string
   amount: bigint
@@ -192,7 +192,7 @@ export interface IAccountSummary {
   cumCollateral: bigint
   avgCollateral: bigint
   avgSize: bigint
-  account: Address
+  account: viem.Address
   fee: bigint
   winCount: number
   lossCount: number
@@ -258,7 +258,7 @@ export type IRequestPageApi = IRequestPagePositionApi & IChainParamApi & IReques
 
 
 
-export type IRequestAccountApi = IChainParamApi & { account: Address }
+export type IRequestAccountApi = IChainParamApi & { account: viem.Address }
 
 export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: ITokenPricefeed }
 export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
@@ -282,15 +282,19 @@ export type StreamInput<T> = {
   [P in keyof T]: Stream<T[P]> | T[P]
 }
 
-export type ContractFunctionConfig<
-  TAddress,
+export type ContractParams<
   TAbi extends Abi,
-  TTransport extends Transport,
-  TChain extends Chain,
-  TIncludeActions extends boolean,
-  TPublicClient extends PublicClient<TTransport, TChain, TIncludeActions>,
+  TAddress extends viem.Address = viem.Address,
 > = {
-  abi: Narrow<TAbi>
+  abi: TAbi
   address: TAddress
-  client: TPublicClient
 }
+
+export type ContractClientParams<
+  TAbi extends Abi,
+  TAddress extends viem.Address = viem.Address,
+  TTransport extends viem.Transport = viem.Transport,
+  TChain extends viem.Chain = viem.Chain,
+  TIncludeActions extends boolean = true,
+  TPublicClient extends viem.PublicClient<TTransport, TChain, TIncludeActions> = viem.PublicClient<TTransport, TChain, TIncludeActions>
+> = ContractParams<TAbi, TAddress> & { client: TPublicClient }

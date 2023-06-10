@@ -116,7 +116,7 @@ export const TOKEN_DESCRIPTION_LIST = [
     isStable: true,
   },
   
-]
+] as const
 
 export const TOKEN_DESCRIPTION_MAP = groupByKeyMap(TOKEN_DESCRIPTION_LIST, token => token.symbol, x => x)
 

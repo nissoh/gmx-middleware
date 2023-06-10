@@ -1,15 +1,15 @@
 import { map, periodic } from "@most/core"
-import { intervalTimeMap } from "gmx-middleware-const"
+import * as GMX from "gmx-middleware-const"
 import { unixTimestampNow } from "./utils.js"
 
 
 const intervals = [
-  { label: 'year', seconds: intervalTimeMap.MONTH * 12 },
-  { label: 'month', seconds: intervalTimeMap.MONTH },
-  { label: 'day', seconds: intervalTimeMap.HR24 },
-  { label: 'hr', seconds: intervalTimeMap.MIN * 60 },
-  { label: 'min', seconds: intervalTimeMap.MIN },
-  { label: 'sec', seconds: intervalTimeMap.SEC }
+  { label: 'year', seconds: GMX.TIME_INTERVAL_MAP.MONTH * 12 },
+  { label: 'month', seconds: GMX.TIME_INTERVAL_MAP.MONTH },
+  { label: 'day', seconds: GMX.TIME_INTERVAL_MAP.HR24 },
+  { label: 'hr', seconds: GMX.TIME_INTERVAL_MAP.MIN * 60 },
+  { label: 'min', seconds: GMX.TIME_INTERVAL_MAP.MIN },
+  { label: 'sec', seconds: GMX.TIME_INTERVAL_MAP.SEC }
 ] as const
 
 export function timeSince(time: number) {

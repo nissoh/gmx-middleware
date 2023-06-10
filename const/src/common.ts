@@ -43,7 +43,7 @@ export const MARGIN_FEE_BASIS_POINTS = 10n
 export const FUNDING_RATE_PRECISION = 1000000n
 
 
-export const intervalTimeMap = {
+export const TIME_INTERVAL_MAP = {
   SEC: 1,
   MIN: 60,
   MIN5: 300,
@@ -60,7 +60,7 @@ export const intervalTimeMap = {
   YEAR: 31536000
 } as const
 
-export type IntervalTime = typeof intervalTimeMap[keyof typeof intervalTimeMap]
+export type IntervalTime = typeof TIME_INTERVAL_MAP[keyof typeof TIME_INTERVAL_MAP]
 
 
 export const TRADE_CONTRACT_MAPPING = {
