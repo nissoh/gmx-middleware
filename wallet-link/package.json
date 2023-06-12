@@ -1,7 +1,5 @@
 {
     "name": "@gambitdao/wallet-link",
-    "version": "0.5.1",
-    "license": "MIT",
     "main": ".dist/cjs/index.js",
     "module": ".dist/esm/index.js",
     "types": ".dist/types/index.d.ts",

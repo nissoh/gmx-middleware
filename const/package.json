@@ -1,7 +1,5 @@
 {
     "name": "gmx-middleware-const",
-    "version": "0.0.0",
-    "license": "MIT",
     "main": ".dist/cjs/index.js",
     "module": ".dist/esm/index.js",
     "types": ".dist/types/index.d.ts",

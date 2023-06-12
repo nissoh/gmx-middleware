@@ -1,0 +1,14 @@
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"lib": [
+			"DOM",
+			"ES2022",
+			"ScriptHost"
+		],
+		"outDir": ".dist/esm",
+		"declarationDir": ".dist/types",
+		"rootDir": "./src",
+	},
+	"references": []
+}

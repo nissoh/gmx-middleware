@@ -5,7 +5,10 @@
         "@typescript-eslint"
     ],
     "rules": {
-        // Note: you must disable the base rule as it can report incorrect errors
+        "semi": [
+            "warn",
+            "never"
+        ], // Note: you must disable the base rule as it can report incorrect errors
         "no-empty-function": "off",
         "@typescript-eslint/no-empty-function": "error"
     },

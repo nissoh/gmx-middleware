@@ -1,0 +1,23 @@
+{
+	"name": "gmx-middleware-browser-indexer",
+	"main": ".dist/cjs/index.js",
+	"module": ".dist/esm/index.js",
+	"types": ".dist/types/index.d.ts",
+	"type": "module",
+	"sideEffects": false,
+	"files": [
+		".dist"
+	],
+	"scripts": {
+		"clean": "rm -fr .dist/*",
+		"build": "tsc -b"
+	},
+	"dependencies": {
+		"eip-1193": "^0.2.3",
+		"ethereum-indexer": "^0.6.4",
+		"idb-keyval": "^6.2.0",
+		"named-logs": "^0.2.2",
+		"sveltore": "^0.0.2",
+		"use-stores": "^0.1.0"
+	}
+}

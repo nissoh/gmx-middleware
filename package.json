@@ -1,6 +1,5 @@
 {
     "name": "monorepo",
-    "license": "MIT",
     "private": true,
     "packageManager": "pnpm@8.5.1",
     "scripts": {
