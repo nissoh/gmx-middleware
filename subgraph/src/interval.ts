@@ -1,5 +1,5 @@
 import { ethereum } from "@graphprotocol/graph-ts"
-import { intervalUnixTime } from "./helpers"
+import { intervalUnixTime } from "./gmxHelpers"
 
 
 export function getIntervalIdentifier(event: ethereum.Event, name: string, interval: intervalUnixTime): string {

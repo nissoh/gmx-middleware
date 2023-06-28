@@ -1,16 +1,16 @@
 {
   "name": "gmx-subgraph",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "scripts": {
-    "codegen": "graph codegen subgraph.arbitrum.yaml && graph codegen subgraph.avalanche.yaml",
-    "deploy-arbitrum": "graph deploy --studio gmx-arbitrum subgraph.arbitrum.yaml",
-    "deploy-arbitrum-dev": "graph deploy --product hosted-service nissoh/gmx-arbitrum-dev subgraph.arbitrum.yaml",
-    "deploy-avalanche": "graph deploy --product hosted-service nissoh/gmx-avalanche subgraph.avalanche.yaml",
-    "deploy-avalanche-dev": "graph deploy --product hosted-service nissoh/gmx-avalanche-dev subgraph.avalanche.yaml",
-    "deploy-test": "graph deploy --product hosted-service gkrasulya/gmx-raw --deploy-key $(cat .access_token)"
+    "codegen": "pnpm run clean && graph codegen subgraph.arbitrum.yaml && graph codegen subgraph.avalanche.yaml",
+    "build": "graph build",
+    "clean": "graph clean",
+    "deploy-arbitrum": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.arbitrum.yaml",
+    "deploy-avalanche": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.avalanche.yaml"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "0.29.3"
+    "@graphprotocol/graph-cli": "^0.51.2",
+    "@graphprotocol/graph-ts": "^0.31.0"
   }
 }

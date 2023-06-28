@@ -51,6 +51,4 @@ export const ARBITRUM_ADDRESS = {
 
 export type ArbitrumAddress = typeof ARBITRUM_ADDRESS
 
-export type ARBITRUM_ADDRESS_INDEX = ArbitrumAddress['NATIVE_TOKEN'] | ArbitrumAddress['WBTC'] | ArbitrumAddress['LINK'] | ArbitrumAddress['UNI']
-export type ARBITRUM_ADDRESS_STABLE = ArbitrumAddress['USDC'] | ArbitrumAddress['USDT'] | ArbitrumAddress['DAI'] | ArbitrumAddress['MIM'] | ArbitrumAddress['FRAX']
 

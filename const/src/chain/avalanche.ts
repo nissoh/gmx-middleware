@@ -47,6 +47,4 @@ export const AVALANCHE_ADDRESS = {
 export type AvalancheAddress = typeof AVALANCHE_ADDRESS
 
 
-export type AVALANCHE_ADDRESS_INDEX = AvalancheAddress['NATIVE_TOKEN'] | AvalancheAddress['WETHE'] | AvalancheAddress['WBTCE'] | AvalancheAddress['BTCB']
-export type AVALANCHE_ADDRESS_STABLE = AvalancheAddress['USDC'] | AvalancheAddress['USDCE'] | AvalancheAddress['MIM']
 

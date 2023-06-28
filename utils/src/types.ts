@@ -1,16 +1,8 @@
 import { Stream } from "@most/types"
-import { Abi, Narrow } from "abitype"
-import { AVALANCHE_ADDRESS_INDEX, CHAIN, IntervalTime, TOKEN_SYMBOL, ArbitrumAddress, AvalancheAddress, ARBITRUM_ADDRESS_INDEX, ARBITRUM_ADDRESS_STABLE, AVALANCHE_ADDRESS_STABLE } from "gmx-middleware-const"
+import { Abi } from "abitype"
+import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
 
-
-export type ITokenIndex = AVALANCHE_ADDRESS_INDEX | ARBITRUM_ADDRESS_INDEX
-export type ITokenStable = AVALANCHE_ADDRESS_STABLE | ARBITRUM_ADDRESS_STABLE
-
-export type ITokenTrade = ITokenIndex | ITokenStable
-export type ITokenInput = ITokenTrade | "0x0000000000000000000000000000000000000000"
-
-export type ITokenPricefeed = ITokenTrade | ArbitrumAddress['GLP'] | AvalancheAddress['GLP'] | ArbitrumAddress['GMX'] | AvalancheAddress['GMX']
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
 
@@ -47,16 +39,20 @@ export interface ITransaction {
 export interface IIdentifiableEntity {
   id: string
 }
+
 export interface IEntityIndexed extends IIdentifiableEntity {
-  timestamp: number
+  transactionIndex: number | bigint
+  logIndex: number | bigint
+  blockNumber: bigint
+  blockTimestamp: number
 }
 
 export type TypeName<T extends string> = { __typename: T }
-export type IndexedType<T extends string> = TypeName<T> & IEntityIndexed
+export type IIndexedLogType<T extends string> = TypeName<T> & IEntityIndexed
 
 export interface IAbstractPositionIdentity {
-  indexToken: ITokenIndex
-  collateralToken: ITokenIndex | ITokenStable
+  indexToken: viem.Address
+  collateralToken: viem.Address
   account: viem.Address
   isLong: boolean
 }
@@ -87,14 +83,14 @@ export interface IVaultPosition extends IAbstractPositionStake {
 }
 
 
-export interface IPositionIncrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IndexedType<'IncreasePosition'> {
+export interface IPositionIncrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IIndexedLogType<'IncreasePosition'> {
   price: bigint, fee: bigint, key: string
 }
-export interface IPositionDecrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IndexedType<'DecreasePosition'> {
+export interface IPositionDecrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IIndexedLogType<'DecreasePosition'> {
   price: bigint, fee: bigint, key: string
 }
 
-export interface IPositionUpdate extends IAbstractPositionStake, IAbstractPositionKey, IndexedType<'UpdatePosition'> {
+export interface IPositionUpdate extends IAbstractPositionStake, IAbstractPositionKey, IIndexedLogType<'UpdatePosition'> {
   markPrice: bigint
   averagePrice: bigint
   entryFundingRate: bigint
@@ -102,13 +98,13 @@ export interface IPositionUpdate extends IAbstractPositionStake, IAbstractPositi
   key: string
 }
 
-export interface IPositionLiquidated extends IAbstractPosition, IndexedType<'LiquidatePosition'> {
+export interface IPositionLiquidated extends IAbstractPosition, IIndexedLogType<'LiquidatePosition'> {
   markPrice: bigint
   reserveAmount: bigint
   key: string
 }
 
-export interface IPositionClose extends IAbstractPosition, IndexedType<'ClosePosition'> {
+export interface IPositionClose extends IAbstractPositionStake, IIndexedLogType<'ClosePosition'> {
   entryFundingRate: bigint
   averagePrice: bigint
   reserveAmount: bigint
@@ -169,13 +165,30 @@ interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityInd
   updateList: IPositionUpdate[]
 }
 
-export type ITradeOpen = ITradeAbstract<TradeStatus.OPEN>
-export type ITradeClosed = ITradeAbstract<TradeStatus.CLOSED> & { settledTimestamp: number, closedPosition: IPositionClose }
-export type ITradeLiquidated = ITradeAbstract<TradeStatus.LIQUIDATED> & { settledTimestamp: number, liquidatedPosition: IPositionLiquidated }
-export type ITradeSettled = ITradeClosed | ITradeLiquidated
-export type ITrade = ITradeSettled | ITradeOpen
+export interface ITrade {
+  id: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
-export interface IStake extends IndexedType<"Stake"> {
+  account: viem.Address
+  collateralToken: viem.Address
+  indexToken: viem.Address
+  isLong: boolean
+
+  increaseList: IPositionIncrease[]
+  decreaseList: IPositionDecrease[]
+  updateList: IPositionUpdate[]
+
+  maxCollateral: bigint
+  maxSize: bigint
+}
+
+export interface ITradeSettled extends ITrade {
+  isLiquidated: boolean
+
+  settlement: IPositionClose | IPositionLiquidated
+}
+
+
+export interface IStake extends IIndexedLogType<"Stake"> {
   id: string
   account: viem.Address
   contract: string
@@ -207,27 +220,27 @@ export interface IAccountSummary {
 export interface IPriceTimeline {
   id: string
   value: bigint
-  tokenAddress: ITokenIndex
+  tokenAddress: viem.Address
   timestamp: string
 }
 
-export interface IPricefeed extends IndexedType<'Pricefeed'> {
+export interface IPricefeed extends IIndexedLogType<'Pricefeed'> {
   timestamp: number
   o: bigint
   h: bigint
   l: bigint
   c: bigint
-  tokenAddress: ITokenPricefeed
+  tokenAddress: viem.Address
 }
 
-export interface IPriceLatest extends IndexedType<'PriceLatest'> {
+export interface IPriceLatest extends IIndexedLogType<'PriceLatest'> {
   value: bigint
-  id: ITokenPricefeed
+  id: viem.Address
   timestamp: number
 }
 
 export type IPriceLatestMap = {
-  [P in ITokenPricefeed]: IPriceLatest
+  [P in viem.Address]: IPriceLatest
 }
 
 
@@ -260,9 +273,9 @@ export type IRequestPageApi = IRequestPagePositionApi & IChainParamApi & IReques
 
 export type IRequestAccountApi = IChainParamApi & { account: viem.Address }
 
-export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: ITokenPricefeed }
+export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: viem.Address }
 export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
-export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: ITokenPricefeed }
+export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: viem.Address }
 export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof ITradeAbstract> & { status: TradeStatus }
 
 

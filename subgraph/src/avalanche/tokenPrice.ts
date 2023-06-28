@@ -1,7 +1,7 @@
 import { PriceUpdate } from '../../generated/FastPriceFeed/FastPriceEvents'
 import { AddLiquidity, RemoveLiquidity } from "../../generated/GlpManager/GlpManager"
 import { Sync } from '../../generated/GmxPrice/TraderJoePool'
-import { BI_18_PRECISION, getTokenUsdAmount, TokenDecimals, _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../helpers"
+import { BI_18_PRECISION, getTokenUsdAmount, TokenDecimals, _storeDefaultPricefeed, _storeGlpAddLiqPricefeed, _storeGlpRemoveLiqPricefeed } from "../gmxHelpers"
 import { GLP, GMX, WAVAX } from './constant'
 
 

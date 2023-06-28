@@ -1,6 +1,6 @@
 import * as erc20 from "../../generated/transferGmx/ERC20"
 import * as rewardTracker from "../../generated/FeeGmxTrackerClaim/RewardTracker"
-import {  getTokenUsdAmount, _storeERC20Transfer, TokenDecimals, getIdFromEvent } from "../helpers"
+import {  getTokenUsdAmount, _storeERC20Transfer, TokenDecimals, getIdFromEvent } from "../gmxHelpers"
 import { EsGMX, GLP, GMX, WETH } from "./constant"
 import { Claim } from "../../generated/schema"
 

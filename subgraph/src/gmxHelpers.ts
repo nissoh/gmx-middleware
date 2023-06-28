@@ -1,25 +1,11 @@
-import {  BigInt, ethereum, log } from "@graphprotocol/graph-ts"
-import { AddLiquidity, RemoveLiquidity } from "../generated/GlpManager/GlpManager"
-import { Transfer, Pricefeed, PriceLatest, Claim } from "../generated/schema"
+import {  BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
+// import { AddLiquidity, RemoveLiquidity } from "../generated/GlpManager/GlpManager"
+// import { Transfer, Pricefeed, PriceLatest, Claim } from "../generated/schema"
 import { getIntervalId, getIntervalIdentifier } from "./interval"
 import * as erc20 from "../generated/transferGmx/ERC20"
-
-export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
-export const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
-
-export const BASIS_POINTS_DIVISOR = BigInt.fromI32(10000)
-export const FUNDING_RATE_PRECISION = BigInt.fromI32(1000000)
-export const MARGIN_FEE_BASIS_POINTS = BigInt.fromI32(10)
+import { ONE_BI, ZERO_BI, BASIS_POINTS_DIVISOR, BI_18_PRECISION, BI_12_PRECISION } from "./const"
 
 
-export const ZERO_BI = BigInt.fromI32(0)
-export const ONE_BI = BigInt.fromI32(1)
-export const BI_18 = BigInt.fromI32(18)
-export const BI_10 = BigInt.fromI32(10)
-
-export const BI_12_PRECISION = BigInt.fromI32(10).pow(12)
-export const BI_18_PRECISION = BigInt.fromI32(10).pow(18)
-export const BI_22_PRECISION = BigInt.fromI32(10).pow(22)
 
 
 export enum TokenDecimals {
@@ -184,16 +170,14 @@ export function _storeDefaultPricefeed(tokenAddress: string, event: ethereum.Eve
 export const uniqueEventId = (ev: ethereum.Event): string => ev.transaction.hash.toHex() + ':' + ev.logIndex.toString()
 
 
-export function _storeERC20Transfer(token: string, event: erc20.Transfer, amountUsd: BigInt): void {
-  const from = event.params.from.toHexString()
-  const to = event.params.to.toHexString()
+export function _storeERC20Transfer(token: string, event: ethereum.Event, from: Bytes, to: Bytes amount: BigInt, amountUsd: BigInt): void {
   const id = uniqueEventId(event)
 
-  const transfer = new Transfer(id)
+  const transfer = new erc20.Transfer(id)
   transfer.token = token
   transfer.from = from
   transfer.to = to
-  transfer.amount = event.params.value
+  transfer.amount = amount
   transfer.amountUsd = amountUsd
   transfer.timestamp = event.block.timestamp
 

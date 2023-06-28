@@ -2,12 +2,9 @@ import {
   CHAIN_NATIVE_TO_SYMBOL, TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, CHAIN, BASIS_POINTS_DIVISOR,
   FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE
 } from "gmx-middleware-const"
-import {
-  ITrade, ITradeSettled, ITradeClosed, ITradeLiquidated, ITradeOpen,
-  TradeStatus, IAccountSummary as IAccountSummary, IPositionLiquidated, ITokenDescription
-} from "./types.js"
+import { ITokenDescription, ITrade, ITradeSettled } from "./types.js"
 import { easeInExpo, formatFixed, getDenominator, getMappedValue, getSafeMappedValue, groupByMapMany } from "./utils.js"
-import { Address } from "viem"
+import * as viem from "viem"
 
 
 export function safeDiv(a: bigint, b: bigint): bigint {
@@ -172,20 +169,16 @@ export function getNextLiquidationPrice(
 }
 
 
-export function isTradeSettled(trade: ITrade): trade is ITradeSettled {
-  return trade.status !== TradeStatus.OPEN
+export function isTradeSettled(trade: ITrade | ITradeSettled): trade is ITradeSettled {
+  return `settlement` in trade
 }
 
-export function isTradeOpen(trade: ITrade): trade is ITradeOpen {
-  return trade.status === TradeStatus.OPEN
+export function getAveragePrice(trade: ITrade | ITradeSettled): bigint {
+  return isTradeSettled(trade) ? trade.settlement.averagePrice : trade.updateList[trade.updateList.length - 1].averagePrice
 }
 
-export function isTradeLiquidated(trade: ITrade): trade is ITradeLiquidated {
-  return trade.status === TradeStatus.LIQUIDATED
-}
-
-export function isTradeClosed(trade: ITrade): trade is ITradeClosed {
-  return trade.status === TradeStatus.CLOSED
+export function getTradeTotalFee(trade: ITrade | ITradeSettled): bigint {
+  return [...trade.increaseList, ...trade.decreaseList].reduce((seed, next) => seed + next.fee, 0n)
 }
 
 export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: bigint, size: bigint) {
@@ -198,122 +191,6 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 }
 
 
-export function toAccountSummaryList(list: ITrade[], priceMap: { [k: string]: bigint }, minMaxCollateral: bigint, endDate: number): IAccountSummary[] {
-  const tradeListMap = groupByMapMany(list, a => a.account)
-  const tradeListEntries: [Address, ITrade[]][] = Object.entries(tradeListMap) as any
-
-  const summaryList = tradeListEntries.map(([account, tradeList]) => {
-
-    const seedAccountSummary: IAccountSummary = {
-      account,
-      cumulativeLeverage: 0n,
-      cumSize: 0n,
-      cumCollateral: 0n,
-      avgLeverage: 0n,
-      avgCollateral: 0n,
-      avgSize: 0n,
-      maxCollateral: 0n,
-      fee: 0n,
-      realisedPnl: 0n,
-      openPnl: 0n,
-      pnl: 0n,
-      winCount: 0,
-      lossCount: 0,
-    }
-
-    const sortedTradeList = tradeList.sort((a, b) => a.timestamp - b.timestamp)
-
-    const initSeed = {
-      maxUsedCollateral: 0n,
-      positions: {}
-    } as { maxUsedCollateral: bigint; positions: { [k: string]: bigint} } 
-
-
-    const adjustmentsDuringTimerange = sortedTradeList
-      .flatMap(next => [...next.updateList, ...isTradeClosed(next) ? [next.closedPosition] : isTradeLiquidated(next) ? [next.liquidatedPosition as IPositionLiquidated & { key: string} ] : []])
-      // .filter(n => n.timestamp <= endDate)
-      .sort((a, b) => a.timestamp - b.timestamp)
-
-
-
-    const { maxUsedCollateral } = adjustmentsDuringTimerange.reduce((seed, next) => {
-      const prevCollateral = seed.positions[next.key] || 0n
-
-      seed.positions[next.key] = next.__typename === 'UpdatePosition' ? next.collateral > prevCollateral ? next.collateral : prevCollateral : 0n
-
-      const nextUsedCollateral = Object.values(seed.positions).reduce((s, n) => s + n, 0n)
-
-      if (nextUsedCollateral > seed.maxUsedCollateral) {
-        seed.maxUsedCollateral = nextUsedCollateral
-      }
-
-      return seed
-    }, initSeed)
-
-
-
-    const summary = sortedTradeList.reduce((seed, next): IAccountSummary => {
-      const filteredUpdates = [...next.updateList, ...isTradeClosed(next)
-        ? [next.closedPosition] : isTradeLiquidated(next)
-          ? [next.liquidatedPosition as IPositionLiquidated & { key: string} ]
-          : []
-      ].filter(update => update.timestamp <= endDate)
-
-      const lastUpdate = filteredUpdates[filteredUpdates.length - 1]
-      const avgSize = filteredUpdates.reduce((s, n) => n.size > s ? n.size : s, 0n)
-      const avgCollateral = filteredUpdates.reduce((s, n) => n.collateral > s ? n.collateral : s, 0n)
-
-      const cumSizeIncrease = next.increaseList.filter(update => update.timestamp <= endDate).reduce((s, n) => s + n.sizeDelta, 0n)
-      const cumSizeDecrease = next.decreaseList.filter(update => update.timestamp <= endDate).reduce((s, n) => s + n.sizeDelta, 0n)
-
-      const cumCollateralIncrease = next.increaseList.filter(update => update.timestamp <= endDate).reduce((s, n) => s + n.collateralDelta, 0n)
-      const cumCollateralDecrease = next.decreaseList.filter(update => update.timestamp <= endDate).reduce((s, n) => s + n.collateralDelta, 0n)
-
-      const indexTokenMarkPrice = BigInt(priceMap['_' + next.indexToken])
-      const openDelta = lastUpdate.__typename === 'UpdatePosition'
-        ? getPnL(next.isLong, lastUpdate.averagePrice, indexTokenMarkPrice, lastUpdate.size)
-        : 0n
-
-      const fee = seed.fee + next.fee
-      const openPnl = seed.openPnl + openDelta
-      const realisedPnl = seed.realisedPnl + (lastUpdate.__typename === 'UpdatePosition' ? lastUpdate.realisedPnl : next.realisedPnl)
-      const pnl = openPnl + realisedPnl
-
-      const usedMinProfit = maxUsedCollateral - pnl > 0n ? pnl : 0n
-      const maxCollateral = usedMinProfit > maxUsedCollateral ? usedMinProfit : maxUsedCollateral
-
-      const currentPnl = lastUpdate.realisedPnl + openDelta
-      const winCount = seed.winCount + (currentPnl > 0n ? 1 : 0)
-      const lossCount = seed.lossCount + (currentPnl < 0n ? 1 : 0)
-
-      const cumulativeLeverage = seed.cumulativeLeverage + div(lastUpdate.size, maxCollateral)
-
-
-
-      return {
-        account, realisedPnl, openPnl, pnl, maxCollateral,
-        lossCount,
-        winCount,
-        cumulativeLeverage,
-        fee,
-        avgSize,
-        avgCollateral,
-        avgLeverage: 0n,
-        cumSize: seed.cumSize + cumSizeIncrease + cumSizeDecrease,
-        cumCollateral: seed.cumCollateral + cumCollateralIncrease + cumCollateralDecrease,
-      }
-    }, seedAccountSummary)
-
-
-    return summary
-  })
-
-  return summaryList
-}
-
-
-// export function toLadder(summaryList: IAccountSummary[]) {
-// }
 
 export function liquidationWeight(isLong: boolean, liquidationPriceUSD: bigint, markPriceUSD: bigint) {
   const weight = isLong ? div(liquidationPriceUSD, markPriceUSD) : div(markPriceUSD, liquidationPriceUSD)
@@ -334,8 +211,8 @@ export function validateIdentityName(name: string) {
 
 }
 
-export function getTokenDescription(token: keyof typeof TOKEN_ADDRESS_TO_SYMBOL): ITokenDescription {
-  return TOKEN_DESCRIPTION_MAP[getSafeMappedValue(TOKEN_ADDRESS_TO_SYMBOL, token, token)]
+export function getTokenDescription(token: viem.Address): ITokenDescription {
+  return TOKEN_DESCRIPTION_MAP[getMappedValue(TOKEN_ADDRESS_TO_SYMBOL, token)]
 }
 
 
