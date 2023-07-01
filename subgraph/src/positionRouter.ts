@@ -13,6 +13,18 @@ import {
 } from "../generated/schema"
 
 
+// const getTradeLinkId = (id: i32, key: Bytes): Bytes => {
+//   return Bytes.fromUTF8('TradeLink')
+//     .concatI32(id)
+//     .concat(key)
+// }
+
+// const getPositionKey = (account: Bytes, key: Bytes): Bytes => {
+//   return Bytes.fromUTF8('TradeLink')
+//     .concatI32(id)
+//     .concat(key)
+// }
+
 export function handleCreateDecreasePosition(
   event: CreateDecreasePositionEvent
 ): void {

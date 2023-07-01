@@ -183,3 +183,7 @@ export function _storeERC20Transfer(token: string, event: ethereum.Event, from: 
 
   transfer.save()
 }
+
+
+
+

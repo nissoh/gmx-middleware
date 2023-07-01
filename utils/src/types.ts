@@ -2,9 +2,30 @@ import { Stream } from "@most/types"
 import { Abi } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
+import * as GMX from "gmx-middleware-const"
 
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
+
+export interface IIdentifiableEntity {
+  id: string
+}
+
+export interface ILogIndexIdentifier extends IIdentifiableEntity {
+  transactionIndex: number | bigint
+  logIndex: number | bigint
+  blockNumber: bigint
+  blockTimestamp: number
+}
+
+export type TypeName<T extends string> = { __typename: T }
+
+export type ILogType<T extends string> = TypeName<T> & ILogIndexIdentifier
+
+export type ILogEvent<
+  TAbi extends viem.Abi,
+  TEventName extends string
+> = ILogType<TEventName> & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 
 export interface ITokenDescription {
   name: string
@@ -36,24 +57,11 @@ export interface ITransaction {
 }
 
 
-export interface IIdentifiableEntity {
-  id: string
-}
-
-export interface IEntityIndexed extends IIdentifiableEntity {
-  transactionIndex: number | bigint
-  logIndex: number | bigint
-  blockNumber: bigint
-  blockTimestamp: number
-}
-
-export type TypeName<T extends string> = { __typename: T }
-export type IIndexedLogType<T extends string> = TypeName<T> & IEntityIndexed
 
 export interface IAbstractPositionIdentity {
-  indexToken: viem.Address
-  collateralToken: viem.Address
   account: viem.Address
+  collateralToken: viem.Address
+  indexToken: viem.Address
   isLong: boolean
 }
 
@@ -70,7 +78,7 @@ export type IAbstractPositionStake = {
   collateral: bigint
   size: bigint
   realisedPnl: bigint
-  averagePrice: bigint
+  // averagePrice: bigint
 }
 
 export type IAbstractPosition = IAbstractPositionStake & IAbstractPositionIdentity
@@ -83,65 +91,14 @@ export interface IVaultPosition extends IAbstractPositionStake {
 }
 
 
-export interface IPositionIncrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IIndexedLogType<'IncreasePosition'> {
-  price: bigint, fee: bigint, key: string
-}
-export interface IPositionDecrease extends IAbstractPositionIdentity, IAbstractPositionAdjustment, IIndexedLogType<'DecreasePosition'> {
-  price: bigint, fee: bigint, key: string
-}
+export type IPositionIncrease = ILogEvent<typeof GMX.abi.vault, 'IncreasePosition'>
+export type IPositionDecrease = ILogEvent<typeof GMX.abi.vault, 'DecreasePosition'>
+export type IPositionUpdate = ILogEvent<typeof GMX.abi.vault, 'UpdatePosition'>
+export type IPositionLiquidated = ILogEvent<typeof GMX.abi.vault, 'LiquidatePosition'>
+export type IPositionClose = ILogEvent<typeof GMX.abi.vault, 'ClosePosition'>
+export type IExecuteIncreasePosition = ILogEvent<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
+export type IExecuteDecreasePosition = ILogEvent<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
 
-export interface IPositionUpdate extends IAbstractPositionStake, IAbstractPositionKey, IIndexedLogType<'UpdatePosition'> {
-  markPrice: bigint
-  averagePrice: bigint
-  entryFundingRate: bigint
-  reserveAmount: bigint
-  key: string
-}
-
-export interface IPositionLiquidated extends IAbstractPosition, IIndexedLogType<'LiquidatePosition'> {
-  markPrice: bigint
-  reserveAmount: bigint
-  key: string
-}
-
-export interface IPositionClose extends IAbstractPositionStake, IIndexedLogType<'ClosePosition'> {
-  entryFundingRate: bigint
-  averagePrice: bigint
-  reserveAmount: bigint
-  key: string
-}
-
-export interface KeeperIncreaseRequest {
-  account: viem.Address
-  path: string[]
-  indexToken: string
-  amountIn: bigint
-  minOut: bigint
-  sizeDelta: bigint
-  isLong: boolean
-  acceptablePrice: bigint
-  executionFee: bigint
-  blockGap: bigint
-  timeGap: bigint
-  // key: string
-}
-
-
-export interface KeeperDecreaseRequest {
-  account: viem.Address
-  path: string[]
-  indexToken: string
-  collateralDelta: bigint
-  sizeDelta: bigint
-  isLong: boolean
-  receiver: string
-  acceptablePrice: bigint
-  minOut: bigint
-  executionFee: bigint
-  blockGap: bigint
-  timeGap: bigint
-  // key: string
-}
 
 
 
@@ -153,7 +110,7 @@ export enum TradeStatus {
 
 export type IAbstractTrade = IAbstractPositionAdjustment & IAbstractPositionStake
 
-interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityIndexed, IVaultPosition, IAbstractPositionIdentity {
+interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends ILogIndexIdentifier, IVaultPosition, IAbstractPositionIdentity {
   account: viem.Address
   status: T
   averagePrice: bigint
@@ -166,7 +123,7 @@ interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends IEntityInd
 }
 
 export interface ITrade {
-  id: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
+  key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
   account: viem.Address
   collateralToken: viem.Address
@@ -188,7 +145,7 @@ export interface ITradeSettled extends ITrade {
 }
 
 
-export interface IStake extends IIndexedLogType<"Stake"> {
+export interface IStake extends ILogType<"Stake"> {
   id: string
   account: viem.Address
   contract: string
@@ -224,7 +181,7 @@ export interface IPriceTimeline {
   timestamp: string
 }
 
-export interface IPricefeed extends IIndexedLogType<'Pricefeed'> {
+export interface IPricefeed extends ILogType<'Pricefeed'> {
   timestamp: number
   o: bigint
   h: bigint
@@ -233,7 +190,7 @@ export interface IPricefeed extends IIndexedLogType<'Pricefeed'> {
   tokenAddress: viem.Address
 }
 
-export interface IPriceLatest extends IIndexedLogType<'PriceLatest'> {
+export interface IPriceLatest extends ILogType<'PriceLatest'> {
   value: bigint
   id: viem.Address
   timestamp: number

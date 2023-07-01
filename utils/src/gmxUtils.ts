@@ -174,7 +174,7 @@ export function isTradeSettled(trade: ITrade | ITradeSettled): trade is ITradeSe
 }
 
 export function getAveragePrice(trade: ITrade | ITradeSettled): bigint {
-  return isTradeSettled(trade) ? trade.settlement.averagePrice : trade.updateList[trade.updateList.length - 1].averagePrice
+  return isTradeSettled(trade) ? 'averagePrice' in trade.settlement ? trade.settlement.averagePrice : trade.settlement.markPrice : trade.updateList[trade.updateList.length - 1].averagePrice
 }
 
 export function getTradeTotalFee(trade: ITrade | ITradeSettled): bigint {
