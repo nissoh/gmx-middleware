@@ -11,21 +11,55 @@ type PositionSlot @entity {
   isLong: Boolean!
   key: Bytes!
 
-  collateral: BigInt!
   size: BigInt!
+  collateral: BigInt!
   averagePrice: BigInt!
   entryFundingRate: BigInt!
-  realisedPnl: BigInt!
   reserveAmount: BigInt!
+  realisedPnl: BigInt!
 
-  cumulativeCollateral: BigInt!
   cumulativeSize: BigInt!
+  cumulativeCollateral: BigInt!
   cumulativeFee: BigInt!
 
-  maxCollateral: BigInt!
   maxSize: BigInt!
+  maxCollateral: BigInt!
 }
 
+type PositionSettled @entity(immutable: true) {
+  id: Bytes!
+  idCount: Int!
+  link: TradeLink!
+
+  account: Bytes!
+  collateralToken: Bytes!
+  indexToken: Bytes!
+  isLong: Boolean!
+  key: Bytes!
+
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+
+  cumulativeSize: BigInt!
+  cumulativeCollateral: BigInt!
+  cumulativeFee: BigInt!
+
+  maxSize: BigInt!
+  maxCollateral: BigInt!
+
+  markPrice: BigInt!
+  isLiquidated: Boolean!
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  transactionIndex: BigInt!
+  logIndex: BigInt!
+}
 
 type TradeLink @entity(immutable: true) {
   id: Bytes!
@@ -42,41 +76,6 @@ type TradeLink @entity(immutable: true) {
   increaseList: [IncreasePosition!] @derivedFrom(field: "link")
   decreaseList: [DecreasePosition!] @derivedFrom(field: "link")
   updateList: [UpdatePosition!] @derivedFrom(field: "link")
-
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-  transactionIndex: BigInt!
-  logIndex: BigInt!
-}
-
-type PositionSettled @entity(immutable: true) {
-  id: Bytes!
-  idCount: Int!
-  link: TradeLink!
-
-  account: Bytes!
-  collateralToken: Bytes!
-  indexToken: Bytes!
-  isLong: Boolean!
-  key: Bytes!
-
-  collateral: BigInt!
-  size: BigInt!
-  averagePrice: BigInt!
-  entryFundingRate: BigInt!
-  realisedPnl: BigInt!
-  reserveAmount: BigInt!
-
-  cumulativeCollateral: BigInt!
-  cumulativeSize: BigInt!
-  cumulativeFee: BigInt!
-
-  maxCollateral: BigInt!
-  maxSize: BigInt!
-
-  markPrice: BigInt!
-  isLiquidated: Boolean!
 
   blockNumber: BigInt!
   blockTimestamp: BigInt!

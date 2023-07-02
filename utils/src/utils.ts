@@ -1,5 +1,8 @@
-import { combineObject, O, Op, replayLatest } from "@aelea/core"
-import { at, awaitPromises, constant, continueWith, empty, filter, fromPromise, map, merge, multicast, now, recoverWith, switchLatest, takeWhile, zipArray } from "@most/core"
+import { combineObject, isStream, O, Op, replayLatest } from "@aelea/core"
+import {
+  at, awaitPromises, constant, continueWith, empty, filter, fromPromise, map, merge,
+  multicast, now, recoverWith, switchLatest, takeWhile, zipArray
+} from "@most/core"
 import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
 import { Stream } from "@most/types"
@@ -44,47 +47,26 @@ export function parseReadableNumber(stringNumber: string, locale?: Intl.NumberFo
   return parsed
 }
 
-export const readableAccountingNumber = Intl.NumberFormat("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+export const readableAccountingNumber: Intl.NumberFormatOptions = { maximumFractionDigits: 2, minimumFractionDigits: 2 }
+export const readableLargeNumber: Intl.NumberFormatOptions = { maximumFractionDigits: 0 }
+export const readableTinyNumber: Intl.NumberFormatOptions = { maximumSignificantDigits: 2, minimumSignificantDigits: 2 }
 
-export const readableLargeNumber = Intl.NumberFormat("en-US", { maximumFractionDigits: 0 })
-export const readableTinyNumber = Intl.NumberFormat("en-US", { maximumSignificantDigits: 2, minimumSignificantDigits: 2 })
-
-export function readableNumber(ammount: number | bigint) {
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options
+export const readableNumber = (formatOptions: Intl.NumberFormatOptions) => (ammount: number | bigint) => {
   const absAmount = typeof ammount === 'bigint' ? ammount > 0n ? ammount : -ammount : Math.abs(ammount)
+  const digitOptions = absAmount >= 1000 ? readableLargeNumber : absAmount >= 1 ? readableAccountingNumber : readableTinyNumber
 
-  if (absAmount >= 1000) {
-    return readableLargeNumber.format(ammount)
-  }
-
-  if (absAmount >= 1) {
-    return readableAccountingNumber.format(ammount)
-  }
-
-
-  return readableTinyNumber.format(ammount)
+  return Intl.NumberFormat("en-US", { ...digitOptions, ...formatOptions }).format(ammount)
 }
-
-
 
 const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }
 
-export function readableDate(timestamp: number) {
-  return new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
-}
+export const readableTokenAmount = readableNumber({ style: 'unit' })
+export const readableDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
+export const readableUSD = readableNumber({ currency: 'USD', style: 'currency' })
+export const readablePercentage = readableNumber({ style: 'percent' })
+export const formatReadableUSD = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
 
-export function formatReadableUSD(ammount: bigint | number, displayDecimals = true) {
-  if (ammount === 0n) {
-    return '$0'
-  }
-
-  const amountUsd = typeof ammount === 'bigint' ? formatFixed(ammount, USD_DECIMALS) : ammount
-
-  if (displayDecimals) {
-    return '$' + readableNumber(amountUsd)
-  }
-
-  return '$' + readableNumber(amountUsd).replace(/\.\d+/, '')
-}
 
 export function shortenTxAddress(address: string) {
   return shortenAddress(address, 8, 6)
@@ -650,3 +632,6 @@ export function importGlobal<T extends { default: any }>(query: Promise<T>): Str
   }
 }
 
+export function streamOf<T>(maybeStream: T | Stream<T>): Stream<T> {
+  return isStream(maybeStream) ? maybeStream : now(maybeStream)
+}

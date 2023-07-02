@@ -28,10 +28,10 @@ export function abs(a: bigint): bigint {
 }
 
 export function bnDiv(a: bigint, b: bigint): number {
-  return formatToBasis(div(a, b))
+  return formatBps(div(a, b))
 }
 
-export function formatToBasis(a: bigint): number {
+export function formatBps(a: bigint): number {
   return formatFixed(a, 4)
 }
 

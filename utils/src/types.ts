@@ -1,5 +1,5 @@
 import { Stream } from "@most/types"
-import { Abi } from "abitype"
+import { Abi, AbiFunction, AbiParametersToPrimitiveTypes, ExtractAbiFunction, ExtractAbiFunctionNames } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
 import * as GMX from "gmx-middleware-const"
@@ -11,16 +11,17 @@ export interface IIdentifiableEntity {
   id: string
 }
 
-export interface ILogIndexIdentifier extends IIdentifiableEntity {
-  transactionIndex: number | bigint
-  logIndex: number | bigint
+export interface ILogIndexIdentifier {
   blockNumber: bigint
   blockTimestamp: number
+
+  transactionHash: string
+  transactionIndex: number | bigint
+
+  logIndex: number | bigint
 }
 
-export type TypeName<T extends string> = { __typename: T }
-
-export type ILogType<T extends string> = TypeName<T> & ILogIndexIdentifier
+export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity & ILogIndexIdentifier
 
 export type ILogEvent<
   TAbi extends viem.Abi,
@@ -56,8 +57,6 @@ export interface ITransaction {
   value: bigint
 }
 
-
-
 export interface IAbstractPositionIdentity {
   account: viem.Address
   collateralToken: viem.Address
@@ -75,16 +74,13 @@ export type IAbstractPositionAdjustment = {
 }
 
 export type IAbstractPositionStake = {
-  collateral: bigint
   size: bigint
+  collateral: bigint
   realisedPnl: bigint
-  // averagePrice: bigint
 }
 
-export type IAbstractPosition = IAbstractPositionStake & IAbstractPositionIdentity
-
-
 export interface IVaultPosition extends IAbstractPositionStake {
+  averagePrice: bigint
   entryFundingRate: bigint
   reserveAmount: bigint
   lastIncreasedTime: bigint
@@ -108,14 +104,14 @@ export enum TradeStatus {
   LIQUIDATED = 'liquidated',
 }
 
-export type IAbstractTrade = IAbstractPositionAdjustment & IAbstractPositionStake
 
-interface ITradeAbstract<T extends TradeStatus = TradeStatus> extends ILogIndexIdentifier, IVaultPosition, IAbstractPositionIdentity {
+
+export interface ITradeLink extends ILogType<'TradeLink'> {
   account: viem.Address
-  status: T
-  averagePrice: bigint
-  fee: bigint
-  key: string
+  collateralToken: viem.Address
+  indexToken: viem.Address
+  isLong: boolean
+  key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
   increaseList: IPositionIncrease[]
   decreaseList: IPositionDecrease[]
@@ -137,6 +133,31 @@ export interface ITrade {
   maxCollateral: bigint
   maxSize: bigint
 }
+
+export interface IPositionSettled extends ILogType<'PositionSettled'>, IAbstractPositionIdentity {
+  isCount: number
+  link: ITradeLink
+
+  size: bigint
+  collateral: bigint
+  averagePrice: bigint
+  entryFundingRate: bigint
+  reserveAmount: bigint
+  realisedPnl: bigint
+
+  cumulativeSize: bigint
+  cumulativeCollateral: bigint
+  cumulativeFee: bigint
+
+  maxSize: bigint
+  maxCollateral: bigint
+
+  markPrice: bigint
+  isLiquidated: bigint
+}
+
+
+
 
 export interface ITradeSettled extends ITrade {
   isLiquidated: boolean
@@ -233,7 +254,7 @@ export type IRequestAccountApi = IChainParamApi & { account: viem.Address }
 export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: viem.Address }
 export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
 export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: viem.Address }
-export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof ITradeAbstract> & { status: TradeStatus }
+export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof IPositionSettled> & { status: TradeStatus }
 
 
 export interface IRequestGraphEntityApi extends IChainParamApi, IIdentifiableEntity { }
@@ -268,3 +289,6 @@ export type ContractClientParams<
   TIncludeActions extends boolean = true,
   TPublicClient extends viem.PublicClient<TTransport, TChain, TIncludeActions> = viem.PublicClient<TTransport, TChain, TIncludeActions>
 > = ContractParams<TAbi, TAddress> & { client: TPublicClient }
+
+
+
