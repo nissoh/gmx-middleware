@@ -15,7 +15,7 @@ import {
   PositionSettled,
   PositionSlot,
   Swap,
-  TradeLink,
+  PositionLink,
   UpdatePosition
 } from "../generated/schema"
 import * as vaultPricefeed from "../generated/Vault/VaultPricefeed"
@@ -23,8 +23,8 @@ import { ZERO_BI } from "./const"
 
 const vaultPricefeedAddress = Address.fromString("0x2d68011bcA022ed0E474264145F46CC4de96a002")
 
-const getTradeLinkId = (id: i32, key: Bytes): Bytes => {
-  return Bytes.fromUTF8('TradeLink')
+const getPositionLinkId = (id: i32, key: Bytes): Bytes => {
+  return Bytes.fromUTF8('PositionLink')
     .concatI32(id)
     .concat(key)
 }
@@ -47,42 +47,39 @@ export function handleIncreasePosition(event: IncreasePositionEvent): void {
   }
 
   const countId = positionSlot.size.equals(ZERO_BI) ? positionSlot.idCount + 1 : positionSlot.idCount
-  const tradeLinkId = getTradeLinkId(countId, event.params.key)
+  const PositionLinkId = getPositionLinkId(countId, event.params.key)
 
-  positionSlot.link = tradeLinkId
+  positionSlot.link = PositionLinkId
   positionSlot.idCount = countId
-
-  positionSlot.collateral = positionSlot.collateral.plus(event.params.collateralDelta)
-  positionSlot.size = positionSlot.size.plus(event.params.sizeDelta)
 
   positionSlot.cumulativeCollateral = positionSlot.size.plus(event.params.collateralDelta)
   positionSlot.cumulativeSize = positionSlot.size.plus(event.params.sizeDelta)
   positionSlot.cumulativeFee = positionSlot.cumulativeFee.plus(event.params.fee)
 
 
-  if (TradeLink.load(tradeLinkId) === null) {
-    const tradeLink = new TradeLink(tradeLinkId)
+  if (PositionLink.load(PositionLinkId) === null) {
+    const positionLink = new PositionLink(PositionLinkId)
 
-    tradeLink.account = event.params.account
-    tradeLink.collateralToken = event.params.collateralToken
-    tradeLink.indexToken = event.params.indexToken
-    tradeLink.isLong = event.params.isLong
-    tradeLink.key = event.params.key
+    positionLink.account = event.params.account
+    positionLink.collateralToken = event.params.collateralToken
+    positionLink.indexToken = event.params.indexToken
+    positionLink.isLong = event.params.isLong
+    positionLink.key = event.params.key
 
-    tradeLink.blockNumber = event.block.number
-    tradeLink.blockTimestamp = event.block.timestamp
-    tradeLink.transactionHash = event.transaction.hash
-    tradeLink.transactionIndex = event.transaction.index
-    tradeLink.logIndex = event.logIndex
+    positionLink.blockNumber = event.block.number
+    positionLink.blockTimestamp = event.block.timestamp
+    positionLink.transactionHash = event.transaction.hash
+    positionLink.transactionIndex = event.transaction.index
+    positionLink.logIndex = event.logIndex
 
-    tradeLink.save()
+    positionLink.save()
   }
 
 
   const entity = new IncreasePosition(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.link = tradeLinkId
+  entity.link = PositionLinkId
   entity.key = event.params.key
   entity.account = event.params.account
   entity.collateralToken = event.params.collateralToken
@@ -108,14 +105,15 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
 
   if (positionSlot === null) {
     return
-    // throw new Error("TradeLink is null")
+    // throw new Error("PositionLink is null")
   }
 
-  
+  positionSlot.cumulativeFee = positionSlot.cumulativeFee.plus(event.params.fee)
+
   const entity = new DecreasePosition(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.link = getTradeLinkId(positionSlot.idCount, event.params.key)
+  entity.link = getPositionLinkId(positionSlot.idCount, event.params.key)
   entity.key = event.params.key
   entity.account = event.params.account
   entity.collateralToken = event.params.collateralToken
@@ -132,6 +130,7 @@ export function handleDecreasePosition(event: DecreasePositionEvent): void {
   entity.transactionIndex = event.transaction.index
   entity.logIndex = event.logIndex
 
+  positionSlot.save()
   entity.save()
 }
 
@@ -140,7 +139,7 @@ export function handleUpdatePosition(event: UpdatePositionEvent): void {
 
   if (positionSlot === null) {
     return
-    // throw new Error("TradeLink is null")
+    // throw new Error("PositionLink is null")
   }
 
   positionSlot.collateral = event.params.collateral
@@ -148,8 +147,10 @@ export function handleUpdatePosition(event: UpdatePositionEvent): void {
   positionSlot.averagePrice = event.params.averagePrice
   positionSlot.size = event.params.size
   positionSlot.reserveAmount = event.params.reserveAmount
-  positionSlot.maxCollateral = event.params.collateral > positionSlot.collateral ? event.params.collateral : positionSlot.maxCollateral
+  positionSlot.entryFundingRate = event.params.entryFundingRate
+  positionSlot.maxCollateral = event.params.collateral > positionSlot.maxCollateral ? event.params.collateral : positionSlot.maxCollateral
   positionSlot.maxSize = event.params.size > positionSlot.maxSize ? event.params.size : positionSlot.maxSize
+
   positionSlot.save()
 
 
@@ -159,7 +160,7 @@ export function handleUpdatePosition(event: UpdatePositionEvent): void {
   )
 
 
-  entity.link = getTradeLinkId(positionSlot.idCount, event.params.key)
+  entity.link = getPositionLinkId(positionSlot.idCount, event.params.key)
   entity.account = positionSlot.account
   entity.key = event.params.key
   entity.size = event.params.size
@@ -185,7 +186,7 @@ export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
 
   if (positionSlot === null) {
     return
-    // throw new Error("TradeLink is null")
+    // throw new Error("PositionLink is null")
   }
 
   const positionSettled = new PositionSettled(
@@ -214,15 +215,18 @@ export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   positionSettled.maxCollateral = positionSlot.maxCollateral
   positionSettled.maxSize = positionSlot.maxSize
 
-  positionSettled.markPrice = vaultPricefeed.VaultPricefeed.bind(vaultPricefeedAddress).getPrimaryPrice(Address.fromBytes(positionSlot.indexToken), false)
+  positionSettled.settlePrice = event.params.markPrice
   positionSettled.isLiquidated = false
 
-  positionSettled.blockTimestamp = event.block.timestamp
   positionSettled.blockNumber = event.block.number
+  positionSettled.blockTimestamp = event.block.timestamp
   positionSettled.transactionHash = event.transaction.hash
+  positionSettled.transactionIndex = event.transaction.index
+  positionSettled.logIndex = event.logIndex
 
   _resetPositionSlot(positionSlot)
   positionSlot.save()
+  positionSettled.save()
 
 
 
@@ -230,7 +234,7 @@ export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
 
-  entity.link = getTradeLinkId(positionSlot.idCount, event.params.key)
+  entity.link = getPositionLinkId(positionSlot.idCount, event.params.key)
   entity.key = event.params.key
   entity.account = event.params.account
   entity.collateralToken = event.params.collateralToken
@@ -277,7 +281,7 @@ export function handleClosePosition(event: ClosePositionEvent): void {
 
   if (positionSlot === null) {
     return
-    // throw new Error("TradeLink is null")
+    // throw new Error("PositionLink is null")
   }
 
   const positionSettled = new PositionSettled(
@@ -306,15 +310,18 @@ export function handleClosePosition(event: ClosePositionEvent): void {
   positionSettled.maxCollateral = positionSlot.maxCollateral
   positionSettled.maxSize = positionSlot.maxSize
 
-  positionSettled.markPrice = vaultPricefeed.VaultPricefeed.bind(vaultPricefeedAddress).getPrimaryPrice(Address.fromBytes(positionSlot.indexToken), false)
+  positionSettled.settlePrice = vaultPricefeed.VaultPricefeed.bind(vaultPricefeedAddress).getPrimaryPrice(Address.fromBytes(positionSlot.indexToken), false)
   positionSettled.isLiquidated = false
 
-  positionSettled.blockTimestamp = event.block.timestamp
   positionSettled.blockNumber = event.block.number
+  positionSettled.blockTimestamp = event.block.timestamp
   positionSettled.transactionHash = event.transaction.hash
+  positionSettled.transactionIndex = event.transaction.index
+  positionSettled.logIndex = event.logIndex
 
   _resetPositionSlot(positionSlot)
   positionSlot.save()
+  positionSettled.save()
 
   const entity = new ClosePosition(
     event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -324,7 +331,7 @@ export function handleClosePosition(event: ClosePositionEvent): void {
   if (positionSlot === null) {
     throw new Error('positionSlot is null')
   }
-  entity.link = getTradeLinkId(positionSlot.idCount, event.params.key)
+  entity.link = getPositionLinkId(positionSlot.idCount, event.params.key)
   entity.account = positionSlot.account
   entity.key = event.params.key
   entity.size = event.params.size

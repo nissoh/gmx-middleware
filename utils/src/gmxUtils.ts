@@ -1,10 +1,13 @@
 import {
-  CHAIN_NATIVE_TO_SYMBOL, TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, CHAIN, BASIS_POINTS_DIVISOR,
-  FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE
+  BASIS_POINTS_DIVISOR,
+  CHAIN,
+  CHAIN_NATIVE_TO_SYMBOL,
+  FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
+  TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP
 } from "gmx-middleware-const"
-import { ITokenDescription, ITrade, ITradeSettled } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, getSafeMappedValue, groupByMapMany } from "./utils.js"
 import * as viem from "viem"
+import { IAccountSummary, ILogIndexIdentifier, IPositionSettled, IPositionSlot, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupByMapMany } from "./utils.js"
 
 
 export function safeDiv(a: bigint, b: bigint): bigint {
@@ -168,18 +171,17 @@ export function getNextLiquidationPrice(
 
 }
 
-
-export function isTradeSettled(trade: ITrade | ITradeSettled): trade is ITradeSettled {
-  return `settlement` in trade
+export function isTradeSettled(trade: IPositionSlot | IPositionSettled): trade is IPositionSettled {
+  return `isLiquidated` in trade
 }
 
-export function getAveragePrice(trade: ITrade | ITradeSettled): bigint {
-  return isTradeSettled(trade) ? 'averagePrice' in trade.settlement ? trade.settlement.averagePrice : trade.settlement.markPrice : trade.updateList[trade.updateList.length - 1].averagePrice
-}
+// export function getAveragePrice(trade: IPositionSlot | IPositionSettled): bigint {
+//   return trade.averagePrice
+// }
 
-export function getTradeTotalFee(trade: ITrade | ITradeSettled): bigint {
-  return [...trade.increaseList, ...trade.decreaseList].reduce((seed, next) => seed + next.fee, 0n)
-}
+// export function getTradeTotalFee(trade: IPositionSlot | IPositionSettled): bigint {
+//   return [...trade.increaseList, ...trade.decreaseList].reduce((seed, next) => seed + next.fee, 0n)
+// }
 
 export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: bigint, size: bigint) {
   if (size === 0n) {
@@ -220,3 +222,89 @@ export function getNativeTokenDescription(chain: CHAIN): ITokenDescription {
   const symbol = getMappedValue(CHAIN_NATIVE_TO_SYMBOL, chain)
   return TOKEN_DESCRIPTION_MAP[symbol]
 }
+
+
+export function toAccountSummaryList(list: IPositionSettled[]): IAccountSummary[] {
+  const tradeListMap = groupByMapMany(list, a => a.account)
+  const tradeListEntries = Object.entries(tradeListMap) as [viem.Address, IPositionSettled[]][]
+
+  const summaryList = tradeListEntries.map(([account, tradeList]) => {
+
+    const seedAccountSummary: IAccountSummary = {
+      account,
+      size: 0n,
+      collateral: 0n,
+      leverage: 0n,
+
+      avgLeverage: 0n,
+      avgCollateral: 0n,
+      avgSize: 0n,
+
+      fee: 0n,
+      lossCount: 0,
+      pnl: 0n,
+      winCount: 0,
+    }
+
+
+    const summary = tradeList.reduce((seed, next, idx): IAccountSummary => {
+      const idxBn = BigInt(idx) + 1n
+
+      const size = seed.size + next.maxSize
+      const collateral = seed.collateral + next.maxCollateral
+      const leverage = seed.leverage + div(next.maxSize, next.maxCollateral)
+
+      const avgSize = size / idxBn
+      const avgCollateral = collateral / idxBn
+      const avgLeverage = leverage / idxBn
+
+
+      const fee = seed.fee + next.cumulativeFee
+      const pnl = seed.fee + next.realisedPnl
+
+
+      const winCount = seed.winCount + (next.realisedPnl > 0n ? 1 : 0)
+      const lossCount = seed.lossCount + (next.realisedPnl <= 0n ? 1 : 0)
+
+
+      return {
+        account,
+        size,
+        collateral,
+        leverage,
+
+        avgLeverage,
+        avgCollateral,
+        avgSize,
+        fee,
+        lossCount,
+        pnl,
+        winCount,
+      }
+    }, seedAccountSummary)
+
+
+    return summary
+  })
+
+  return summaryList
+}
+
+
+export function orderEvents<T extends ILogIndexIdentifier>(arr: T[]): T[] {
+  return arr.sort((a, b) => {
+
+    if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
+
+    const order = a.blockNumber === b.blockNumber // same block?, compare transaction index
+      ? a.transactionIndex === b.transactionIndex //same transaction?, compare log index
+        ? Number(a.logIndex) - Number(b.logIndex)
+        : Number(a.transactionIndex) - Number(b.transactionIndex)
+      : Number(a.blockNumber - b.blockNumber) // compare block number
+
+    return order
+  }
+  )
+}
+
+

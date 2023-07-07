@@ -1,93 +1,9 @@
 
-# slots
-type PositionSlot @entity {
-  id: Bytes!
-  idCount: Int!
-  link: TradeLink!
-
-  account: Bytes!
-  collateralToken: Bytes!
-  indexToken: Bytes!
-  isLong: Boolean!
-  key: Bytes!
-
-  size: BigInt!
-  collateral: BigInt!
-  averagePrice: BigInt!
-  entryFundingRate: BigInt!
-  reserveAmount: BigInt!
-  realisedPnl: BigInt!
-
-  cumulativeSize: BigInt!
-  cumulativeCollateral: BigInt!
-  cumulativeFee: BigInt!
-
-  maxSize: BigInt!
-  maxCollateral: BigInt!
-}
-
-type PositionSettled @entity(immutable: true) {
-  id: Bytes!
-  idCount: Int!
-  link: TradeLink!
-
-  account: Bytes!
-  collateralToken: Bytes!
-  indexToken: Bytes!
-  isLong: Boolean!
-  key: Bytes!
-
-  size: BigInt!
-  collateral: BigInt!
-  averagePrice: BigInt!
-  entryFundingRate: BigInt!
-  reserveAmount: BigInt!
-  realisedPnl: BigInt!
-
-  cumulativeSize: BigInt!
-  cumulativeCollateral: BigInt!
-  cumulativeFee: BigInt!
-
-  maxSize: BigInt!
-  maxCollateral: BigInt!
-
-  markPrice: BigInt!
-  isLiquidated: Boolean!
-
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-  transactionIndex: BigInt!
-  logIndex: BigInt!
-}
-
-type TradeLink @entity(immutable: true) {
-  id: Bytes!
-
-  account: Bytes!
-  collateralToken: Bytes!
-  indexToken: Bytes!
-  isLong: Boolean!
-  key: Bytes!
-
-  # executeIncreaseList: [ExecuteIncreasePosition!] @derivedFrom(field: "link")
-  # executeDecreaseList: [ExecuteDecreasePosition!] @derivedFrom(field: "link")
-
-  increaseList: [IncreasePosition!] @derivedFrom(field: "link")
-  decreaseList: [DecreasePosition!] @derivedFrom(field: "link")
-  updateList: [UpdatePosition!] @derivedFrom(field: "link")
-
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-  transactionIndex: BigInt!
-  logIndex: BigInt!
-}
 
 type ClosePosition @entity(immutable: true) {
   id: Bytes!
   account: Bytes!
-  link: TradeLink!
+  link: PositionLink!
 
   key: Bytes! # bytes32
   size: BigInt! # uint256
@@ -107,7 +23,7 @@ type ClosePosition @entity(immutable: true) {
 type DecreasePosition @entity(immutable: true) {
   id: Bytes!
   key: Bytes! # bytes32
-  link: TradeLink!
+  link: PositionLink!
 
   account: Bytes! # address
   collateralToken: Bytes! # address
@@ -128,7 +44,7 @@ type DecreasePosition @entity(immutable: true) {
 type IncreasePosition @entity(immutable: true) {
   id: Bytes!
   key: Bytes! # bytes32
-  link: TradeLink!
+  link: PositionLink!
 
   account: Bytes! # address
   collateralToken: Bytes! # address
@@ -149,7 +65,7 @@ type IncreasePosition @entity(immutable: true) {
 type UpdatePosition @entity(immutable: true) {
   id: Bytes!
   account: Bytes!
-  link: TradeLink!
+  link: PositionLink!
 
   key: Bytes! # bytes32
   size: BigInt! # uint256
@@ -170,7 +86,7 @@ type UpdatePosition @entity(immutable: true) {
 type LiquidatePosition @entity(immutable: true) {
   id: Bytes!
   key: Bytes! # bytes32
-  link: TradeLink!
+  link: PositionLink!
 
   account: Bytes! # address
   collateralToken: Bytes! # address
@@ -205,8 +121,6 @@ type Swap @entity(immutable: true) {
   transactionIndex: BigInt!
   logIndex: BigInt!
 }
-
-
 
 type ExecuteDecreasePosition @entity(immutable: true) {
   id: Bytes!
@@ -301,3 +215,88 @@ type CreateIncreasePosition @entity(immutable: true) {
   logIndex: BigInt!
 }
 
+
+# slots
+type PositionSlot @entity {
+  id: Bytes!
+  idCount: Int!
+  link: PositionLink!
+
+  account: Bytes!
+  collateralToken: Bytes!
+  indexToken: Bytes!
+  isLong: Boolean!
+  key: Bytes!
+
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+
+  cumulativeSize: BigInt!
+  cumulativeCollateral: BigInt!
+  cumulativeFee: BigInt!
+
+  maxSize: BigInt!
+  maxCollateral: BigInt!
+}
+
+type PositionSettled @entity(immutable: true) {
+  id: Bytes!
+  idCount: Int!
+  link: PositionLink!
+
+  account: Bytes!
+  collateralToken: Bytes!
+  indexToken: Bytes!
+  isLong: Boolean!
+  key: Bytes!
+
+  size: BigInt!
+  collateral: BigInt!
+  averagePrice: BigInt!
+  entryFundingRate: BigInt!
+  reserveAmount: BigInt!
+  realisedPnl: BigInt!
+
+  cumulativeSize: BigInt!
+  cumulativeCollateral: BigInt!
+  cumulativeFee: BigInt!
+
+  maxSize: BigInt!
+  maxCollateral: BigInt!
+
+  settlePrice: BigInt!
+  isLiquidated: Boolean!
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  transactionIndex: BigInt!
+  logIndex: BigInt!
+}
+
+type PositionLink @entity(immutable: true) {
+  id: Bytes!
+
+  account: Bytes!
+  collateralToken: Bytes!
+  indexToken: Bytes!
+  isLong: Boolean!
+  key: Bytes!
+
+  # executeIncreaseList: [ExecuteIncreasePosition!] @derivedFrom(field: "link")
+  # executeDecreaseList: [ExecuteDecreasePosition!] @derivedFrom(field: "link")
+
+  increaseList: [IncreasePosition!] @derivedFrom(field: "link")
+  decreaseList: [DecreasePosition!] @derivedFrom(field: "link")
+  updateList: [UpdatePosition!] @derivedFrom(field: "link")
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  transactionIndex: BigInt!
+  logIndex: BigInt!
+}

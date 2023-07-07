@@ -11,6 +11,7 @@ import { CHAIN, EXPLORER_URL } from "gmx-middleware-const"
 import { Address, encodePacked, keccak256 } from "viem"
 import { USD_DECIMALS } from "gmx-middleware-const"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
+import { formatBps } from "./gmxUtils.js"
 export * as GraphQL from '@urql/core'
 
 
@@ -52,20 +53,21 @@ export const readableLargeNumber: Intl.NumberFormatOptions = { maximumFractionDi
 export const readableTinyNumber: Intl.NumberFormatOptions = { maximumSignificantDigits: 2, minimumSignificantDigits: 2 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options
-export const readableNumber = (formatOptions: Intl.NumberFormatOptions) => (ammount: number | bigint) => {
+export const readableNumber = curry2((formatOptions: Intl.NumberFormatOptions, ammount: number | bigint) => {
   const absAmount = typeof ammount === 'bigint' ? ammount > 0n ? ammount : -ammount : Math.abs(ammount)
   const digitOptions = absAmount >= 1000 ? readableLargeNumber : absAmount >= 1 ? readableAccountingNumber : readableTinyNumber
 
   return Intl.NumberFormat("en-US", { ...digitOptions, ...formatOptions }).format(ammount)
-}
+})
 
 const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }
 
-export const readableTokenAmount = readableNumber({ style: 'unit' })
+export const readableUnitAmount = readableNumber({  })
 export const readableDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
 export const readableUSD = readableNumber({ currency: 'USD', style: 'currency' })
 export const readablePercentage = readableNumber({ style: 'percent' })
-export const formatReadableUSD = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
+export const readableFixed10kBsp = (amount: bigint) => readablePercentage(formatBps(amount))
+export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
 
 
 export function shortenTxAddress(address: string) {

@@ -1,8 +1,8 @@
 import { Stream } from "@most/types"
-import { Abi, AbiFunction, AbiParametersToPrimitiveTypes, ExtractAbiFunction, ExtractAbiFunctionNames } from "abitype"
+import { Abi } from "abitype"
+import * as GMX from "gmx-middleware-const"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import * as GMX from "gmx-middleware-const"
 
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
@@ -13,20 +13,22 @@ export interface IIdentifiableEntity {
 
 export interface ILogIndexIdentifier {
   blockNumber: bigint
-  blockTimestamp: number
-
   transactionHash: string
   transactionIndex: number | bigint
 
   logIndex: number | bigint
 }
 
-export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity & ILogIndexIdentifier
+export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity
+
+export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndexIdentifier & {
+  blockTimestamp: bigint
+}
 
 export type ILogEvent<
   TAbi extends viem.Abi,
   TEventName extends string
-> = ILogType<TEventName> & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+> = ILogIndexIdentifier & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 
 export interface ITokenDescription {
   name: string
@@ -106,37 +108,50 @@ export enum TradeStatus {
 
 
 
-export interface ITradeLink extends ILogType<'TradeLink'> {
+export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
   account: viem.Address
   collateralToken: viem.Address
   indexToken: viem.Address
   isLong: boolean
   key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
-  increaseList: IPositionIncrease[]
-  decreaseList: IPositionDecrease[]
-  updateList: IPositionUpdate[]
+  increaseList: (IPositionIncrease & ILogSubgraphType<'IncreasePosition'>)[]
+  decreaseList: (IPositionDecrease & ILogSubgraphType<'DecreasePosition'>)[]
+  updateList: (IPositionUpdate & ILogSubgraphType<'UpdatePosition'>)[]
 }
 
-export interface ITrade {
-  key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
+export interface IPosition {
   account: viem.Address
   collateralToken: viem.Address
   indexToken: viem.Address
   isLong: boolean
+  key: viem.Hex
 
-  increaseList: IPositionIncrease[]
-  decreaseList: IPositionDecrease[]
-  updateList: IPositionUpdate[]
+  size: bigint
+  collateral: bigint
+  averagePrice: bigint
+  entryFundingRate: bigint
+  reserveAmount: bigint
+  realisedPnl: bigint
+}
 
-  maxCollateral: bigint
+export interface IPositionSlot extends ILogSubgraphType<'PositionLink'>, IPosition {
+  idCount: number
+  link: IPositionLink
+
+  cumulativeSize: bigint
+  cumulativeCollateral: bigint
+  cumulativeFee: bigint
+
   maxSize: bigint
+  maxCollateral: bigint
 }
 
-export interface IPositionSettled extends ILogType<'PositionSettled'>, IAbstractPositionIdentity {
-  isCount: number
-  link: ITradeLink
+
+export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndexIdentifier, IAbstractPositionIdentity, IAbstractPositionKey {
+  idCount: number
+  link: IPositionLink
 
   size: bigint
   collateral: bigint
@@ -152,21 +167,12 @@ export interface IPositionSettled extends ILogType<'PositionSettled'>, IAbstract
   maxSize: bigint
   maxCollateral: bigint
 
-  markPrice: bigint
+  settlePrice: bigint
   isLiquidated: bigint
 }
 
 
-
-
-export interface ITradeSettled extends ITrade {
-  isLiquidated: boolean
-
-  settlement: IPositionClose | IPositionLiquidated
-}
-
-
-export interface IStake extends ILogType<"Stake"> {
+export interface IStake extends ILogSubgraphType<"Stake"> {
   id: string
   account: viem.Address
   contract: string
@@ -178,20 +184,20 @@ export interface IStake extends ILogType<"Stake"> {
 
 
 export interface IAccountSummary {
-  realisedPnl: bigint
-  cumSize: bigint
-  cumCollateral: bigint
-  avgCollateral: bigint
-  avgSize: bigint
   account: viem.Address
+
+  size: bigint
+  collateral: bigint
   fee: bigint
+  pnl: bigint
+  leverage: bigint
+
+  avgLeverage: bigint
+  avgSize: bigint
+  avgCollateral: bigint
+
   winCount: number
   lossCount: number
-  maxCollateral: bigint
-  avgLeverage: bigint
-  openPnl: bigint
-  pnl: bigint
-  cumulativeLeverage: bigint
 }
 
 
@@ -202,7 +208,7 @@ export interface IPriceTimeline {
   timestamp: string
 }
 
-export interface IPricefeed extends ILogType<'Pricefeed'> {
+export interface IPricefeed extends ILogSubgraphType<'Pricefeed'> {
   timestamp: number
   o: bigint
   h: bigint
@@ -211,7 +217,7 @@ export interface IPricefeed extends ILogType<'Pricefeed'> {
   tokenAddress: viem.Address
 }
 
-export interface IPriceLatest extends ILogType<'PriceLatest'> {
+export interface IPriceLatest extends ILogSubgraphType<'PriceLatest'> {
   value: bigint
   id: viem.Address
   timestamp: number
