@@ -11,24 +11,29 @@ export interface IIdentifiableEntity {
   id: string
 }
 
-export interface ILogIndexIdentifier {
-  blockNumber: bigint
-  transactionHash: string
-  transactionIndex: number | bigint
+export interface ILogIndex<TQuantity = bigint, TIndex = number> {
+  blockNumber: TQuantity
+  transactionIndex: TIndex
+  logIndex: TIndex
+}
 
-  logIndex: number | bigint
+export interface ILogOrdered<TQuantity = bigint, TIndex = number> extends ILogIndex<TQuantity, TIndex> {
+  orderIdentifier: bigint
 }
 
 export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity
 
-export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndexIdentifier & {
+export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndex & {
   blockTimestamp: bigint
+  transactionHash: string
 }
 
 export type ILogEvent<
   TAbi extends viem.Abi,
   TEventName extends string
-> = ILogIndexIdentifier & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+> = ILogIndex & { transactionHash: string } & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+
+
 
 export interface ITokenDescription {
   name: string
@@ -149,7 +154,7 @@ export interface IPositionSlot extends ILogSubgraphType<'PositionLink'>, IPositi
 }
 
 
-export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndexIdentifier, IAbstractPositionIdentity, IAbstractPositionKey {
+export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndex, IAbstractPositionIdentity, IAbstractPositionKey {
   idCount: number
   link: IPositionLink
 

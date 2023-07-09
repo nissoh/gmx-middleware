@@ -6,8 +6,9 @@ import {
   TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IAccountSummary, ILogIndexIdentifier, IPositionSettled, IPositionSlot, ITokenDescription } from "./types.js"
+import { IAccountSummary, ILogIndex, IPositionSettled, IPositionSlot, ITokenDescription } from "./types.js"
 import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupByMapMany } from "./utils.js"
+import { AbiEvent } from "abitype"
 
 
 export function safeDiv(a: bigint, b: bigint): bigint {
@@ -291,7 +292,7 @@ export function toAccountSummaryList(list: IPositionSettled[]): IAccountSummary[
 }
 
 
-export function orderEvents<T extends ILogIndexIdentifier>(arr: T[]): T[] {
+export function orderEvents<T extends ILogIndex>(arr: T[]): T[] {
   return arr.sort((a, b) => {
 
     if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
@@ -306,5 +307,61 @@ export function orderEvents<T extends ILogIndexIdentifier>(arr: T[]): T[] {
   }
   )
 }
+
+export function parseAndOrderEvents<T extends ILogIndex>(arr: T[]): T[] {
+  return arr.sort((a, b) => {
+
+    if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
+
+    const order = a.blockNumber === b.blockNumber // same block?, compare transaction index
+      ? a.transactionIndex === b.transactionIndex //same transaction?, compare log index
+        ? Number(a.logIndex) - Number(b.logIndex)
+        : Number(a.transactionIndex) - Number(b.transactionIndex)
+      : Number(a.blockNumber - b.blockNumber) // compare block number
+
+    return order
+  }
+  )
+}
+
+
+export function getEventOrderIdentifier<T extends viem.Log>(ev: T, contractsPerBlock = 10_000n, eventsPerTx = 1_000n): bigint {
+  if (typeof ev.logIndex !== 'number' || typeof ev.transactionIndex !== 'number' || typeof ev.blockNumber !== 'bigint') {
+    throw new Error('Invalid event or pending tx')
+  }
+
+  const paddedBlockNumber = ev.blockNumber * contractsPerBlock
+  const paddedTxIndex = BigInt(ev.transactionIndex) * eventsPerTx
+  return paddedBlockNumber + paddedTxIndex + BigInt(ev.logIndex)
+}
+
+export function parseJsonAbiEvent(abiEvent: AbiEvent, obj: any) {
+  const bigIntKeys = [
+    'blockNumber', 'transactionIndex', 'logIndex',
+    ...abiEvent.inputs.filter(x => x.type === 'uint256' || x.type === 'int256').map(x => x.name)
+  ]
+
+  const jsonObj: any = {}
+
+  for (const key in obj) {
+    const jsonValue = obj[key]
+    const value = bigIntKeys.includes(key)
+      ? getMappedValue(parseTypeFnMap, jsonValue)(jsonValue)
+      : obj[key]
+    jsonObj[key] = value
+
+  }
+
+  return jsonObj
+}
+
+export const parseTypeFnMap = {
+  uint256: BigInt,
+  uint: BigInt,
+  string: String,
+  'int': Number,
+  bool: Boolean,
+  int256: BigInt,
+} as const
 
 
