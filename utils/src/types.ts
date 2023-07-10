@@ -5,6 +5,10 @@ import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
 
 
+export type Nullable<T> = {
+    [P in keyof T]: T[P] | null
+}
+
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
 
 export interface IIdentifiableEntity {
@@ -17,8 +21,8 @@ export interface ILogIndex<TQuantity = bigint, TIndex = number> {
   logIndex: TIndex
 }
 
-export interface ILogOrdered<TQuantity = bigint, TIndex = number> extends ILogIndex<TQuantity, TIndex> {
-  orderIdentifier: bigint
+export interface ILogOrdered {
+  orderIdentifier: number
 }
 
 export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity
@@ -31,7 +35,7 @@ export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndex & {
 export type ILogEvent<
   TAbi extends viem.Abi,
   TEventName extends string
-> = ILogIndex & { transactionHash: string } & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+> = ILogIndex & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 
 
 

@@ -3,10 +3,10 @@ import {
   CHAIN,
   CHAIN_NATIVE_TO_SYMBOL,
   FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
-  TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP
+  TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, groupByKeyMap
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IAccountSummary, ILogIndex, IPositionSettled, IPositionSlot, ITokenDescription } from "./types.js"
+import { IAccountSummary, ILogIndex, ILogOrdered, IPositionSettled, IPositionSlot, ITokenDescription, Nullable } from "./types.js"
 import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupByMapMany } from "./utils.js"
 import { AbiEvent } from "abitype"
 
@@ -292,7 +292,7 @@ export function toAccountSummaryList(list: IPositionSettled[]): IAccountSummary[
 }
 
 
-export function orderEvents<T extends ILogIndex>(arr: T[]): T[] {
+export function orderEvents<T extends ILogIndex & ILogOrdered>(arr: any[]): T[] {
   return arr.sort((a, b) => {
 
     if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
@@ -308,46 +308,24 @@ export function orderEvents<T extends ILogIndex>(arr: T[]): T[] {
   )
 }
 
-export function parseAndOrderEvents<T extends ILogIndex>(arr: T[]): T[] {
-  return arr.sort((a, b) => {
-
-    if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
-
-    const order = a.blockNumber === b.blockNumber // same block?, compare transaction index
-      ? a.transactionIndex === b.transactionIndex //same transaction?, compare log index
-        ? Number(a.logIndex) - Number(b.logIndex)
-        : Number(a.transactionIndex) - Number(b.transactionIndex)
-      : Number(a.blockNumber - b.blockNumber) // compare block number
-
-    return order
-  }
-  )
+export function getEventOrderIdentifier<T extends ILogIndex>(idxObj: T): number {
+  if (idxObj.blockNumber === null || idxObj.transactionIndex === null || idxObj.logIndex === null) throw new Error('blockNumber is null')
+  return Number(idxObj.blockNumber) * 1000000 + idxObj.transactionIndex * 1000 + idxObj.logIndex
 }
 
 
-export function getEventOrderIdentifier<T extends viem.Log>(ev: T, contractsPerBlock = 10_000n, eventsPerTx = 1_000n): bigint {
-  if (typeof ev.logIndex !== 'number' || typeof ev.transactionIndex !== 'number' || typeof ev.blockNumber !== 'bigint') {
-    throw new Error('Invalid event or pending tx')
-  }
-
-  const paddedBlockNumber = ev.blockNumber * contractsPerBlock
-  const paddedTxIndex = BigInt(ev.transactionIndex) * eventsPerTx
-  return paddedBlockNumber + paddedTxIndex + BigInt(ev.logIndex)
-}
-
-export function parseJsonAbiEvent(abiEvent: AbiEvent, obj: any) {
+export function mapKeyToAbiParam<T extends viem.Log<bigint, number, any, true, viem.Abi, string>>(abiEvent: AbiEvent, log: T) {
   const bigIntKeys = [
     'blockNumber', 'transactionIndex', 'logIndex',
     ...abiEvent.inputs.filter(x => x.type === 'uint256' || x.type === 'int256').map(x => x.name)
   ]
-
+  const args = log.args as any
   const jsonObj: any = {}
-
-  for (const key in obj) {
-    const jsonValue = obj[key]
+  for (const key in args) {
+    const jsonValue = args[key]
     const value = bigIntKeys.includes(key)
-      ? getMappedValue(parseTypeFnMap, jsonValue)(jsonValue)
-      : obj[key]
+      ? getMappedValue(abiParamParseMap, jsonValue)(jsonValue)
+      : args[key]
     jsonObj[key] = value
 
   }
@@ -355,7 +333,13 @@ export function parseJsonAbiEvent(abiEvent: AbiEvent, obj: any) {
   return jsonObj
 }
 
-export const parseTypeFnMap = {
+export function parseJsonAbiEvent(abiEvent: AbiEvent) {
+  const bigIntKeys = groupByKeyMap(abiEvent.inputs, x => x.name || 'none', x => x.type)
+
+  return bigIntKeys
+}
+
+export const abiParamParseMap = {
   uint256: BigInt,
   uint: BigInt,
   string: String,
