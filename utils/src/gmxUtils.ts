@@ -6,7 +6,7 @@ import {
   TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, groupByKeyMap
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IAccountSummary, ILogIndex, ILogOrdered, IPositionSettled, IPositionSlot, ITokenDescription, Nullable } from "./types.js"
+import { IAccountSummary, ILogEvent, ILogIndex, ILogOrdered, IPositionSettled, IPositionSlot, ITokenDescription, } from "./types.js"
 import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupByMapMany } from "./utils.js"
 import { AbiEvent } from "abitype"
 
@@ -292,15 +292,17 @@ export function toAccountSummaryList(list: IPositionSettled[]): IAccountSummary[
 }
 
 
-export function orderEvents<T extends ILogIndex & ILogOrdered>(arr: any[]): T[] {
+export function orderEvents<T extends ILogEvent>(arr: T[]): T[] {
   return arr.sort((a, b) => {
 
-    if (a.blockNumber === null || b.blockNumber === null) throw new Error('blockNumber is null')
+    if (typeof b.blockNumber !== 'bigint') throw new Error('blockNumber is not a bigint')
+    if (typeof b.transactionIndex !== 'number') throw new Error('transactionIndex is not a number')
+    if (typeof b.logIndex !== 'number') throw new Error('logIndex is not a number')
 
     const order = a.blockNumber === b.blockNumber // same block?, compare transaction index
       ? a.transactionIndex === b.transactionIndex //same transaction?, compare log index
-        ? Number(a.logIndex) - Number(b.logIndex)
-        : Number(a.transactionIndex) - Number(b.transactionIndex)
+        ? a.logIndex - b.logIndex
+        : a.transactionIndex - b.transactionIndex
       : Number(a.blockNumber - b.blockNumber) // compare block number
 
     return order
@@ -308,9 +310,10 @@ export function orderEvents<T extends ILogIndex & ILogOrdered>(arr: any[]): T[] 
   )
 }
 
-export function getEventOrderIdentifier<T extends ILogIndex>(idxObj: T): number {
+
+export function getEventOrderIdentifier<T extends ILogEvent>(idxObj: T): number {
   if (idxObj.blockNumber === null || idxObj.transactionIndex === null || idxObj.logIndex === null) throw new Error('blockNumber is null')
-  return Number(idxObj.blockNumber) * 1000000 + idxObj.transactionIndex * 1000 + idxObj.logIndex
+  return Number(idxObj.blockNumber * 1000000n + BigInt(idxObj.transactionIndex * 1000 + idxObj.logIndex))
 }
 
 

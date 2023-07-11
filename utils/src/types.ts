@@ -1,5 +1,5 @@
 import { Stream } from "@most/types"
-import { Abi } from "abitype"
+import { Abi, ExtractAbiEvent } from "abitype"
 import * as GMX from "gmx-middleware-const"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
@@ -7,6 +7,9 @@ import * as viem from "viem"
 
 export type Nullable<T> = {
     [P in keyof T]: T[P] | null
+}
+export type NonNullableStruct<T> = {
+    [P in keyof T]: NonNullable<T[P]>
 }
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
@@ -22,21 +25,20 @@ export interface ILogIndex<TQuantity = bigint, TIndex = number> {
 }
 
 export interface ILogOrdered {
-  orderIdentifier: number
+  orderId: number
 }
 
-export type ILogType<T extends string> = { __typename: T } & IIdentifiableEntity
+export type ILogType<T extends string> = { __typename: T } // & IIdentifiableEntity
 
-export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndex & {
-  blockTimestamp: bigint
-  transactionHash: string
+// export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndex & {
+export type ILogSubgraphType<T extends string> = ILogType<T> & {
+  // blockTimestamp: bigint
+  // transactionHash: string
 }
 
-export type ILogEvent<
-  TAbi extends viem.Abi,
-  TEventName extends string
-> = ILogIndex & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
-
+export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+export type ILogEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = NonNullableStruct<viem.Log<bigint, number, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName>> // ILogIndex & ILogOrdered & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = ILogOrdered & ILogEvent<TAbi, TEventName>
 
 
 export interface ITokenDescription {
@@ -98,13 +100,13 @@ export interface IVaultPosition extends IAbstractPositionStake {
 }
 
 
-export type IPositionIncrease = ILogEvent<typeof GMX.abi.vault, 'IncreasePosition'>
-export type IPositionDecrease = ILogEvent<typeof GMX.abi.vault, 'DecreasePosition'>
-export type IPositionUpdate = ILogEvent<typeof GMX.abi.vault, 'UpdatePosition'>
-export type IPositionLiquidated = ILogEvent<typeof GMX.abi.vault, 'LiquidatePosition'>
-export type IPositionClose = ILogEvent<typeof GMX.abi.vault, 'ClosePosition'>
-export type IExecuteIncreasePosition = ILogEvent<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
-export type IExecuteDecreasePosition = ILogEvent<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
+export type IPositionIncrease = ILogArgs<typeof GMX.abi.vault, 'IncreasePosition'>
+export type IPositionDecrease = ILogArgs<typeof GMX.abi.vault, 'DecreasePosition'>
+export type IPositionUpdate = ILogArgs<typeof GMX.abi.vault, 'UpdatePosition'>
+export type IPositionLiquidated = ILogArgs<typeof GMX.abi.vault, 'LiquidatePosition'>
+export type IPositionClose = ILogArgs<typeof GMX.abi.vault, 'ClosePosition'>
+export type IExecuteIncreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
+export type IExecuteDecreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
 
 
 
@@ -117,12 +119,13 @@ export enum TradeStatus {
 
 
 
+// export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
 export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
-  account: viem.Address
-  collateralToken: viem.Address
-  indexToken: viem.Address
-  isLong: boolean
-  key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
+  // account: viem.Address
+  // collateralToken: viem.Address
+  // indexToken: viem.Address
+  // isLong: boolean
+  // key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
 
   increaseList: (IPositionIncrease & ILogSubgraphType<'IncreasePosition'>)[]
   decreaseList: (IPositionDecrease & ILogSubgraphType<'DecreasePosition'>)[]
@@ -131,6 +134,8 @@ export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
 
 
 export interface IPosition {
+  idCount: number
+  link: IPositionLink
   account: viem.Address
   collateralToken: viem.Address
   indexToken: viem.Address
@@ -143,11 +148,6 @@ export interface IPosition {
   entryFundingRate: bigint
   reserveAmount: bigint
   realisedPnl: bigint
-}
-
-export interface IPositionSlot extends ILogSubgraphType<'PositionLink'>, IPosition {
-  idCount: number
-  link: IPositionLink
 
   cumulativeSize: bigint
   cumulativeCollateral: bigint
@@ -157,27 +157,13 @@ export interface IPositionSlot extends ILogSubgraphType<'PositionLink'>, IPositi
   maxCollateral: bigint
 }
 
+export interface IPositionSlot extends ILogSubgraphType<'PositionSlot'>, IPosition {}
 
-export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndex, IAbstractPositionIdentity, IAbstractPositionKey {
-  idCount: number
-  link: IPositionLink
 
-  size: bigint
-  collateral: bigint
-  averagePrice: bigint
-  entryFundingRate: bigint
-  reserveAmount: bigint
-  realisedPnl: bigint
-
-  cumulativeSize: bigint
-  cumulativeCollateral: bigint
-  cumulativeFee: bigint
-
-  maxSize: bigint
-  maxCollateral: bigint
-
+// export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndex, IAbstractPositionIdentity, IAbstractPositionKey {
+export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, IPosition {
   settlePrice: bigint
-  isLiquidated: bigint
+  isLiquidated: boolean
 }
 
 
