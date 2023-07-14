@@ -27,6 +27,15 @@ export function min(a: bigint, b: bigint): bigint {
   return a < b ? a : b
 }
 
+export function max(a: bigint, b: bigint): bigint {
+  return a > b ? a : b
+}
+
+export function minMax(minValue: bigint, maxValue: bigint, value: bigint): bigint {
+  return value < minValue ? minValue : value > maxValue ? maxValue : value
+}
+
+
 export function abs(a: bigint): bigint {
   return a < 0n ? -a : a
 }

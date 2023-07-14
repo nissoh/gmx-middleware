@@ -16,6 +16,10 @@ export const CONTRACT = {
             address: "0x2d68011bcA022ed0E474264145F46CC4de96a002",
             abi: abi.vaultPricefeed,
         },
+        FastPriceFeed: {
+            address: "0x11D62807dAE812a0F1571243460Bf94325F43BB7",
+            abi: abi.fastPricefeed,
+        },
         Reader: {
             address: "0xF09eD52638c22cc3f1D7F5583e3699A075e601B2",
             abi: abi.gmxReader,

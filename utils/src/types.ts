@@ -204,12 +204,12 @@ export interface IPriceTimeline {
 }
 
 export interface IPricefeed extends ILogSubgraphType<'Pricefeed'> {
-  timestamp: number
   o: bigint
   h: bigint
   l: bigint
   c: bigint
   tokenAddress: viem.Address
+  blockTimestamp: number
 }
 
 export interface IPriceLatest extends ILogSubgraphType<'PriceLatest'> {
