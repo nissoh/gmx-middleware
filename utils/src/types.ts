@@ -38,7 +38,7 @@ export type ILogSubgraphType<T extends string> = ILogType<T> & {
 
 export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 export type ILogEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = NonNullableStruct<viem.Log<bigint, number, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName>> // ILogIndex & ILogOrdered & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
-export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = ILogOrdered & { blockNumber: bigint, transactionHash: viem.Hash, args: viem.Log<bigint, number, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName>['args'] }
+export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = ILogOrdered & Omit<ILogEvent<TAbi, TEventName>, 'data'>
 
 
 export interface ITokenDescription {
