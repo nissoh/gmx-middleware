@@ -63,11 +63,33 @@ export const readableNumber = curry2((formatOptions: Intl.NumberFormatOptions, a
 const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }
 
 export const readableUnitAmount = readableNumber({  })
-export const readableDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
 export const readableUSD = readableNumber({  })
 export const readablePercentage = readableNumber({ style: 'percent' })
 export const readableFixedBsp = (amount: bigint) => readablePercentage(formatBps(amount))
 export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
+
+const UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte']
+const BYTES_PER_KB = 1000
+
+export function readableFileSize(sizeBytes: number | bigint): string {
+    let size = Math.abs(Number(sizeBytes))
+
+    let u = 0
+    while(size >= BYTES_PER_KB && u < UNITS.length-1) {
+        size /= BYTES_PER_KB
+        ++u
+    }
+
+    return new Intl.NumberFormat([], {
+        style: 'unit',
+        unit: UNITS[u],
+        unitDisplay: 'short',
+        maximumFractionDigits: 1,
+    }).format(size)
+}
+
+export const readableDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
+
 
 
 export function shortenTxAddress(address: string) {
@@ -90,7 +112,7 @@ function getMultiplier(decimals: number): string {
   throw new Error("invalid decimal size")
 }
 
-export function formatFixed(value: bigint, decimals = 18): number {
+export function formatFixed(value: bigint, decimals: number): number {
   const multiplier = getMultiplier(decimals)
   const multiplierBn = BigInt(multiplier)
   let parsedValue = ''
@@ -496,8 +518,7 @@ export const cacheMap = (cacheMap: { [k: string]: ICacheItem<any> }) => <T>(key:
 }
 
 
-
-export function groupByMapMany<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
+export function groupArrayMany<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
   const map: { [P in B]: A[] } = {} as any
 
   list.forEach(item => {
@@ -511,8 +532,7 @@ export function groupByMapMany<A, B extends string | symbol | number>(list: A[],
 }
 
 
-
-export function groupByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
+export function groupArrayByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
   return groupByKeyMap(list, getKey, (x) => x)
 }
 
@@ -637,3 +657,5 @@ export function importGlobal<T extends { default: any }>(query: Promise<T>): Str
 export function streamOf<T>(maybeStream: T | Stream<T>): Stream<T> {
   return isStream(maybeStream) ? maybeStream : now(maybeStream)
 }
+
+

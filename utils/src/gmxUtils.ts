@@ -1,14 +1,14 @@
+import { AbiEvent } from "abitype"
 import {
   BASIS_POINTS_DIVISOR,
   CHAIN,
-  CHAIN_NATIVE_TO_SYMBOL,
-  FUNDING_RATE_PRECISION, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
-  TOKEN_ADDRESS_TO_SYMBOL, TOKEN_DESCRIPTION_MAP, groupByKeyMap
+  CHAIN_NATIVE_DESCRIPTION,
+  FUNDING_RATE_PRECISION, IntervalTime, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
+  TOKEN_ADDRESS_DESCRIPTION, TOKEN_DESCRIPTION_MAP, groupByKeyMap
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IAccountSummary, ILogEvent, ILogIndex, ILogOrdered, IPositionSettled, IPositionSlot, ITokenDescription, } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupByMapMany } from "./utils.js"
-import { AbiEvent } from "abitype"
+import { ITraderSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany } from "./utils.js"
 
 
 export function safeDiv(a: bigint, b: bigint): bigint {
@@ -181,7 +181,7 @@ export function getNextLiquidationPrice(
 
 }
 
-export function isTradeSettled(trade: IPositionSlot | IPositionSettled): trade is IPositionSettled {
+export function isPositionSettled(trade: IPositionSlot | IPositionSettled): trade is IPositionSettled {
   return `isLiquidated` in trade
 }
 
@@ -224,13 +224,12 @@ export function validateIdentityName(name: string) {
 }
 
 export function getTokenDescription(token: viem.Address): ITokenDescription {
-  return TOKEN_DESCRIPTION_MAP[getMappedValue(TOKEN_ADDRESS_TO_SYMBOL, token)]
+  return getMappedValue(TOKEN_ADDRESS_DESCRIPTION, token)
 }
 
 
 export function getNativeTokenDescription(chain: CHAIN): ITokenDescription {
-  const symbol = getMappedValue(CHAIN_NATIVE_TO_SYMBOL, chain)
-  return TOKEN_DESCRIPTION_MAP[symbol]
+  return getMappedValue(CHAIN_NATIVE_DESCRIPTION, chain)
 }
 
 
@@ -293,4 +292,92 @@ export const abiParamParseMap = {
   int256: BigInt,
 } as const
 
+
+
+export function getIntervalIdentifier(token: string, interval: IntervalTime): IPriceIntervalIdentity {
+  return `${token}:${interval}`
+}
+
+export function createPricefeedCandle(blockTimestamp: number, price: bigint): IPriceInterval {
+  return { blockTimestamp, o: price, h: price, l: price, c: price, __typename: 'PriceInterval' }
+}
+
+export function createMovingAverageCalculator(windowValues: number[], windowSize: number, newValue: number) {
+    let sum = 0
+
+    if (windowValues.length === windowSize) {
+        sum -= windowValues.shift() || 0
+    }
+
+    windowValues.push(newValue)
+    sum += newValue
+
+    return sum / windowValues.length
+}
+
+export function accountSummary(positionMap: Record<viem.Hex, IPositionSettled>): ITraderSummary[] {
+  const tradeListMap = groupArrayMany(Object.values(positionMap), a => a.account)
+  const tradeListEntries = Object.entries(tradeListMap) as [viem.Address, IPositionSettled[]][]
+
+  const summaryList = tradeListEntries.map(([account, tradeList]) => {
+
+    const seedAccountSummary: ITraderSummary = {
+      account,
+      size: 0n,
+      collateral: 0n,
+      leverage: 0n,
+
+      avgLeverage: 0n,
+      avgCollateral: 0n,
+      avgSize: 0n,
+
+      fee: 0n,
+      lossCount: 0,
+      pnl: 0n,
+      winCount: 0,
+    }
+
+
+    const summary = tradeList.reduce((seed, next, idx): ITraderSummary => {
+      const idxBn = BigInt(idx) + 1n
+
+      const size = seed.size + next.maxSize
+      const collateral = seed.collateral + next.maxCollateral
+      const leverage = seed.leverage + div(next.maxSize, next.maxCollateral)
+
+      const avgSize = size / idxBn
+      const avgCollateral = collateral / idxBn
+      const avgLeverage = leverage / idxBn
+
+
+      const fee = seed.fee + next.cumulativeFee
+      const pnl = seed.fee + next.realisedPnl
+
+
+      const winCount = seed.winCount + (next.realisedPnl > 0n ? 1 : 0)
+      const lossCount = seed.lossCount + (next.realisedPnl <= 0n ? 1 : 0)
+
+
+      return {
+        account,
+        size,
+        collateral,
+        leverage,
+
+        avgLeverage,
+        avgCollateral,
+        avgSize,
+        fee,
+        lossCount,
+        pnl,
+        winCount,
+      }
+    }, seedAccountSummary)
+
+
+    return summary
+  })
+
+  return summaryList
+}
 

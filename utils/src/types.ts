@@ -28,12 +28,15 @@ export interface ILogOrdered {
   orderId: number
 }
 
-export type ILogType<T extends string> = { __typename: T } // & IIdentifiableEntity
+export type ILogTypeName<T extends string> = { __typename: T } // & IIdentifiableEntity
 
-// export type ILogSubgraphType<T extends string> = ILogType<T> & ILogIndex & {
-export type ILogSubgraphType<T extends string> = ILogType<T> & {
-  // blockTimestamp: bigint
-  // transactionHash: string
+export type ILogType<T extends string> = ILogTypeName<T> & {
+  blockTimestamp: number
+}
+
+export type ILogTxType<T extends string> = ILogTypeName<T> & {
+  blockTimestamp: number
+  transactionHash: string
 }
 
 export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
@@ -70,15 +73,18 @@ export interface ITransaction {
   value: bigint
 }
 
-export interface IAbstractPositionIdentity {
-  account: viem.Address
+export interface IAbstractRouteIdentity {
   collateralToken: viem.Address
   indexToken: viem.Address
   isLong: boolean
 }
 
+export interface IAbstractPositionIdentity extends IAbstractRouteIdentity {
+  account: viem.Address
+}
+
 export type IAbstractPositionKey = {
-  key: string
+  key: viem.Hex
 }
 
 export type IAbstractPositionAdjustment = {
@@ -102,38 +108,21 @@ export interface IVaultPosition extends IAbstractPositionStake {
 
 export type IPositionIncrease = ILogArgs<typeof GMX.abi.vault, 'IncreasePosition'>
 export type IPositionDecrease = ILogArgs<typeof GMX.abi.vault, 'DecreasePosition'>
-export type IPositionUpdate = ILogArgs<typeof GMX.abi.vault, 'UpdatePosition'>
+export type IPositionUpdate = ILogArgs<typeof GMX.abi.vault, 'UpdatePosition'> & { markPrice: bigint }
 export type IPositionLiquidated = ILogArgs<typeof GMX.abi.vault, 'LiquidatePosition'>
 export type IPositionClose = ILogArgs<typeof GMX.abi.vault, 'ClosePosition'>
 export type IExecuteIncreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
 export type IExecuteDecreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
 
 
-
-
-export enum TradeStatus {
-  OPEN = 'open',
-  CLOSED = 'closed',
-  LIQUIDATED = 'liquidated',
+export interface IPositionLink {
+  increaseList: (IPositionIncrease & ILogTxType<'IncreasePosition'>)[]
+  decreaseList: (IPositionDecrease & ILogTxType<'DecreasePosition'>)[]
+  updateList: (IPositionUpdate & ILogTxType<'UpdatePosition'>)[]
 }
 
 
-
-// export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
-export interface IPositionLink extends ILogSubgraphType<'PositionLink'> {
-  // account: viem.Address
-  // collateralToken: viem.Address
-  // indexToken: viem.Address
-  // isLong: boolean
-  // key: viem.Hex // keecak256(account, indexToken, collateralToken, isLong)
-
-  increaseList: (IPositionIncrease & ILogSubgraphType<'IncreasePosition'>)[]
-  decreaseList: (IPositionDecrease & ILogSubgraphType<'DecreasePosition'>)[]
-  updateList: (IPositionUpdate & ILogSubgraphType<'UpdatePosition'>)[]
-}
-
-
-export interface IPosition {
+export interface IPosition<TypeName extends string = string> extends ILogTxType<TypeName> {
   idCount: number
   link: IPositionLink
   account: viem.Address
@@ -157,17 +146,17 @@ export interface IPosition {
   maxCollateral: bigint
 }
 
-export interface IPositionSlot extends ILogSubgraphType<'PositionSlot'>, IPosition {}
+export type IPositionSlot = IPosition<'PositionSlot'>
 
 
-// export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, ILogIndex, IAbstractPositionIdentity, IAbstractPositionKey {
-export interface IPositionSettled extends ILogSubgraphType<'PositionSettled'>, IPosition {
+export interface IPositionSettled extends IPosition<'PositionSettled'> {
   settlePrice: bigint
   isLiquidated: boolean
+  settleBlockTimestamp: number
 }
 
 
-export interface IStake extends ILogSubgraphType<"Stake"> {
+export interface IStake extends ILogTxType<"Stake"> {
   id: string
   account: viem.Address
   contract: string
@@ -178,7 +167,7 @@ export interface IStake extends ILogSubgraphType<"Stake"> {
 }
 
 
-export interface IAccountSummary {
+export interface ITraderSummary {
   account: viem.Address
 
   size: bigint
@@ -203,24 +192,22 @@ export interface IPriceTimeline {
   timestamp: string
 }
 
-export interface IPricefeed extends ILogSubgraphType<'Pricefeed'> {
-  o: bigint
-  h: bigint
-  l: bigint
-  c: bigint
-  tokenAddress: viem.Address
-  blockTimestamp: number
+
+export type IPriceIntervalIdentity = `${string}:${IntervalTime}`
+export interface IPriceInterval extends ILogType<'PriceInterval'> {
+  o: bigint // open
+  h: bigint // high
+  l: bigint // low
+  c: bigint // close
 }
 
-export interface IPriceLatest extends ILogSubgraphType<'PriceLatest'> {
+
+export interface IPriceLatest extends ILogType<'PriceLatest'> {
   value: bigint
   id: viem.Address
   timestamp: number
 }
 
-export type IPriceLatestMap = {
-  [P in viem.Address]: IPriceLatest
-}
 
 
 export interface IChainParamApi {
@@ -245,7 +232,7 @@ export interface IRequestSortApi<T> {
 
 
 
-export type IRequestAccountTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestAccountApi & { status?: TradeStatus }
+export type IRequestAccountTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestAccountApi
 export type IRequestPageApi = IRequestPagePositionApi & IChainParamApi & IRequestTimerangeApi
 
 
@@ -255,7 +242,7 @@ export type IRequestAccountApi = IChainParamApi & { account: viem.Address }
 export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: viem.Address }
 export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
 export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: viem.Address }
-export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof IPositionSettled> & { status: TradeStatus }
+export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof IPositionSettled>
 
 
 export interface IRequestGraphEntityApi extends IChainParamApi, IIdentifiableEntity { }
@@ -287,9 +274,7 @@ export type ContractClientParams<
   TAddress extends viem.Address = viem.Address,
   TTransport extends viem.Transport = viem.Transport,
   TChain extends viem.Chain = viem.Chain,
-  TIncludeActions extends boolean = true,
-  TPublicClient extends viem.PublicClient<TTransport, TChain, TIncludeActions> = viem.PublicClient<TTransport, TChain, TIncludeActions>
-> = ContractParams<TAbi, TAddress> & { client: TPublicClient }
+> = ContractParams<TAbi, TAddress> & { client: viem.PublicClient<TTransport, TChain> }
 
 
 
