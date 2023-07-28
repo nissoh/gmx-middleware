@@ -57,7 +57,7 @@ export const readableNumber = curry2((formatOptions: Intl.NumberFormatOptions, a
   const absAmount = typeof ammount === 'bigint' ? ammount > 0n ? ammount : -ammount : Math.abs(ammount)
   const digitOptions = absAmount >= 1000 ? readableLargeNumber : absAmount >= 1 ? readableAccountingNumber : readableTinyNumber
 
-  return Intl.NumberFormat("en-US", { ...digitOptions, ...formatOptions }).format(ammount)
+  return Intl.NumberFormat("en-US", { ...digitOptions, ...formatOptions,  }).format(ammount)
 })
 
 const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }

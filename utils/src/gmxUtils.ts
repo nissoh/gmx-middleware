@@ -4,11 +4,13 @@ import {
   CHAIN,
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION, IntervalTime, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
-  TOKEN_ADDRESS_DESCRIPTION, TOKEN_DESCRIPTION_MAP, groupByKeyMap
+  TOKEN_ADDRESS_DESCRIPTION, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
 import { ITraderSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany } from "./utils.js"
+import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, readableUnitAmount, streamOf } from "./utils.js"
+import { map } from "@most/core"
+import { Stream } from "@most/types"
 
 
 export function safeDiv(a: bigint, b: bigint): bigint {
@@ -73,6 +75,11 @@ export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint,
 
   const priceDelta = getPriceDelta(isLong, entryPrice, priceChange)
   return size * priceDelta / entryPrice
+}
+
+export function getSlotNetPnL(position: IPositionSlot, markPrice: bigint) {
+  const delta = getPnL(position.isLong, position.averagePrice, markPrice, position.size)
+  return position.realisedPnl + delta - position.cumulativeFee
 }
 
 export function getDeltaPercentage(delta: bigint, collateral: bigint) {
@@ -278,7 +285,7 @@ export function mapKeyToAbiParam<T extends viem.Log<bigint, number, any, true, v
 }
 
 export function parseJsonAbiEvent(abiEvent: AbiEvent) {
-  const bigIntKeys = groupByKeyMap(abiEvent.inputs, x => x.name || 'none', x => x.type)
+  const bigIntKeys = mapArrayBy(abiEvent.inputs, x => x.name || 'none', x => x.type)
 
   return bigIntKeys
 }
@@ -315,13 +322,10 @@ export function createMovingAverageCalculator(windowValues: number[], windowSize
     return sum / windowValues.length
 }
 
-export function accountSummary(positionMap: Record<viem.Hex, IPositionSettled>): ITraderSummary[] {
-  const tradeListMap = groupArrayMany(Object.values(positionMap), a => a.account)
-  const tradeListEntries = Object.entries(tradeListMap) as [viem.Address, IPositionSettled[]][]
+export function summariesTrader(tradeList: IPositionSettled[]): ITraderSummary {
+  const account = tradeList[0].account
 
-  const summaryList = tradeListEntries.map(([account, tradeList]) => {
-
-    const seedAccountSummary: ITraderSummary = {
+  const seedAccountSummary: ITraderSummary = {
       account,
       size: 0n,
       collateral: 0n,
@@ -337,8 +341,7 @@ export function accountSummary(positionMap: Record<viem.Hex, IPositionSettled>):
       winCount: 0,
     }
 
-
-    const summary = tradeList.reduce((seed, next, idx): ITraderSummary => {
+    return tradeList.reduce((seed, next, idx): ITraderSummary => {
       const idxBn = BigInt(idx) + 1n
 
       const size = seed.size + next.maxSize
@@ -373,11 +376,32 @@ export function accountSummary(positionMap: Record<viem.Hex, IPositionSettled>):
         winCount,
       }
     }, seedAccountSummary)
+}
 
-
-    return summary
-  })
+export function leaderboardTrader(positionMap: Record<viem.Hex, IPositionSettled>): ITraderSummary[] {
+  const tradeListMap = groupArrayMany(Object.values(positionMap), a => a.account)
+  const tradeListEntries = Object.values(tradeListMap)
+  const summaryList = tradeListEntries.map(tradeList => summariesTrader(tradeList))
 
   return summaryList
 }
+
+export const tokenAmount = (token: viem.Address, amount: bigint) => {
+  const tokenDesc = getTokenDescription(token)
+  const newLocal = formatFixed(amount, tokenDesc.decimals)
+  
+  return readableUnitAmount(newLocal)
+}
+
+export const tokenAmountLabel = (token: viem.Address, amount: bigint) => {
+  const tokenDesc = getTokenDescription(token)
+  const newLocal = formatFixed(amount, tokenDesc.decimals)
+  
+  return readableUnitAmount(newLocal) + ' ' + tokenDesc.symbol
+}
+
+export const leverageLabel = (leverage: bigint) => {
+  return `${readableUnitAmount(formatBps(leverage))}x`
+}
+
 

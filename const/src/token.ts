@@ -2,7 +2,7 @@ import { ARBITRUM_ADDRESS } from "./chain/arbitrum.js"
 import { AVALANCHE_ADDRESS } from "./chain/avalanche.js"
 import { CHAIN } from "./common.js"
 import { TOKEN_SYMBOL } from "./symbol.js"
-import { groupByKeyMap } from "./utils.js"
+import { mapArrayBy } from "./utils.js"
 
 
 export const TOKEN_DESCRIPTION_LIST = [
@@ -117,7 +117,7 @@ export const TOKEN_DESCRIPTION_LIST = [
   
 ] as const
 
-export const TOKEN_DESCRIPTION_MAP = groupByKeyMap(TOKEN_DESCRIPTION_LIST, token => token.symbol, x => x)
+export const TOKEN_DESCRIPTION_MAP = mapArrayBy(TOKEN_DESCRIPTION_LIST, token => token.symbol, x => x)
 
 export const CHAIN_ADDRESS_MAP = {
   [CHAIN.AVALANCHE]: AVALANCHE_ADDRESS,

@@ -36,7 +36,7 @@ export type ILogType<T extends string> = ILogTypeName<T> & {
 
 export type ILogTxType<T extends string> = ILogTypeName<T> & {
   blockTimestamp: number
-  transactionHash: string
+  transactionHash: viem.Hex
 }
 
 export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
@@ -123,7 +123,7 @@ export interface IPositionLink {
 
 
 export interface IPosition<TypeName extends string = string> extends ILogTxType<TypeName> {
-  idCount: number
+  requestKey: viem.Hex
   link: IPositionLink
   account: viem.Address
   collateralToken: viem.Address
@@ -152,7 +152,8 @@ export type IPositionSlot = IPosition<'PositionSlot'>
 export interface IPositionSettled extends IPosition<'PositionSettled'> {
   settlePrice: bigint
   isLiquidated: boolean
-  settleBlockTimestamp: number
+  settledTransactionHash: viem.Hex
+  settledBlockTimestamp: number
 }
 
 
