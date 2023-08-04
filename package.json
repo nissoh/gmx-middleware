@@ -3,7 +3,7 @@
     "private": true,
     "packageManager": "pnpm@8.5.1",
     "scripts": {
-        "build": "pnpm recursive run build",
+        "build": "pnpm recursive run build --filter !subgraph",
         "clean": "pnpm recursive run clean",
         "test": "pnpm recursive run test"
     },
