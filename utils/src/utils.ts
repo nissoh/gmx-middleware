@@ -238,9 +238,9 @@ export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTim
   seed: R & TimelineTime
   source: T[]
 
-  seedMap: (prev: RTime, next: T, intervalSlot: number) => R
-  gapMap?: (prev: RTime, next: T, intervalSlot: number) => R
-  squashMap?: (prev: RTime, next: T, intervalSlot: number) => R
+  seedMap: (acc: RTime, next: T, intervalSlot: number) => R
+  gapMap?: (acc: RTime, next: T, intervalSlot: number) => R
+  squashMap?: (acc: RTime, next: T, intervalSlot: number) => R
 }
 
 

@@ -39,9 +39,11 @@ export type ILogTxType<T extends string> = ILogTypeName<T> & {
   transactionHash: viem.Hex
 }
 
+
 export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 export type ILogEvent<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.Log<bigint, number, false, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName> // ILogIndex & ILogOrdered & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
 export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = ILogOrdered & Omit<ILogEvent<TAbi, TEventName>, 'data'>
+export type ILog<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = ILogTxType<TEventName> & ILogArgs<TAbi, TEventName> 
 
 
 export interface ITokenDescription {
@@ -106,19 +108,19 @@ export interface IVaultPosition extends IAbstractPositionStake {
 }
 
 
-export type IPositionIncrease = ILogArgs<typeof GMX.abi.vault, 'IncreasePosition'>
-export type IPositionDecrease = ILogArgs<typeof GMX.abi.vault, 'DecreasePosition'>
-export type IPositionUpdate = ILogArgs<typeof GMX.abi.vault, 'UpdatePosition'> & { markPrice: bigint }
-export type IPositionLiquidated = ILogArgs<typeof GMX.abi.vault, 'LiquidatePosition'>
-export type IPositionClose = ILogArgs<typeof GMX.abi.vault, 'ClosePosition'>
-export type IExecuteIncreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
-export type IExecuteDecreasePosition = ILogArgs<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
+export type IPositionIncrease = ILog<typeof GMX.abi.vault, 'IncreasePosition'>
+export type IPositionDecrease = ILog<typeof GMX.abi.vault, 'DecreasePosition'>
+export type IPositionUpdate = ILog<typeof GMX.abi.vault, 'UpdatePosition'> & { markPrice: bigint }
+export type IPositionLiquidated = ILog<typeof GMX.abi.vault, 'LiquidatePosition'>
+export type IPositionClose = ILog<typeof GMX.abi.vault, 'ClosePosition'>
+export type IExecuteIncreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
+export type IExecuteDecreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
 
 
 export interface IPositionLink {
-  increaseList: (IPositionIncrease & ILogTxType<'IncreasePosition'>)[]
-  decreaseList: (IPositionDecrease & ILogTxType<'DecreasePosition'>)[]
-  updateList: (IPositionUpdate & ILogTxType<'UpdatePosition'>)[]
+  increaseList: IPositionIncrease[]
+  decreaseList: IPositionDecrease[]
+  updateList: IPositionUpdate[]
 }
 
 
@@ -151,9 +153,8 @@ export type IPositionSlot = IPosition<'PositionSlot'>
 
 export interface IPositionSettled extends IPosition<'PositionSettled'> {
   settlePrice: bigint
+  settlement: IPositionClose | IPositionLiquidated
   isLiquidated: boolean
-  settledTransactionHash: viem.Hex
-  settledBlockTimestamp: number
 }
 
 
