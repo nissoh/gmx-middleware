@@ -3,11 +3,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "codegen": "pnpm run clean && graph codegen subgraph.arbitrum.yaml",
-    "build": "graph build subgraph.arbitrum.yaml",
-    "clean": "graph clean",
-    "deploy-arbitrum": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.arbitrum.yaml",
-    "deploy-avalanche": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.avalanche.yaml"
+    "graph-codegen": "pnpm run clean && graph codegen subgraph.arbitrum.yaml",
+    "graph-build": "graph build subgraph.arbitrum.yaml",
+    "graph-clean": "graph clean",
+    "graph-deploy-arbitrum": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.arbitrum.yaml",
+    "graph-deploy-avalanche": "graph deploy --node https://api.studio.thegraph.com/deploy/ gmx-house subgraph.avalanche.yaml"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.51.2",
