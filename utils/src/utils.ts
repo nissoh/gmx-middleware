@@ -238,23 +238,26 @@ export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTim
   seed: R & TimelineTime
   source: T[]
 
-  fillMap: (prev: RTime, next: T) => R
-  fillGapMap?: (prev: RTime, next: T) => R
-  squashMap?: (prev: RTime, next: T) => R
+  seedMap: (prev: RTime, next: T, intervalSlot: number) => R
+  gapMap?: (prev: RTime, next: T, intervalSlot: number) => R
+  squashMap?: (prev: RTime, next: T, intervalSlot: number) => R
 }
 
 
-export function intervalListFillOrderMap<T, R, RTime extends R & TimelineTime = R & TimelineTime>({
+export function createTimeline<T, R, RTime extends R & TimelineTime = R & TimelineTime>({
   source, getTime, seed, interval,
-  fillMap, squashMap = fillMap, fillGapMap = (prev, _next) => prev
+
+  seedMap,
+  gapMap = prev => prev,
+  squashMap = seedMap,
 }: IFillGap<T, R, RTime>) {
 
 
   const sortedSource = [...source].sort((a, b) => getTime(a) - getTime(b))
-
   const initialSourceTime = getTime(sortedSource[0])
+
   if (seed.time > initialSourceTime) {
-    throw new Error(`inital source time: ${initialSourceTime} must be greater then seed time: ${seed.time}}`)
+    throw new Error(`inital source time: ${initialSourceTime} must be greater then seed time: ${seed.time}`)
   }
 
   const seedSlot = Math.floor(seed.time / interval)
@@ -266,35 +269,35 @@ export function intervalListFillOrderMap<T, R, RTime extends R & TimelineTime = 
 
   return sortedSource.reduce((timeline: RTime[], next: T) => {
     const lastIdx = timeline.length - 1
-    const slot = Math.floor(getTime(next) / interval)
-    const squashPrev = timeslotMap[slot]
+    const intervalSlot = Math.floor(getTime(next) / interval)
+    const squashPrev = timeslotMap[intervalSlot]
 
     if (squashPrev) {
-      const newSqush = { ...squashMap(squashPrev, next), time: squashPrev.time } as RTime
-      timeslotMap[slot] = newSqush
+      const newSqush = { ...squashMap(squashPrev, next, intervalSlot), time: squashPrev.time } as RTime
+      timeslotMap[intervalSlot] = newSqush
       timeline.splice(lastIdx, 1, newSqush)
     } else {
       const prev = timeline[timeline.length - 1]
 
-      const time = slot * interval
+      const time = intervalSlot * interval
       const barSpan = (time - prev.time) / interval
       const barSpanCeil = barSpan - 1
 
       for (let index = 1; index <= barSpanCeil; index++) {
-        const fillNext = fillGapMap(timeline[timeline.length - 1], next)
         const gapTime = interval * index
         const newTime = prev.time + gapTime
-        const newTick = { ...fillNext, time: newTime } as RTime
         const newSlot = Math.floor(newTime / interval)
+        const fillNext = gapMap(timeline[timeline.length - 1], next, newSlot)
+        const newTick = { ...fillNext, time: newTime } as RTime
 
         timeslotMap[newSlot] ??= newTick
         timeline.push(newTick)
       }
 
-      const lastTick = fillMap(prev, next)
+      const lastTick = seedMap(prev, next, intervalSlot)
       const item = { ...lastTick, time: time } as RTime
 
-      timeslotMap[slot] = item
+      timeslotMap[intervalSlot] = item
       timeline.push(item)
     }
 

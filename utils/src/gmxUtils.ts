@@ -265,7 +265,7 @@ export function getEventOrderIdentifier<T extends ILogEvent>(idxObj: T): number 
 }
 
 
-export function mapKeyToAbiParam<T extends viem.Log<bigint, number, any, true, viem.Abi, string>>(abiEvent: AbiEvent, log: T) {
+export function mapKeyToAbiParam<T extends viem.Log<bigint, number, false, any, true, viem.Abi, string>>(abiEvent: AbiEvent, log: T) {
   const bigIntKeys = [
     'blockNumber', 'transactionIndex', 'logIndex',
     ...abiEvent.inputs.filter(x => x.type === 'uint256' || x.type === 'int256').map(x => x.name)
@@ -301,7 +301,7 @@ export const abiParamParseMap = {
 
 
 
-export function getIntervalIdentifier(token: string, interval: IntervalTime): IPriceIntervalIdentity {
+export function getIntervalIdentifier(token: viem.Address, interval: IntervalTime): IPriceIntervalIdentity {
   return `${token}:${interval}`
 }
 

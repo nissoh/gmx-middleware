@@ -40,8 +40,8 @@ export type ILogTxType<T extends string> = ILogTypeName<T> & {
 }
 
 export type ILogArgs<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.GetEventArgs<TAbi, TEventName, { Required: true }>
-export type ILogEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = NonNullableStruct<viem.Log<bigint, number, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName>> // ILogIndex & ILogOrdered & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
-export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi,TEventName extends string = string> = ILogOrdered & Omit<ILogEvent<TAbi, TEventName>, 'data'>
+export type ILogEvent<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = viem.Log<bigint, number, false, ExtractAbiEvent<TAbi, TEventName>, true, TAbi, TEventName> // ILogIndex & ILogOrdered & viem.GetEventArgs<TAbi, TEventName, { Required: true }>
+export type ILogOrderedEvent<TAbi extends viem.Abi = viem.Abi, TEventName extends string = string> = ILogOrdered & Omit<ILogEvent<TAbi, TEventName>, 'data'>
 
 
 export interface ITokenDescription {
@@ -95,10 +95,10 @@ export type IAbstractPositionAdjustment = {
 export type IAbstractPositionStake = {
   size: bigint
   collateral: bigint
-  realisedPnl: bigint
 }
 
 export interface IVaultPosition extends IAbstractPositionStake {
+  realisedPnl: bigint
   averagePrice: bigint
   entryFundingRate: bigint
   reserveAmount: bigint
@@ -122,7 +122,7 @@ export interface IPositionLink {
 }
 
 
-export interface IPosition<TypeName extends string = string> extends ILogTxType<TypeName> {
+export interface IPosition<TypeName extends string = string> extends ILogTxType<TypeName>, IVaultPosition {
   requestKey: viem.Hex
   link: IPositionLink
   account: viem.Address
@@ -131,12 +131,12 @@ export interface IPosition<TypeName extends string = string> extends ILogTxType<
   isLong: boolean
   key: viem.Hex
 
-  size: bigint
-  collateral: bigint
-  averagePrice: bigint
-  entryFundingRate: bigint
-  reserveAmount: bigint
-  realisedPnl: bigint
+  // size: bigint
+  // collateral: bigint
+  // averagePrice: bigint
+  // entryFundingRate: bigint
+  // reserveAmount: bigint
+  // realisedPnl: bigint
 
   cumulativeSize: bigint
   cumulativeCollateral: bigint
@@ -194,7 +194,7 @@ export interface IPriceTimeline {
 }
 
 
-export type IPriceIntervalIdentity = `${string}:${IntervalTime}`
+export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
 export interface IPriceInterval extends ILogType<'PriceInterval'> {
   o: bigint // open
   h: bigint // high
