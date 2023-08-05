@@ -294,7 +294,7 @@ export function createTimeline<T, R, RTime extends R & TimelineTime = R & Timeli
         timeline.push(newTick)
       }
 
-      const lastTick = seedMap(prev, next, intervalSlot)
+      const lastTick = seedMap(timeline[timeline.length - 1], next, intervalSlot)
       const item = { ...lastTick, time: time } as RTime
 
       timeslotMap[intervalSlot] = item

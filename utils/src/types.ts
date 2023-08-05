@@ -5,6 +5,8 @@ import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
 
 
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
 export type Nullable<T> = {
     [P in keyof T]: T[P] | null
 }
