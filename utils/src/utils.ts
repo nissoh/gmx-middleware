@@ -638,19 +638,18 @@ export function getFeeBasisPoints(
   return feeBasisPoints + taxBps
 }
 
-export function importGlobal<T extends { default: any }>(query: Promise<T>): Stream<T['default']> {
-  let cache: T['default'] | null = null
+export function importGlobal<T, TImport extends { default: T } = { default: T }>(queryCb: () => Promise<TImport>): Stream<T> {
+  let cacheQuery: Promise<TImport> | null = null
 
   return {
     run(sink, scheduler) {
-      if (cache === null) {
-        fromPromise(query.then(res => {
-          cache = (res as any).default
-          sink.event(scheduler.currentTime(), cache)
-        }))
-      } else {
-        sink.event(scheduler.currentTime(), cache)
+      if (cacheQuery === null) {
+        cacheQuery = queryCb()
       }
+
+      cacheQuery.then(res => {
+        sink.event(scheduler.currentTime(), res.default)
+      })
 
       return disposeNone()
     },
