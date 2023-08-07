@@ -536,11 +536,11 @@ export function groupArrayMany<A, B extends string | symbol | number>(list: A[],
 
 
 export function groupArrayByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
-  return groupByKeyMap(list, getKey, (x) => x)
+  return groupArrayByKeyMap(list, getKey, (x) => x)
 }
 
 
-export function groupByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
+export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
   const gmap = {} as { [P in B]: R }
 
   for (const item of list) {
