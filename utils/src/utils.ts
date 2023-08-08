@@ -64,7 +64,6 @@ const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short
 
 export const readableUnitAmount = readableNumber({  })
 export const readableUSD = readableNumber({  })
-export const readablePercentage = readableNumber({ style: 'percent', })
 export const readableFixedBsp = (amount: bigint) => formatBps(amount) + '%'
 export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
 
