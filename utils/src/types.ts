@@ -171,9 +171,7 @@ export interface IStake extends ILogTxType<"Stake"> {
 }
 
 
-export interface ITraderSummary {
-  account: viem.Address
-
+export interface IPositionListSummary {
   size: bigint
   collateral: bigint
   fee: bigint

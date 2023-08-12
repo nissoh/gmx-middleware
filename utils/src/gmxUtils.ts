@@ -7,8 +7,8 @@ import {
   TOKEN_ADDRESS_DESCRIPTION, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { ITraderSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, readableUnitAmount, streamOf } from "./utils.js"
+import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount, streamOf } from "./utils.js"
 import { map } from "@most/core"
 import { Stream } from "@most/types"
 
@@ -48,6 +48,10 @@ export function bnDiv(a: bigint, b: bigint): number {
 
 export function formatBps(a: bigint): number {
   return formatFixed(a, 4)
+}
+
+export function parseBps(a: number | string): bigint {
+  return parseFixed(a, 4)
 }
 
 export function getAdjustedDelta(size: bigint, sizeDeltaUsd: bigint, pnl: bigint) {
@@ -322,11 +326,9 @@ export function createMovingAverageCalculator(windowValues: number[], windowSize
     return sum / windowValues.length
 }
 
-export function summariesTrader(tradeList: IPositionSettled[]): ITraderSummary {
-  const account = tradeList[0].account
+export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSummary {
 
-  const seedAccountSummary: ITraderSummary = {
-      account,
+  const seedAccountSummary: IPositionListSummary = {
       size: 0n,
       collateral: 0n,
       leverage: 0n,
@@ -341,7 +343,7 @@ export function summariesTrader(tradeList: IPositionSettled[]): ITraderSummary {
       winCount: 0,
     }
 
-    return tradeList.reduce((seed, next, idx): ITraderSummary => {
+    return tradeList.reduce((seed, next, idx): IPositionListSummary => {
       const idxBn = BigInt(idx) + 1n
 
       const size = seed.size + next.maxSize
@@ -362,7 +364,6 @@ export function summariesTrader(tradeList: IPositionSettled[]): ITraderSummary {
 
 
       return {
-        account,
         size,
         collateral,
         leverage,
@@ -378,7 +379,7 @@ export function summariesTrader(tradeList: IPositionSettled[]): ITraderSummary {
     }, seedAccountSummary)
 }
 
-export function leaderboardTrader(positionMap: Record<viem.Hex, IPositionSettled>): ITraderSummary[] {
+export function leaderboardTrader(positionMap: Record<viem.Hex, IPositionSettled>): IPositionListSummary[] {
   const tradeListMap = groupArrayMany(Object.values(positionMap), a => a.account)
   const tradeListEntries = Object.values(tradeListMap)
   const summaryList = tradeListEntries.map(tradeList => summariesTrader(tradeList))
