@@ -646,8 +646,12 @@ export function importGlobal<T>(queryCb: () => Promise<T>): Stream<T> {
         cacheQuery = queryCb()
       }
 
-      cacheQuery.then(res => {
+      cacheQuery
+      .then(res => {
         sink.event(scheduler.currentTime(), res)
+      })
+      .catch(err => {
+        sink.error(scheduler.currentTime(), err as Error)
       })
 
       return disposeNone()
