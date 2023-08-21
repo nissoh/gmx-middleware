@@ -143,7 +143,7 @@ export interface IPosition<TypeName extends string = string> extends ILogTxType<
   // realisedPnl: bigint
 
   cumulativeSize: bigint
-  cumulativeCollateral: bigint
+  // cumulativeCollateral: bigint
   cumulativeFee: bigint
 
   maxSize: bigint

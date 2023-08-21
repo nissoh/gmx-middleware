@@ -7,7 +7,7 @@ import {
   TOKEN_ADDRESS_DESCRIPTION, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription, IPosition } from "./types.js"
 import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount, streamOf } from "./utils.js"
 import { map } from "@most/core"
 import { Stream } from "@most/types"
@@ -81,7 +81,7 @@ export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint,
   return size * priceDelta / entryPrice
 }
 
-export function getSlotNetPnL(position: IPositionSlot, markPrice: bigint) {
+export function getSlotNetPnL(position: IPosition, markPrice: bigint) {
   const delta = getPnL(position.isLong, position.averagePrice, markPrice, position.size)
   return position.realisedPnl + delta - position.cumulativeFee
 }
@@ -265,7 +265,11 @@ export function orderEvents<T extends ILogEvent>(arr: T[]): T[] {
 
 export function getEventOrderIdentifier<T extends ILogEvent>(idxObj: T): number {
   if (idxObj.blockNumber === null || idxObj.transactionIndex === null || idxObj.logIndex === null) throw new Error('blockNumber is null')
-  return Number(idxObj.blockNumber * 1000000n + BigInt(idxObj.transactionIndex * 1000 + idxObj.logIndex))
+  return getblockOrderIdentifier(idxObj.blockNumber) + (idxObj.transactionIndex * 1000 + idxObj.logIndex)
+}
+
+export function getblockOrderIdentifier(blockNumber: bigint): number {
+  return Number(blockNumber * 1000000n)
 }
 
 
