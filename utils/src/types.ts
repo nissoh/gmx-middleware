@@ -118,6 +118,39 @@ export type IPositionClose = ILog<typeof GMX.abi.vault, 'ClosePosition'>
 export type IExecuteIncreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
 export type IExecuteDecreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
 
+type PositionAdjustment = {
+  id: string
+  orderKey: string
+  positionKey: string
+  account: string
+  marketAddress: string
+
+  collateralTokenAddress: string
+  collateralTokenPriceMin: bigint
+  collateralTokenPriceMax: bigint
+
+  sizeInUsd: bigint
+  sizeInTokens: bigint
+  sizeDeltaUsd: bigint
+  sizeDeltaInTokens: bigint
+
+  collateralAmount: bigint
+  collateralDeltaAmount: bigint
+
+  executionPrice: bigint
+  priceImpactDiffUsd: bigint
+  orderType: bigint
+  borrowingFactor: bigint
+  longTokenFundingAmountPerSize: bigint
+  shortTokenFundingAmountPerSize: bigint
+  priceImpactAmount: bigint
+  pnlUsd: bigint
+  isLong: boolean
+}
+
+export type PositionIncrease =  ILogTxType<'PositionIncrease'> & PositionAdjustment
+export type PositionDecrease = ILogTxType<'PositionDecrease'> & PositionAdjustment
+
 
 export interface IPositionLink {
   increaseList: IPositionIncrease[]

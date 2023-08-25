@@ -1,6 +1,8 @@
 import { arbitrum } from "viem/chains"
 import * as abi from "./abi.js"
 import { erc20Abi } from "abitype/test"
+import eventEmitter from "./abi/eventEmitter.js"
+
 
 export const CONTRACT = {
     [arbitrum.id]: {
@@ -35,6 +37,12 @@ export const CONTRACT = {
         GMX: {
             address: "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a",
             abi: erc20Abi,
+        },
+
+        // V2
+        EventEmitter: {
+            address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb",
+            abi: eventEmitter,
         },
     },
 } as const

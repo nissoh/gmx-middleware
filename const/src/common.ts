@@ -88,3 +88,25 @@ export const EXPLORER_URL = {
 }
 
 
+export enum ExecutionType {
+  PositionDecrease = 'PositionDecrease',
+  PositionIncrease = 'PositionIncrease',
+}
+
+
+export enum OrderType {
+  MarketSwap,
+  LimitSwap,
+  MarketIncrease,
+  LimitIncrease,
+  MarketDecrease,
+  LimitDecrease,
+  StopLossDecrease,
+  Liquidation,
+}
+
+export enum DecreasePositionSwapType {
+  NoSwap,
+  SwapPnlTokenToCollateralToken,
+  SwapCollateralTokenToPnlToken,
+}
