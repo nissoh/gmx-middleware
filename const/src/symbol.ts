@@ -10,6 +10,12 @@ export const TOKEN_SYMBOL = {
   LINK: "LINK",
   AVAX: "AVAX",
   WAVAX: "WAVAX",
+  ARB: "ARB",
+  SOL: "SOL",
+  SynDOGE: "SynDOGE",
+  SynBTC: "SynBTC",
+  SynLTC: "SynLTC",
+  SynXRP: "SynXRP",
 
   USDT: "USDT",
   DAI: "DAI",

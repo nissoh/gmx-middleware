@@ -4,11 +4,11 @@ import {
   CHAIN,
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION, IntervalTime, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE,
-  TOKEN_ADDRESS_DESCRIPTION, mapArrayBy
+  TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription, IPosition } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount, streamOf } from "./utils.js"
+import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription, IPosition, PositionStatus, PositionAdjustment, MarketPoolValueInfo, OraclePrice } from "./types.js"
+import { easeInExpo, expandDecimals, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount, streamOf } from "./utils.js"
 import { map } from "@most/core"
 import { Stream } from "@most/types"
 
@@ -72,6 +72,64 @@ export function getPriceDelta(isLong: boolean, entryPrice: bigint, priceChange: 
   return isLong ? priceChange - entryPrice : entryPrice - priceChange
 }
 
+// @dev pick the min or max price depending on whether it is for a long or short position
+// and whether the pending pnl should be maximized or not
+function pickPriceForPnl(price: OraclePrice, isLong: boolean, maximize: boolean) {
+    // for long positions, pick the larger price to maximize pnl
+    // for short positions, pick the smaller price to maximize pnl
+    if (isLong) {
+        return maximize ? price.maxPrice : price.minPrice
+    }
+
+    return maximize ? price.minPrice : price.maxPrice
+}
+
+// export function getPoolUsdWithoutPnl(
+//   marketInfo: MarketPoolValueInfo,
+//   isLong: boolean,
+//   priceType: "minPrice" | "maxPrice" | "midPrice"
+// ) {
+//   const poolAmount = isLong ? marketInfo.longTokenAmount : marketInfo.shortTokenAmount
+//   const token = isLong ? marketInfo.longToken : marketInfo.shortToken
+
+//   let price: BigNumber
+
+//   if (priceType === "minPrice") {
+//     price = token.prices?.minPrice
+//   } else if (priceType === "maxPrice") {
+//     price = token.prices?.maxPrice
+//   } else {
+//     price = getMidPrice(token.prices)
+//   }
+
+//   return convertToUsd(poolAmount, token.decimals, price)!
+// }
+
+export function getPositionDeltaPnlUsd(position: PositionAdjustment, price: OraclePrice, sizeDeltaAmount: bigint) {
+    const totalPositionPnl = getPositionPnlUsd(position, price)
+
+    if (totalPositionPnl <= 0n) {
+      return totalPositionPnl
+    }
+
+    const positionPnlUsd = totalPositionPnl * sizeDeltaAmount / position.sizeInTokens
+
+    return positionPnlUsd
+}
+
+export function getPositionPnlUsd(position: PositionAdjustment, price: OraclePrice) {
+    const executionPrice = pickPriceForPnl(price, position.isLong, false)
+    // position.sizeInUsd is the cost of the tokens, positionValue is the current worth of the tokens
+    const positionValue = position.sizeInTokens * executionPrice
+    const totalPositionPnl = position.isLong ? positionValue - position.sizeInUsd : position.sizeInUsd - positionValue
+
+    if (totalPositionPnl <= 0n) {
+      return totalPositionPnl
+    }
+
+    return totalPositionPnl
+}
+
 export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint, size: bigint) {
   if (size === 0n) {
     return 0n
@@ -81,8 +139,10 @@ export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint,
   return size * priceDelta / entryPrice
 }
 
-export function getSlotNetPnL(position: IPosition, markPrice: bigint) {
-  const delta = getPnL(position.isLong, position.averagePrice, markPrice, position.size)
+export function getSlotNetPnL(position: IPositionSlot, markPrice: OraclePrice) {
+  const lst = position.updates[position.updates.length - 1]
+  const delta = getPositionPnlUsd(lst, markPrice)
+
   return position.realisedPnl + delta - position.cumulativeFee
 }
 
@@ -215,8 +275,8 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 
 
 
-export function liquidationWeight(isLong: boolean, liquidationPriceUSD: bigint, markPriceUSD: bigint) {
-  const weight = isLong ? div(liquidationPriceUSD, markPriceUSD) : div(markPriceUSD, liquidationPriceUSD)
+export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: OraclePrice) {
+  const weight = isLong ? div(liquidationPrice, markPrice.maxPrice) : div(markPrice.maxPrice, liquidationPrice)
   const newLocal = formatFixed(weight, 4)
   const value = easeInExpo(newLocal)
   return value > 1 ? 1 : value
@@ -235,7 +295,7 @@ export function validateIdentityName(name: string) {
 }
 
 export function getTokenDescription(token: viem.Address): ITokenDescription {
-  return getMappedValue(TOKEN_ADDRESS_DESCRIPTION, token)
+  return getMappedValue(TOKEN_ADDRESS_DESCRIPTION_MAP, token)
 }
 
 
@@ -350,9 +410,9 @@ export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSum
     return tradeList.reduce((seed, next, idx): IPositionListSummary => {
       const idxBn = BigInt(idx) + 1n
 
-      const size = seed.size + next.maxSize
-      const collateral = seed.collateral + next.maxCollateral
-      const leverage = seed.leverage + div(next.maxSize, next.maxCollateral)
+      const size = seed.size + next.maxSizeUsd
+      const collateral = seed.collateral + next.maxCollateralUsd
+      const leverage = seed.leverage + div(next.maxSizeUsd, next.maxCollateralUsd)
 
       const avgSize = size / idxBn
       const avgCollateral = collateral / idxBn

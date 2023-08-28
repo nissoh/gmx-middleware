@@ -1,8 +1,8 @@
 import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
-import * as GMX from "gmx-middleware-const"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
+import { PositionDecrease, PositionIncrease } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -51,7 +51,7 @@ export type ILog<TAbi extends viem.Abi = viem.Abi, TEventName extends string = s
 export interface ITokenDescription {
   name: string
   symbol: ITokenSymbol
-  isStable: boolean
+  isUsd: boolean
   decimals: number
 }
 
@@ -96,12 +96,9 @@ export type IAbstractPositionAdjustment = {
   sizeDelta: bigint
 }
 
-export type IAbstractPositionStake = {
+export interface IVaultPosition {
   size: bigint
   collateral: bigint
-}
-
-export interface IVaultPosition extends IAbstractPositionStake {
   realisedPnl: bigint
   averagePrice: bigint
   entryFundingRate: bigint
@@ -110,87 +107,46 @@ export interface IVaultPosition extends IAbstractPositionStake {
 }
 
 
-export type IPositionIncrease = ILog<typeof GMX.abi.vault, 'IncreasePosition'>
-export type IPositionDecrease = ILog<typeof GMX.abi.vault, 'DecreasePosition'>
-export type IPositionUpdate = ILog<typeof GMX.abi.vault, 'UpdatePosition'> & { markPrice: bigint }
-export type IPositionLiquidated = ILog<typeof GMX.abi.vault, 'LiquidatePosition'>
-export type IPositionClose = ILog<typeof GMX.abi.vault, 'ClosePosition'>
-export type IExecuteIncreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteIncreasePosition'>
-export type IExecuteDecreasePosition = ILog<typeof GMX.abi.positionRouter, 'ExecuteDecreasePosition'>
-
-type PositionAdjustment = {
-  id: string
-  orderKey: string
-  positionKey: string
-  account: string
-  marketAddress: string
-
-  collateralTokenAddress: string
-  collateralTokenPriceMin: bigint
-  collateralTokenPriceMax: bigint
-
-  sizeInUsd: bigint
-  sizeInTokens: bigint
-  sizeDeltaUsd: bigint
-  sizeDeltaInTokens: bigint
-
-  collateralAmount: bigint
-  collateralDeltaAmount: bigint
-
-  executionPrice: bigint
-  priceImpactDiffUsd: bigint
-  orderType: bigint
-  borrowingFactor: bigint
-  longTokenFundingAmountPerSize: bigint
-  shortTokenFundingAmountPerSize: bigint
-  priceImpactAmount: bigint
-  pnlUsd: bigint
-  isLong: boolean
+export enum PositionStatus {
+  OPEN,
+  CLOSED,
+  LIQUIDATED
 }
 
-export type PositionIncrease =  ILogTxType<'PositionIncrease'> & PositionAdjustment
-export type PositionDecrease = ILogTxType<'PositionDecrease'> & PositionAdjustment
+export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends ILogTxType<TypeName> {
+  updates: (PositionIncrease | PositionDecrease)[]
 
-
-export interface IPositionLink {
-  increaseList: IPositionIncrease[]
-  decreaseList: IPositionDecrease[]
-  updateList: IPositionUpdate[]
-}
-
-
-export interface IPosition<TypeName extends string = string> extends ILogTxType<TypeName>, IVaultPosition {
+  // increaseList: PositionIncrease[]
+  // decreaseList: PositionDecrease[]
+  // feeList: PositionFeesInfo[]
   requestKey: viem.Hex
-  link: IPositionLink
   account: viem.Address
   collateralToken: viem.Address
   indexToken: viem.Address
+  market: viem.Address
+
   isLong: boolean
   key: viem.Hex
 
-  // size: bigint
-  // collateral: bigint
-  // averagePrice: bigint
-  // entryFundingRate: bigint
-  // reserveAmount: bigint
-  // realisedPnl: bigint
+  realisedPnl: bigint
+  averagePrice: bigint
 
-  cumulativeSize: bigint
-  // cumulativeCollateral: bigint
+  cumulativeSizeUsd: bigint
+  cumulativeSizeToken: bigint
   cumulativeFee: bigint
 
-  maxSize: bigint
-  maxCollateral: bigint
+  maxSizeUsd: bigint
+  maxSizeToken: bigint
+
+  maxCollateralUsd: bigint
+  maxCollateralToken: bigint
 }
 
 export type IPositionSlot = IPosition<'PositionSlot'>
+export type IPositionSettled = IPosition<'PositionSettled'>
 
 
-export interface IPositionSettled extends IPosition<'PositionSettled'> {
-  settlePrice: bigint
-  settlement: IPositionClose | IPositionLiquidated
-  isLiquidated: boolean
-}
+
 
 
 export interface IStake extends ILogTxType<"Stake"> {
@@ -312,4 +268,7 @@ export type ContractClientParams<
 > = ContractParams<TAbi, TAddress> & { client: viem.PublicClient<TTransport, TChain> }
 
 
+
+export * from './typesGMXV1.js'
+export * from './typesGMXV2.js'
 
