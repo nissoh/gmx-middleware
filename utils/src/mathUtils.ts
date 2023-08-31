@@ -1,0 +1,31 @@
+import { BASIS_POINTS_DIVISOR } from "gmx-middleware-const"
+
+
+
+export function safeDiv(a: bigint, b: bigint): bigint {
+  if (b === 0n) {
+    return 0n
+  }
+
+  return a / b
+}
+
+export function div(a: bigint, b: bigint): bigint {
+  return safeDiv(a * BASIS_POINTS_DIVISOR, b)
+}
+
+export function min(a: bigint, b: bigint): bigint {
+  return a < b ? a : b
+}
+
+export function max(a: bigint, b: bigint): bigint {
+  return a > b ? a : b
+}
+
+export function minMax(minValue: bigint, maxValue: bigint, value: bigint): bigint {
+  return value < minValue ? minValue : value > maxValue ? maxValue : value
+}
+
+export function abs(a: bigint): bigint {
+  return a < 0n ? -a : a
+}

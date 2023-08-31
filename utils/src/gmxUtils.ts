@@ -7,40 +7,11 @@ import {
   TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionListSummary, ILogEvent, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription, IPosition, PositionStatus, PositionAdjustment, MarketPoolValueInfo, OraclePrice } from "./types.js"
-import { easeInExpo, expandDecimals, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount, streamOf } from "./utils.js"
-import { map } from "@most/core"
-import { Stream } from "@most/types"
+import { ILogEvent, IOraclePrice, IPositionListSummary, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount } from "./utils.js"
+import { div } from "./mathUtils.js"
 
 
-export function safeDiv(a: bigint, b: bigint): bigint {
-  if (b === 0n) {
-    return 0n
-  }
-
-  return a / b
-}
-
-export function div(a: bigint, b: bigint): bigint {
-  return safeDiv(a * BASIS_POINTS_DIVISOR, b)
-}
-
-export function min(a: bigint, b: bigint): bigint {
-  return a < b ? a : b
-}
-
-export function max(a: bigint, b: bigint): bigint {
-  return a > b ? a : b
-}
-
-export function minMax(minValue: bigint, maxValue: bigint, value: bigint): bigint {
-  return value < minValue ? minValue : value > maxValue ? maxValue : value
-}
-
-
-export function abs(a: bigint): bigint {
-  return a < 0n ? -a : a
-}
 
 export function bnDiv(a: bigint, b: bigint): number {
   return formatBps(div(a, b))
@@ -72,17 +43,7 @@ export function getPriceDelta(isLong: boolean, entryPrice: bigint, priceChange: 
   return isLong ? priceChange - entryPrice : entryPrice - priceChange
 }
 
-// @dev pick the min or max price depending on whether it is for a long or short position
-// and whether the pending pnl should be maximized or not
-function pickPriceForPnl(price: OraclePrice, isLong: boolean, maximize: boolean) {
-    // for long positions, pick the larger price to maximize pnl
-    // for short positions, pick the smaller price to maximize pnl
-    if (isLong) {
-        return maximize ? price.maxPrice : price.minPrice
-    }
 
-    return maximize ? price.minPrice : price.maxPrice
-}
 
 // export function getPoolUsdWithoutPnl(
 //   marketInfo: MarketPoolValueInfo,
@@ -105,30 +66,6 @@ function pickPriceForPnl(price: OraclePrice, isLong: boolean, maximize: boolean)
 //   return convertToUsd(poolAmount, token.decimals, price)!
 // }
 
-export function getPositionDeltaPnlUsd(position: PositionAdjustment, price: OraclePrice, sizeDeltaAmount: bigint) {
-    const totalPositionPnl = getPositionPnlUsd(position, price)
-
-    if (totalPositionPnl <= 0n) {
-      return totalPositionPnl
-    }
-
-    const positionPnlUsd = totalPositionPnl * sizeDeltaAmount / position.sizeInTokens
-
-    return positionPnlUsd
-}
-
-export function getPositionPnlUsd(position: PositionAdjustment, price: OraclePrice) {
-    const executionPrice = pickPriceForPnl(price, position.isLong, false)
-    // position.sizeInUsd is the cost of the tokens, positionValue is the current worth of the tokens
-    const positionValue = position.sizeInTokens * executionPrice
-    const totalPositionPnl = position.isLong ? positionValue - position.sizeInUsd : position.sizeInUsd - positionValue
-
-    if (totalPositionPnl <= 0n) {
-      return totalPositionPnl
-    }
-
-    return totalPositionPnl
-}
 
 export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint, size: bigint) {
   if (size === 0n) {
@@ -139,12 +76,6 @@ export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint,
   return size * priceDelta / entryPrice
 }
 
-export function getSlotNetPnL(position: IPositionSlot, markPrice: OraclePrice) {
-  const lst = position.updates[position.updates.length - 1]
-  const delta = getPositionPnlUsd(lst, markPrice)
-
-  return position.realisedPnl + delta - position.cumulativeFee
-}
 
 export function getDeltaPercentage(delta: bigint, collateral: bigint) {
   return div(delta, collateral)
@@ -275,8 +206,8 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 
 
 
-export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: OraclePrice) {
-  const weight = isLong ? div(liquidationPrice, markPrice.maxPrice) : div(markPrice.maxPrice, liquidationPrice)
+export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: IOraclePrice) {
+  const weight = isLong ? div(liquidationPrice, markPrice.max) : div(markPrice.max, liquidationPrice)
   const newLocal = formatFixed(weight, 4)
   const value = easeInExpo(newLocal)
   return value > 1 ? 1 : value

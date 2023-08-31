@@ -1,17 +1,17 @@
 import { combineObject, isStream, O, Op, replayLatest } from "@aelea/core"
 import {
-  at, awaitPromises, constant, continueWith, empty, filter, fromPromise, map, merge,
+  at, awaitPromises, constant, continueWith, empty, filter,
+  map, merge,
   multicast, now, recoverWith, switchLatest, takeWhile, zipArray
 } from "@most/core"
 import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
 import { Stream } from "@most/types"
 import { ClientOptions, createClient } from "@urql/core"
-import { CHAIN, EXPLORER_URL } from "gmx-middleware-const"
-import { Address, encodePacked, keccak256 } from "viem"
-import { USD_DECIMALS } from "gmx-middleware-const"
-import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
+import { CHAIN, EXPLORER_URL, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
+import * as viem from "viem"
 import { formatBps } from "./gmxUtils.js"
+import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
 export * as GraphQL from '@urql/core'
 
 
@@ -25,7 +25,7 @@ export const VALID_FRACTIONAL_NUMBER_REGEXP = /^-?(0|[1-9]\d*)(\.\d+)?$/
 let zeros = "0"
 while (zeros.length < 256) { zeros += zeros }
 
-export function isAddress(address: any): address is Address {
+export function isAddress(address: any): address is viem.Address {
   return ETH_ADDRESS_REGEXP.test(address)
 }
 
@@ -93,6 +93,11 @@ export const readableDate = (timestamp: number) => new Date(timestamp * 1000).to
 
 export function shortenTxAddress(address: string) {
   return shortenAddress(address, 8, 6)
+}
+
+export function getTokenDenominator(indexToken: viem.Address) {
+  const deciamls = getMappedValue(TOKEN_ADDRESS_DESCRIPTION_MAP, indexToken).decimals
+  return 10n ** BigInt(deciamls)
 }
 
 export function getDenominator(decimals: number) {
@@ -341,11 +346,11 @@ export const getTxExplorerUrl = (chain: CHAIN, hash: string) => {
   return EXPLORER_URL[chain] + 'tx/' + hash
 }
 
-export function getAccountExplorerUrl(chain: CHAIN, account: Address) {
+export function getAccountExplorerUrl(chain: CHAIN, account: viem.Address) {
   return EXPLORER_URL[chain] + "address/" + account
 }
 
-export function getDebankProfileUrl(account: Address) {
+export function getDebankProfileUrl(account: viem.Address) {
   return `https://debank.com/profile/` + account
 }
 
@@ -398,10 +403,10 @@ export const switchMap: ISwitchMapCurry2 = curry2(switchMapFn)
 
 
 
-export function getPositionKey(account: Address, collateralToken: Address, indexToken: Address, isLong: boolean) {
-  return keccak256(encodePacked(
+export function getPositionKey(account: viem.Address, market: viem.Address, collateralToken: viem.Address, isLong: boolean) {
+  return viem.keccak256(viem.encodePacked(
     ["address", "address", "address", "bool"],
-    [account, collateralToken, indexToken, isLong]
+    [account, market, collateralToken, isLong]
   ))
 }
 
@@ -438,7 +443,7 @@ export const periodicRun = <T>({ actionOp, interval = 1000, startImmediate = tru
   )(tick)
 }
 
-export interface IPeriodSample<T> {
+export interface IPeriodSample {
   interval?: number
   startImmediate?: boolean
   recoverError?: boolean
@@ -446,7 +451,7 @@ export interface IPeriodSample<T> {
 
 const defaultSampleArgs = { interval: 1000, startImmediate: true, recoverError: true }
 
-export const periodicSample = <T>(sample: Stream<T>, options: IPeriodSample<T> = defaultSampleArgs): Stream<T> => {
+export const periodicSample = <T>(sample: Stream<T>, options: IPeriodSample = defaultSampleArgs): Stream<T> => {
   const params = { ...defaultSampleArgs, ...options }
 
   const tickDelay = at(params.interval, null)

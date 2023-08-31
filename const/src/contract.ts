@@ -1,7 +1,11 @@
 import { arbitrum } from "viem/chains"
 import * as abi from "./abi.js"
 import { erc20Abi } from "abitype/test"
+import exchangeRouter from "./abi/exchangeRouter.js"
+// import datastore from "./abi/datastore.js"
 import eventEmitter from "./abi/eventEmitter.js"
+import reader from "./abi/reader.js"
+import datastore from "./abi/datastore.js"
 
 
 export const CONTRACT = {
@@ -40,12 +44,34 @@ export const CONTRACT = {
         },
 
         // V2
+        ReaderV2: {
+            address: "0x38d91ED96283d62182Fc6d990C24097A918a4d9b",
+            abi: reader,
+        },
+        ExchangeRouter: {
+            address: "0x3b070aa6847bd0fb56efadb351f49bbb7619dbc2",
+            abi: exchangeRouter,
+        },
+        Datastore: {
+            address: "0xFD70de6b91282D8017aA4E741e9Ae325CAb992d8",
+            abi: datastore,
+        },
         EventEmitter: {
             address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb",
             abi: eventEmitter,
         },
     },
 } as const
+
+// DataStore: "0xFD70de6b91282D8017aA4E741e9Ae325CAb992d8",
+// EventEmitter: "0xC8ee91A54287DB53897056e12D9819156D3822Fb",
+// ExchangeRouter: "0x3B070aA6847bd0fB56eFAdB351f49BBb7619dbc2",
+// DepositVault: "0xF89e77e8Dc11691C9e8757e84aaFbCD8A67d7A55",
+// WithdrawalVault: "0x0628D46b5D145f183AdB6Ef1f2c97eD1C4701C55",
+// OrderVault: "0x31eF83a530Fde1B38EE9A18093A333D8Bbbc40D5",
+// SyntheticsReader: "0x38d91ED96283d62182Fc6d990C24097A918a4d9b",
+// SyntheticsRouter: "0x7452c558d45f8afC8c83dAe62C3f8A5BE19c71f6",
+// Timelock: "0xaa50bD556CE0Fe61D4A57718BA43177a3aB6A597",
 
 // VaultV2: {
 //     address: "0x489ee077994B6658eAfA855C308275EAd8097C4A",

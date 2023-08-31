@@ -13,8 +13,3 @@ export type IPositionClose = ILog<IVaultAbi, 'ClosePosition'>
 export type IExecuteIncreasePosition = ILog<IPoisitionRouterAbi, 'ExecuteIncreasePosition'>
 export type IExecuteDecreasePosition = ILog<IPoisitionRouterAbi, 'ExecuteDecreasePosition'>
 
-export interface IPositionSourceGMXV1 {
-  increaseList: IPositionIncrease[]
-  decreaseList: IPositionDecrease[]
-  updateList: IPositionUpdate[]
-}

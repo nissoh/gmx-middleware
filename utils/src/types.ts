@@ -2,7 +2,7 @@ import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import { PositionDecrease, PositionIncrease } from "./typesGMXV2.js"
+import { IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -77,34 +77,24 @@ export interface ITransaction {
   value: bigint
 }
 
-export interface IAbstractRouteIdentity {
+export interface IAbstractPositionParams {
   collateralToken: viem.Address
   indexToken: viem.Address
   isLong: boolean
 }
 
-export interface IAbstractPositionIdentity extends IAbstractRouteIdentity {
+export interface IAbstractPositionIdentity extends IAbstractPositionParams {
   account: viem.Address
-}
-
-export type IAbstractPositionKey = {
   key: viem.Hex
 }
+
 
 export type IAbstractPositionAdjustment = {
   collateralDelta: bigint
   sizeDelta: bigint
 }
 
-export interface IVaultPosition {
-  size: bigint
-  collateral: bigint
-  realisedPnl: bigint
-  averagePrice: bigint
-  entryFundingRate: bigint
-  reserveAmount: bigint
-  lastIncreasedTime: bigint
-}
+
 
 
 export enum PositionStatus {
@@ -113,20 +103,10 @@ export enum PositionStatus {
   LIQUIDATED
 }
 
-export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends ILogTxType<TypeName> {
-  updates: (PositionIncrease | PositionDecrease)[]
-
-  // increaseList: PositionIncrease[]
-  // decreaseList: PositionDecrease[]
-  // feeList: PositionFeesInfo[]
-  requestKey: viem.Hex
-  account: viem.Address
-  collateralToken: viem.Address
-  indexToken: viem.Address
-  market: viem.Address
-
-  isLong: boolean
-  key: viem.Hex
+export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
+  updates: readonly (IPositionIncrease | IPositionDecrease)[]
+  latestUpdate: IPositionIncrease | IPositionDecrease
+  orderKey: viem.Hex
 
   realisedPnl: bigint
   averagePrice: bigint
@@ -269,6 +249,6 @@ export type ContractClientParams<
 
 
 
-export * from './typesGMXV1.js'
+// export * from './typesGMXV1.js'
 export * from './typesGMXV2.js'
 
