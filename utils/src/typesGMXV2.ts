@@ -1,6 +1,6 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { ILogOrderedEvent, ILogTxType } from "./types.js"
+import { ILogOrderedEvent, ILogTxType, IPosition } from "./types.js"
 
 
 export type IEventEmitterAbi = typeof GMX.CONTRACT['42161']['EventEmitter']['abi']
@@ -49,24 +49,115 @@ export type PositionFeesInfo = {
   isIncrease: bigint
 }
 
-export type IPositionAdjustment = {
+
+export interface PositionReferralFees {
+  referralCode: viem.Hex
+  affiliate: viem.Address
+  trader: viem.Address
+  totalRebateFactor: bigint
+  traderDiscountFactor: bigint
+  totalRebateAmount: bigint
+  traderDiscountAmount: bigint
+  affiliateRewardAmount: bigint
+
+}
+
+
+export interface PositionFundingFees {
+  fundingFeeAmount: bigint
+  claimableLongTokenAmount: bigint
+  claimableShortTokenAmount: bigint
+  latestFundingFeeAmountPerSize: bigint
+  latestLongTokenClaimableFundingAmountPerSize: bigint
+  latestShortTokenClaimableFundingAmountPerSize: bigint
+}
+
+
+export interface PositionBorrowingFees {
+  borrowingFeeUsd: bigint
+  borrowingFeeAmount: bigint
+  borrowingFeeReceiverFactor: bigint
+  borrowingFeeAmountForFeeReceiver: bigint
+}
+
+export interface PositionUiFees {
+  uiFeeReceiver: viem.Address
+  uiFeeReceiverFactor: bigint
+  uiFeeAmount: bigint
+}
+
+export interface PriceMinMax {
+  min: bigint
+  max: bigint
+}
+
+
+    
+export interface PositionFees {
+  referral: PositionReferralFees
+  funding: PositionFundingFees
+  borrowing: PositionBorrowingFees
+  ui: PositionUiFees
+  collateralTokenPrice: PriceMinMax
+  positionFeeFactor: bigint
+  protocolFeeAmount: bigint
+  positionFeeReceiverFactor: bigint
+  feeReceiverAmount: bigint
+  feeAmountForPool: bigint
+  positionFeeAmountForPool: bigint
+  positionFeeAmount: bigint
+  totalCostAmountExcludingFunding: bigint
+  totalCostAmount: bigint
+}
+
+
+export interface ExecutionPriceResult {
+  priceImpactUsd: bigint
+  priceImpactDiffUsd: bigint
+  executionPrice: bigint
+}
+
+
+
+export interface PositionInfo {
+  position: {
+    addresses: IPositionAddresses,
+    numbers: IPositionNumbers
+    flags: {
+      isLong: boolean
+    }
+  }
+  fees: PositionFees
+  executionPriceResult: ExecutionPriceResult
+  basePnlUsd: bigint
+  uncappedBasePnlUsd: bigint
+  pnlAfterPriceImpactUsd: bigint
+}
+
+export type IPositionAddresses = {
   account: viem.Address
   collateralToken: viem.Address
-  isLong: boolean
-
   market: viem.Address
+}
 
-  orderType: bigint
-  orderKey: viem.Hex
-  positionKey: viem.Hex
-
-  sizeInUsd: bigint
+export type IPositionNumbers = {
   sizeInTokens: bigint
   collateralAmount: bigint
   borrowingFactor: bigint
   fundingFeeAmountPerSize: bigint
   longTokenClaimableFundingAmountPerSize: bigint
   shortTokenClaimableFundingAmountPerSize: bigint
+}
+
+export type IPositionAdjustment = IPositionAddresses & IPositionNumbers & {
+  isLong: boolean
+
+  orderType: bigint
+  orderKey: viem.Hex
+  positionKey: viem.Hex
+
+  sizeInUsd: bigint
+
   executionPrice: bigint
   'indexTokenPrice.max': bigint
   'indexTokenPrice.min': bigint
@@ -90,10 +181,8 @@ export type IPositionDecrease = ILogTxType<'PositionDecrease'> & IPositionAdjust
   uncappedBasePnlUsd: bigint
 }
 
-export type IOraclePrice = {
+export type IOraclePrice = PriceMinMax & {
   isPriceFeed: boolean
-  max: bigint
-  min: bigint
   token: viem.Address
 }
 
@@ -111,15 +200,19 @@ export interface IMarketToken {
   shortToken: viem.Address
 }
 
+export type IMarket = IMarketToken & {
+  marketToken: viem.Address
+  salt: viem.Hex
+}
+
 export interface IMarketPrice {
   indexTokenPrice: IOraclePrice,
   longTokenPrice: IOraclePrice,
   shortTokenPrice: IOraclePrice
 }
 
-export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarketToken & {
+export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarket & {
   marketToken: viem.Address
-  salt: viem.Hex
 }
 
 
@@ -130,9 +223,7 @@ export type IOraclePriceUpdateEvent = ILogTxType<'MarketCreated'> & {
   isPriceFeed: boolean
 }
 
-export type IMarket = IMarketToken & {
-  marketToken: viem.Address
-}
+
 
 
 
@@ -221,55 +312,57 @@ export type IMarket = IMarketToken & {
 //   marketTokensSupply: bigint
 // }
 
-interface CollateralType {
+interface ICollateralType {
   longToken: bigint
   shortToken: bigint
 }
 
-export type PositionType = {
-  long: CollateralType
-  short: CollateralType
+export type IPositionType = {
+  long: ICollateralType
+  short: ICollateralType
 }
 
 
-export interface BaseFundingValues {
-  fundingFeeAmountPerSize: PositionType
-  claimableFundingAmountPerSize: PositionType
+export interface IBaseFundingValues {
+  fundingFeeAmountPerSize: IPositionType
+  claimableFundingAmountPerSize: IPositionType
 }
 
-interface GetNextFundingAmountPerSizeResult {
+export interface IGetNextFundingAmountPerSizeResult {
   longsPayShorts: boolean;
   fundingFactorPerSecond: bigint
 
-  fundingFeeAmountPerSizeDelta: PositionType
-  claimableFundingAmountPerSizeDelta: PositionType
+  fundingFeeAmountPerSizeDelta: IPositionType
+  claimableFundingAmountPerSizeDelta: IPositionType
 }
 
-interface VirtualInventory {
+export interface IVirtualInventory {
     virtualPoolAmountForLongToken: bigint;
     virtualPoolAmountForShortToken: bigint;
     virtualInventoryForPositions: bigint;
 }
 
-export type IMarketPoolValueInfo = {
-
-  marketInfo: {
+export interface IMarketInfo {
     market: IMarket
     borrowingFactorPerSecondForLongs: bigint
     borrowingFactorPerSecondForShorts: bigint
-    baseFunding: BaseFundingValues
-    nextFunding: GetNextFundingAmountPerSizeResult
-    virtualInventory: VirtualInventory
+    baseFunding: IBaseFundingValues
+    nextFunding: IGetNextFundingAmountPerSizeResult
+    virtualInventory: IVirtualInventory
     isDisabled: boolean;
-  },
+}
+
+export type IMarketPoolValueInfo = {
+
+  // marketInfo: IMarketInfo,
 
 
   // longToken: TokenData
   // shortToken: TokenData
   // indexToken: TokenData
 
-  // longPoolAmount: bigint
-  // shortPoolAmount: bigint
+  longPoolAmount: bigint
+  shortPoolAmount: bigint
 
   maxLongPoolAmount: bigint
   maxShortPoolAmount: bigint
@@ -306,10 +399,10 @@ export type IMarketPoolValueInfo = {
   maxPnlFactorForTradersLong: bigint
   maxPnlFactorForTradersShort: bigint
 
-  // pnlLongMin: bigint
-  // pnlLongMax: bigint
-  // pnlShortMin: bigint
-  // pnlShortMax: bigint
+  pnlLongMin: bigint
+  pnlLongMax: bigint
+  pnlShortMin: bigint
+  pnlShortMax: bigint
 
   // netPnlMin: bigint
   // netPnlMax: bigint

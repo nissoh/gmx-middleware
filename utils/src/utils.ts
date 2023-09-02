@@ -401,13 +401,19 @@ function switchMapFn<T, R>(cb: (t: T) => Stream<R>, s: Stream<T>) {
 
 export const switchMap: ISwitchMapCurry2 = curry2(switchMapFn)
 
-
+export function hashData(types: string[], values: any) {
+  const params = viem.parseAbiParameters(types)
+  const hex = viem.encodeAbiParameters(params as any, values)
+  const bytes = viem.toBytes(hex)
+  const hash = viem.keccak256(bytes)
+  return hash
+}
 
 export function getPositionKey(account: viem.Address, market: viem.Address, collateralToken: viem.Address, isLong: boolean) {
-  return viem.keccak256(viem.encodePacked(
+  return hashData(
     ["address", "address", "address", "bool"],
     [account, market, collateralToken, isLong]
-  ))
+  )
 }
 
 

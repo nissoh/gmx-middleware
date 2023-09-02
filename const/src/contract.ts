@@ -6,6 +6,7 @@ import exchangeRouter from "./abi/exchangeRouter.js"
 import eventEmitter from "./abi/eventEmitter.js"
 import reader from "./abi/reader.js"
 import datastore from "./abi/datastore.js"
+import referralStorage from "./abi/referralStorage.js"
 
 
 export const CONTRACT = {
@@ -41,6 +42,10 @@ export const CONTRACT = {
         GMX: {
             address: "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a",
             abi: erc20Abi,
+        },
+        ReferralStorage: {
+            address: '0xe6fab3f0c7199b0d34d7fbe83394fc0e0d06e99d',
+            abi: referralStorage,
         },
 
         // V2

@@ -2,7 +2,7 @@ import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
+import { IPositionDecrease, IPositionIncrease, PositionFeesInfo } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -105,6 +105,7 @@ export enum PositionStatus {
 
 export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
   updates: readonly (IPositionIncrease | IPositionDecrease)[]
+  feeUpdates: readonly PositionFeesInfo[]
   latestUpdate: IPositionIncrease | IPositionDecrease
   orderKey: viem.Hex
 

@@ -21,18 +21,18 @@ export enum CHAIN {
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000" as const
 export const BYTES32_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000" as const
 
+export const BASIS_POINTS_DIVISOR = 10000n
+
 export const USD_DECIMALS = 30
 export const USDG_DECIMALS = 18
 
-export const BASIS_POINTS_DIVISOR = 10000n
 export const DEPOSIT_FEE = 30n
-export const LIMIT_LEVERAGE = 1000000n
-export const MAX_LEVERAGE = 1000000n
-export const MIN_LEVERAGE = 11000n
+export const MAX_LEVERAGE_FACTOR = 100n * BASIS_POINTS_DIVISOR
+export const MIN_LEVERAGE_FACTOR = 11000n
 export const LEVERAGE_LIQUIDAITON = 1000000n
 export const DEDUCT_USD_FOR_GAS = 10n ** 30n * 2n
 
-export const USD_PERCISION = 10n ** 30n
+export const PERCISION = 10n ** 30n
 export const LIQUIDATION_FEE = 10n ** 5n
 
 export const TAX_BASIS_POINTS = 50n
