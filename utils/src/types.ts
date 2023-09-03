@@ -146,9 +146,7 @@ export interface IPositionListSummary {
   collateral: bigint
   fee: bigint
   pnl: bigint
-  leverage: bigint
-
-  avgLeverage: bigint
+  cumulativeLeverage: bigint
   avgSize: bigint
   avgCollateral: bigint
 

@@ -3,6 +3,33 @@ import * as viem from "viem"
 import { ILogOrderedEvent, ILogTxType, IPosition } from "./types.js"
 
 
+export enum OrderType {
+  // the order will be cancelled if the minOutputAmount cannot be fulfilled
+  MarketSwap = 0,
+  // @dev LimitSwap: swap token A to token B if the minOutputAmount can be fulfilled
+  LimitSwap = 1,
+  // @dev MarketIncrease: increase position at the current market price
+  // the order will be cancelled if the position cannot be increased at the acceptablePrice
+  MarketIncrease = 2,
+  // @dev LimitIncrease: increase position if the triggerPrice is reached and the acceptablePrice can be fulfilled
+  LimitIncrease = 3,
+  // @dev MarketDecrease: decrease position at the curent market price
+  // the order will be cancelled if the position cannot be decreased at the acceptablePrice
+  MarketDecrease = 4,
+  // @dev LimitDecrease: decrease position if the triggerPrice is reached and the acceptablePrice can be fulfilled
+  LimitDecrease = 5,
+  // @dev StopLossDecrease: decrease position if the triggerPrice is reached and the acceptablePrice can be fulfilled
+  StopLossDecrease = 6,
+  // @dev Liquidation: allows liquidation of positions if the criteria for liquidation are met
+  Liquidation = 7,
+}
+
+export enum DecreasePositionSwapType {
+  NoSwap = 0,
+  SwapPnlTokenToCollateralToken = 1,
+  SwapCollateralTokenToPnlToken = 2,
+}
+
 export type IEventEmitterAbi = typeof GMX.CONTRACT['42161']['EventEmitter']['abi']
 
 export type IEventLog1Args = ILogOrderedEvent<IEventEmitterAbi, 'EventLog1'>
@@ -202,7 +229,6 @@ export interface IMarketToken {
 
 export type IMarket = IMarketToken & {
   marketToken: viem.Address
-  salt: viem.Hex
 }
 
 export interface IMarketPrice {
@@ -212,7 +238,7 @@ export interface IMarketPrice {
 }
 
 export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarket & {
-  marketToken: viem.Address
+  salt: viem.Hex
 }
 
 
@@ -350,6 +376,7 @@ export interface IMarketInfo {
     nextFunding: IGetNextFundingAmountPerSizeResult
     virtualInventory: IVirtualInventory
     isDisabled: boolean;
+    price: IMarketPrice
 }
 
 export type IMarketPoolValueInfo = {

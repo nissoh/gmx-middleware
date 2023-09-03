@@ -8,9 +8,9 @@ import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
 import { Stream } from "@most/types"
 import { ClientOptions, createClient } from "@urql/core"
-import { CHAIN, EXPLORER_URL, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
+import { BASIS_POINTS_DIVISOR, CHAIN, EXPLORER_URL, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
 import * as viem from "viem"
-import { formatBps } from "./gmxUtils.js"
+import { getTokenAmount, getTokenUsd } from "./gmxUtils.js"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
 export * as GraphQL from '@urql/core'
 
@@ -64,8 +64,11 @@ const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short
 
 export const readableUnitAmount = readableNumber({  })
 export const readableUSD = readableNumber({  })
-export const readableFixedBsp = (amount: bigint) => formatBps(amount) + '%'
+export const readablePercentage = (amount: bigint) => formatFixed(amount, 2) + '%'
+export const readableLeverage = (a: bigint, b: bigint) => readableUnitAmount(formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)) + 'x'
 export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
+export const readableTokenAmount = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
+export const readableTokenUsd = (price: bigint, amount: bigint) => readableFixedUSD30(getTokenUsd(price, amount))
 
 const UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte']
 const BYTES_PER_KB = 1000

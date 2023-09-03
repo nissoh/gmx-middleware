@@ -1,15 +1,16 @@
 import { AbiEvent } from "abitype"
 import {
-  PERCISION,
+  BASIS_POINTS_DIVISOR,
   CHAIN,
   CHAIN_NATIVE_DESCRIPTION,
-  FUNDING_RATE_PRECISION, IntervalTime, LIQUIDATION_FEE, MARGIN_FEE_BASIS_POINTS, MAX_LEVERAGE_FACTOR,
-  TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy, BASIS_POINTS_DIVISOR
+  FUNDING_RATE_PRECISION, IntervalTime,
+  MARGIN_FEE_BASIS_POINTS,
+  TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { ILogEvent, IOraclePrice, IPositionListSummary, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getDenominator, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount } from "./utils.js"
 import { factor } from "./mathUtils.js"
+import { ILogEvent, IOraclePrice, IPositionListSummary, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount } from "./utils.js"
 
 
 
@@ -17,12 +18,8 @@ export function div(a: bigint, b: bigint): bigint {
   return a * BASIS_POINTS_DIVISOR / b
 }
 
-export function bnDiv(a: bigint, b: bigint): number {
-  return formatBps(a * BASIS_POINTS_DIVISOR / b)
-}
-
-export function formatBps(a: bigint): number {
-  return formatFixed(a, 4)
+export function formatDiv(a: bigint, b: bigint): number {
+  return formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)
 }
 
 export function parseBps(a: number | string): bigint {
@@ -93,17 +90,17 @@ export function getNextAveragePrice(islong: boolean, size: bigint, nextPrice: bi
 }
 
 
-export function getTokenAmount(decimals: number, price: bigint, amountUsd: bigint) {
-  return amountUsd * getDenominator(decimals) / price
+export function getTokenAmount(price: bigint, amountUsd: bigint) {
+  return amountUsd / price
 }
 
-export function getTokenUsd(decimals: number, price: bigint, tokenAmount: bigint) {
-  return tokenAmount * price / getDenominator(decimals)
+export function getTokenUsd(price: bigint, tokenAmount: bigint) {
+  return tokenAmount * price 
 }
 
 
 export function getMarginFees(size: bigint) {
-  return size * MARGIN_FEE_BASIS_POINTS / PERCISION
+  return size * MARGIN_FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR
 }
 
 // export function getLiquidationPrice(isLong: boolean, collateral: bigint, size: bigint, averagePrice: bigint) {
@@ -330,12 +327,9 @@ export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSum
   const seedAccountSummary: IPositionListSummary = {
       size: 0n,
       collateral: 0n,
-      leverage: 0n,
-
-      avgLeverage: 0n,
+      cumulativeLeverage: 0n,
       avgCollateral: 0n,
       avgSize: 0n,
-
       fee: 0n,
       lossCount: 0,
       pnl: 0n,
@@ -347,11 +341,10 @@ export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSum
 
       const size = seed.size + next.maxSizeUsd
       const collateral = seed.collateral + next.maxCollateralUsd
-      const leverage = seed.leverage + factor(next.maxSizeUsd, next.maxCollateralUsd)
+      const cumulativeLeverage = seed.cumulativeLeverage + factor(next.maxSizeUsd, next.maxCollateralUsd)
 
       const avgSize = size / idxBn
       const avgCollateral = collateral / idxBn
-      const avgLeverage = leverage / idxBn
 
 
       const fee = seed.fee + next.cumulativeFee
@@ -365,9 +358,7 @@ export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSum
       return {
         size,
         collateral,
-        leverage,
-
-        avgLeverage,
+        cumulativeLeverage,
         avgCollateral,
         avgSize,
         fee,
@@ -398,10 +389,6 @@ export const tokenAmountLabel = (token: viem.Address, amount: bigint) => {
   const newLocal = formatFixed(amount, tokenDesc.decimals)
   
   return readableUnitAmount(newLocal) + ' ' + tokenDesc.symbol
-}
-
-export const leverageLabel = (leverage: bigint) => {
-  return `${readableUnitAmount(formatBps(leverage))}x`
 }
 
 
