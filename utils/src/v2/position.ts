@@ -1,81 +1,80 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionSlot } from "../types.js"
-import { IMarketInfo, IMarketPoolValueInfo, IMarketPrice, IOraclePrice, IPositionAdjustment, PositionFeesInfo, PositionReferralFees, PriceMinMax } from "../typesGMXV2.js"
-import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
-import { abs, applyFactor, delta } from "../mathUtils.js"
 import { getTokenUsd } from "../gmxUtils.js"
+import { applyFactor } from "../mathUtils.js"
+import { IMarketInfo, IMarketPrice, IPositionAdjustment, PositionFeesInfo, PositionReferralFees } from "../typesGMXV2.js"
+import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
 import { getPriceImpactForPosition } from "./price.js"
 
 
 
 
 export function getPoolUsdWithoutPnl(
+  marketPrice: IMarketPrice,
   marketInfo: IMarketInfo,
-  marketPoolInfo: IMarketPoolValueInfo,
   isLong: boolean,
-  maxPrice: boolean
+  maximize: boolean = false
 ) {
-  const tokenDescription = getMappedValue(GMX.TOKEN_ADDRESS_DESCRIPTION_MAP, isLong ? marketInfo.market.longToken : marketInfo.market.shortToken)
-  const poolAmount = isLong ? marketPoolInfo.longPoolAmount : marketPoolInfo.shortPoolAmount
-  const token = isLong ? marketInfo.price.longTokenPrice : marketInfo.price.shortTokenPrice
-  const price = maxPrice ? token.max : token.min
-
+  const poolAmount = isLong ? marketInfo.longTokenAmount : marketInfo.shortTokenAmount
+  const price = isLong
+   ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
+   : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
 
   return getTokenUsd(price, poolAmount)
 }
 
 export function getPositionPnlUsd(
-  marketInfo: IMarketInfo,
-  marketPoolInfo: IMarketPoolValueInfo,
   isLong: boolean,
   sizeInUsd: bigint,
   sizeInTokens: bigint,
-  markPrice: bigint,
+  markPrice: bigint
 ) {
-
-  const indexTokenDescription = getMappedValue(GMX.TOKEN_ADDRESS_DESCRIPTION_MAP, marketInfo.market.indexToken)
   const positionValueUsd = getTokenUsd(markPrice, sizeInTokens)
+  const totalPnl = isLong ? positionValueUsd - sizeInUsd : sizeInUsd - positionValueUsd
 
-  let totalPnl = isLong ? positionValueUsd - sizeInUsd : sizeInUsd - positionValueUsd
+  return totalPnl
+}
 
-  if (totalPnl <= 0n) {
-    return totalPnl
-  }
+export function getCappedPositionPnlUsd(
+  marketPrice: IMarketPrice,
+  marketPoolInfo: IMarketInfo,
+  isLong: boolean,
+  sizeInUsd: bigint,
+  sizeInTokens: bigint,
+  markPrice: bigint
+) {
+  const totalPnl = getPositionPnlUsd(isLong, sizeInUsd, sizeInTokens, markPrice)
 
-  const poolPnl = isLong ? marketPoolInfo.pnlLongMax : marketPoolInfo.pnlShortMax
-  const poolUsd = getPoolUsdWithoutPnl(marketInfo, marketPoolInfo, isLong, false)
+  if (totalPnl <= 0n) return totalPnl
+
+  const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
+  const poolUsd = getPoolUsdWithoutPnl(marketPrice, marketPoolInfo, isLong, false)
 
   const cappedPnl = getCappedPoolPnl(
     marketPoolInfo,
     poolUsd,
     isLong,
-    true,
+    // true,
   )
 
   const WEI_PRECISION = getDenominator(18)
 
 
   if (cappedPnl !== poolPnl && cappedPnl > 0n && poolPnl > 0n) {
-    totalPnl = totalPnl * (cappedPnl / WEI_PRECISION) / (poolPnl / WEI_PRECISION)
+    return totalPnl * (cappedPnl / WEI_PRECISION) / (poolPnl / WEI_PRECISION)
   }
 
   return totalPnl
 }
 
 
-export function getCappedPoolPnl(marketPoolInfo: IMarketPoolValueInfo, poolUsd: bigint, isLong: boolean, maximize: boolean) {
-  let poolPnl: bigint
+export function getCappedPoolPnl(marketPoolInfo: IMarketInfo, poolUsd: bigint, isLong: boolean) { // maximize: boolean
+  const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
+  // const poolPnl = isLong
+  // ? maximize ? marketPoolInfo.pnlLongMax : marketPoolInfo.pnlLongMin
+  //  : maximize ? marketPoolInfo.pnlShortMax : marketPoolInfo.pnlShortMin
 
-  if (isLong) {
-    poolPnl = maximize ? marketPoolInfo.pnlLongMax : marketPoolInfo.pnlLongMin
-  } else {
-    poolPnl = maximize ? marketPoolInfo.pnlShortMax : marketPoolInfo.pnlShortMin
-  }
-
-  if (poolPnl <= 0n) {
-    return poolPnl
-  }
+  if (poolPnl <= 0n) return poolPnl
 
   const maxPnlFactor = isLong
     ? marketPoolInfo.maxPnlFactorForTradersLong
@@ -153,7 +152,7 @@ export function getPositionPendingFeesUsd(pendingFundingFeesUsd: bigint, pending
 }
 
 
-export function getMarginFee(marketInfo: IMarketPoolValueInfo, forPositiveImpact: boolean, sizeDeltaUsd: bigint) {
+export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean, sizeDeltaUsd: bigint) {
   const factor = forPositiveImpact
     ? marketInfo.positionFeeFactorForPositiveImpact
     : marketInfo.positionFeeFactorForNegativeImpact
@@ -196,8 +195,7 @@ export function getLiquidationPrice(
   sizeInTokens: bigint,
   collateralAmount: bigint,
   collateralUsd: bigint,
-  marketInfo: IMarketInfo,
-  marketPoolInfo: IMarketPoolValueInfo,
+  marketPoolInfo: IMarketInfo,
   pendingFundingFeesUsd: bigint,
   pendingBorrowingFeesUsd: bigint,
   minCollateralUsd: bigint,
@@ -217,7 +215,7 @@ export function getLiquidationPrice(
   if (useMaxPriceImpact) {
     priceImpactDeltaUsd = maxNegativePriceImpactUsd
   } else {
-    priceImpactDeltaUsd = getPriceImpactForPosition(marketInfo, marketPoolInfo, -sizeInUsd, isLong)
+    priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, -sizeInUsd, isLong)
 
     if (priceImpactDeltaUsd < maxNegativePriceImpactUsd) {
       priceImpactDeltaUsd = maxNegativePriceImpactUsd
