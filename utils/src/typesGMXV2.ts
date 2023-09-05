@@ -222,6 +222,7 @@ export type IInsolventClose = {
 }
 
 export interface IMarketToken {
+  salt: viem.Hex
   indexToken: viem.Address
   longToken: viem.Address
   shortToken: viem.Address

@@ -57,6 +57,9 @@ export const CONTRACT = {
             address: "0x3b070aa6847bd0fb56efadb351f49bbb7619dbc2",
             abi: exchangeRouter,
         },
+        OrderVault: {
+            address: "0x31eF83a530Fde1B38EE9A18093A333D8Bbbc40D5",
+        },
         Datastore: {
             address: "0xFD70de6b91282D8017aA4E741e9Ae325CAb992d8",
             abi: datastore,

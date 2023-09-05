@@ -13,7 +13,7 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "viem": "^1.5.0",
-        "abitype": "^0.9.3"
+        "viem": "^1.10.1",
+        "abitype": "^0.9.8"
     }
 }
