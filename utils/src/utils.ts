@@ -54,7 +54,7 @@ export const readableTinyNumber: Intl.NumberFormatOptions = { maximumSignificant
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options
 export const readableNumber = curry2((formatOptions: Intl.NumberFormatOptions, ammount: number | bigint) => {
-  const absAmount = typeof ammount === 'bigint' ? ammount > 0n ? ammount : -ammount : Math.abs(ammount)
+  const absAmount = Math.abs(Number(ammount))
   const digitOptions = absAmount >= 1000 ? readableLargeNumber : absAmount >= 1 ? readableAccountingNumber : readableTinyNumber
 
   return Intl.NumberFormat("en-US", { ...digitOptions, ...formatOptions,  }).format(ammount)

@@ -28,7 +28,7 @@ export const USD_DECIMALS = 30
 export const USDG_DECIMALS = 18
 export const WEI_PRECISION = 10n ** BigInt(18)
 
-export const MAX_LEVERAGE_FACTOR = 100n * BASIS_POINTS_DIVISOR
+export const MAX_LEVERAGE_FACTOR = 50n * BASIS_POINTS_DIVISOR
 export const MIN_LEVERAGE_FACTOR = 11000n
 export const DEDUCT_USD_FOR_GAS = 10n ** 30n * 2n
 
