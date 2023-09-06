@@ -23,16 +23,16 @@ export const BYTES32_ZERO = "0x0000000000000000000000000000000000000000000000000
 
 export const BASIS_POINTS_DIVISOR = 10000n
 
+export const FACTOR_PERCISION = 30
 export const USD_DECIMALS = 30
 export const USDG_DECIMALS = 18
+export const WEI_PRECISION = 10n ** BigInt(18)
 
-export const DEPOSIT_FEE = 30n
 export const MAX_LEVERAGE_FACTOR = 100n * BASIS_POINTS_DIVISOR
 export const MIN_LEVERAGE_FACTOR = 11000n
-export const LEVERAGE_LIQUIDAITON = 1000000n
 export const DEDUCT_USD_FOR_GAS = 10n ** 30n * 2n
 
-export const PERCISION = 10n ** 30n
+export const PRECISION = 10n ** BigInt(FACTOR_PERCISION)
 export const LIQUIDATION_FEE = 10n ** 5n
 
 export const TAX_BASIS_POINTS = 50n

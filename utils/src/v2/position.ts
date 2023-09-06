@@ -49,19 +49,10 @@ export function getCappedPositionPnlUsd(
 
   const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
   const poolUsd = getPoolUsdWithoutPnl(marketPrice, marketPoolInfo, isLong, false)
-
-  const cappedPnl = getCappedPoolPnl(
-    marketPoolInfo,
-    poolUsd,
-    isLong,
-    // true,
-  )
-
-  const WEI_PRECISION = getDenominator(18)
-
+  const cappedPnl = getCappedPoolPnl(marketPoolInfo, poolUsd, isLong)
 
   if (cappedPnl !== poolPnl && cappedPnl > 0n && poolPnl > 0n) {
-    return totalPnl * (cappedPnl / WEI_PRECISION) / (poolPnl / WEI_PRECISION)
+    return totalPnl * (cappedPnl / GMX.WEI_PRECISION) / (poolPnl / GMX.WEI_PRECISION)
   }
 
   return totalPnl
@@ -70,9 +61,6 @@ export function getCappedPositionPnlUsd(
 
 export function getCappedPoolPnl(marketPoolInfo: IMarketInfo, poolUsd: bigint, isLong: boolean) { // maximize: boolean
   const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
-  // const poolPnl = isLong
-  // ? maximize ? marketPoolInfo.pnlLongMax : marketPoolInfo.pnlLongMin
-  //  : maximize ? marketPoolInfo.pnlShortMax : marketPoolInfo.pnlShortMin
 
   if (poolPnl <= 0n) return poolPnl
 
@@ -84,13 +72,6 @@ export function getCappedPoolPnl(marketPoolInfo: IMarketInfo, poolUsd: bigint, i
 
   return poolPnl > maxPnl ? maxPnl : poolPnl
 }
-
-
-
-
-
-
-
 
 
 const FLOAT_PRECISION_SQRT = 10n ** 15n
@@ -114,7 +95,7 @@ export function getFundingAmount(
 
         const fundingDiffFactor = latestFundingAmountPerSize - positionFundingAmountPerSize
 
-        const denominator = GMX.PERCISION * FLOAT_PRECISION_SQRT
+        const denominator = GMX.PRECISION * FLOAT_PRECISION_SQRT
         return positionSizeInUsd * fundingDiffFactor / denominator
     }
 
@@ -157,8 +138,8 @@ export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean
     ? marketInfo.positionFeeFactorForPositiveImpact
     : marketInfo.positionFeeFactorForNegativeImpact
 
-  const positionFeeUsd = applyFactor(sizeDeltaUsd, factor)
-  return positionFeeUsd
+  
+  return -applyFactor(sizeDeltaUsd, factor)
 }
 
 
@@ -189,13 +170,15 @@ export function getPositionNetValue(
 
 
 export function getLiquidationPrice(
+  marketPrice: IMarketPrice,
+  marketPoolInfo: IMarketInfo,
   collateralToken: viem.Address,
   indexToken: viem.Address,
   sizeInUsd: bigint,
   sizeInTokens: bigint,
   collateralAmount: bigint,
   collateralUsd: bigint,
-  marketPoolInfo: IMarketInfo,
+  
   pendingFundingFeesUsd: bigint,
   pendingBorrowingFeesUsd: bigint,
   minCollateralUsd: bigint,
@@ -210,12 +193,15 @@ export function getLiquidationPrice(
 
   const maxNegativePriceImpactUsd = -applyFactor(sizeInUsd, marketPoolInfo.maxPositionImpactFactorForLiquidations)
 
+  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketPoolInfo.longInterestInTokens)
+  const shortInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketPoolInfo.shortInterestInTokens)
+
   let priceImpactDeltaUsd = 0n
 
   if (useMaxPriceImpact) {
     priceImpactDeltaUsd = maxNegativePriceImpactUsd
   } else {
-    priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, -sizeInUsd, isLong)
+    priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, longInterestUsd, shortInterestUsd, -sizeInUsd, isLong)
 
     if (priceImpactDeltaUsd < maxNegativePriceImpactUsd) {
       priceImpactDeltaUsd = maxNegativePriceImpactUsd
@@ -266,7 +252,7 @@ export function getLiquidationPrice(
 }
 
 
-export function getLeverage(
+export function getLeverageFactor(
   sizeInUsd: bigint,
   collateralUsd: bigint,
   pnl: bigint,
@@ -276,9 +262,8 @@ export function getLeverage(
   const totalPendingFeesUsd = getPositionPendingFeesUsd(pendingFundingFeesUsd, pendingBorrowingFeesUsd)
   const remainingCollateralUsd = collateralUsd + pnl - totalPendingFeesUsd
 
-  if (remainingCollateralUsd <= 0n) return 0n
-
   return sizeInUsd * GMX.BASIS_POINTS_DIVISOR / remainingCollateralUsd
 }
+
 
 

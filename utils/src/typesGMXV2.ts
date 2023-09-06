@@ -194,12 +194,12 @@ export type IPositionAdjustment = IPositionAddresses & IPositionNumbers & {
   sizeDeltaInTokens: bigint
   collateralDeltaAmount: bigint
 
+  priceImpactAmount: bigint
   priceImpactUsd: bigint
 }
 
 
 export type IPositionIncrease =  ILogTxType<'PositionIncrease'> & IPositionAdjustment & {
-  priceImpactAmount: bigint
 }
 
 export type IPositionDecrease = ILogTxType<'PositionDecrease'> & IPositionAdjustment & {
@@ -222,7 +222,7 @@ export type IInsolventClose = {
 }
 
 export interface IMarketToken {
-  salt: viem.Hex
+  // salt: viem.Hex
   indexToken: viem.Address
   longToken: viem.Address
   shortToken: viem.Address
@@ -264,12 +264,26 @@ export interface IMarketInfo {
   maxPnlFactorForTradersLong: bigint
   maxPnlFactorForTradersShort: bigint
 
+  reserveFactorLong: bigint
+  reserveFactorShort: bigint
+
+  openInterestReserveFactorLong: bigint
+  openInterestReserveFactorShort: bigint
+
+  longInterestInTokens: bigint
+  shortInterestInTokens: bigint
+
   positionFeeFactorForPositiveImpact: bigint
   positionFeeFactorForNegativeImpact: bigint
   minCollateralFactor: bigint
 
-  longInterestUsd: bigint
-  shortInterestUsd: bigint
+  longInterestInTokensUsingLongToken: bigint
+  longInterestInTokensUsingShortToken: bigint
+  shortInterestInTokensUsingLongToken: bigint
+  shortInterestInTokensUsingShortToken: bigint
+
+  // longInterestUsd: bigint
+  // shortInterestUsd: bigint
 
   maxPositionImpactFactorForLiquidations: bigint
 
@@ -483,8 +497,8 @@ export interface IVirtualInventory {
 //   // claimableFundingAmountShort?: bigint
 
 
-//   longInterestInTokens: bigint
-//   shortInterestInTokens: bigint
+//   
+//   
 
 //   positionFeeFactorForPositiveImpact: bigint
 //   positionFeeFactorForNegativeImpact: bigint

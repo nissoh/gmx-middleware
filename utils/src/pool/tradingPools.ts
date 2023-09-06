@@ -1,7 +1,7 @@
 
 import { awaitPromises, map } from "@most/core"
 import { Stream } from "@most/types"
-import { ARBITRUM_ADDRESS, AVALANCHE_ADDRESS, CHAIN, PERCISION, TOKEN_DESCRIPTION_MAP } from "gmx-middleware-const"
+import { ARBITRUM_ADDRESS, AVALANCHE_ADDRESS, CHAIN, PRECISION, TOKEN_DESCRIPTION_MAP } from "gmx-middleware-const"
 import { Address, PublicClient } from "viem"
 import { getNativeTokenDescription } from "../index.js"
 import { expandDecimals, getDenominator, zipState } from "../utils.js"
@@ -57,7 +57,7 @@ export function getGmxPriceUsd(client: Stream<PublicClient>, networkTokenUsd: St
     }
 
     const networkTokenDescription = getNativeTokenDescription(params.client.chain?.id)
-    const price = params.networkTokenUsd * PERCISION / expandDecimals(params.gmxPerNetworkToken, 30 - networkTokenDescription.decimals)
+    const price = params.networkTokenUsd * PRECISION / expandDecimals(params.gmxPerNetworkToken, 30 - networkTokenDescription.decimals)
 
     return price
   }, state)

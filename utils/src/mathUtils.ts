@@ -1,4 +1,4 @@
-import { BASIS_POINTS_DIVISOR, PERCISION } from "gmx-middleware-const"
+import { BASIS_POINTS_DIVISOR, PRECISION } from "gmx-middleware-const"
 
 
 
@@ -11,11 +11,11 @@ export function safeDiv(a: bigint, b: bigint): bigint {
 }
 
 export function factor(a: bigint, b: bigint): bigint {
-  return a * PERCISION / b
+  return a * PRECISION / b
 }
 
 export function applyFactor(value: bigint, factor: bigint): bigint {
-  return value * factor / PERCISION
+  return value * factor / PRECISION
 }
 
 export function getBasisPoints(numerator: bigint, denominator: bigint) {
@@ -44,5 +44,5 @@ export function abs(a: bigint): bigint {
 }
 
 export function delta(a: bigint, b: bigint): bigint {
-  return a > b ? a - b : b - a;
+  return a > b ? a - b : b - a
 }

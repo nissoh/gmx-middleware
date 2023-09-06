@@ -1,13 +1,16 @@
 import { getTokenUsd } from "../gmxUtils.js"
-import { abs, applyFactor } from "../mathUtils.js"
+import { abs, applyFactor, delta } from "../mathUtils.js"
 import { IMarket, IMarketInfo, IMarketPrice, IOraclePrice, PriceMinMax } from "../typesGMXV2.js"
 import { getMappedValue, getDenominator } from "../utils.js"
 import * as GMX from "gmx-middleware-const"
 
 
 
+
+
 export function getPriceImpactUsd(
-  marketInfo: IMarketInfo,
+  currentLongUsd: bigint,
+  currentShortUsd: bigint,
   nextLongUsd: bigint,
   nextShortUsd: bigint,
   factorPositive: bigint,
@@ -19,9 +22,10 @@ export function getPriceImpactUsd(
     return 0n
   }
 
-  const currentDiff = abs(marketInfo.longInterestUsd - marketInfo.shortInterestUsd)
-  const nextDiff = abs(nextLongUsd - nextShortUsd)
-  const isSameSideRebalance = marketInfo.longInterestUsd < marketInfo.shortInterestUsd === nextLongUsd < nextShortUsd
+  const currentDiff = delta(currentLongUsd, currentShortUsd)
+
+  const nextDiff = delta(nextLongUsd, nextShortUsd)
+  const isSameSideRebalance = currentLongUsd < currentShortUsd === nextLongUsd < nextShortUsd
 
 
   if (isSameSideRebalance) {
@@ -69,13 +73,14 @@ export function calculateImpactForCrossoverRebalance(
 
 
 export function getCappedPositionImpactUsd(
-  market: IMarket,
   marketPrice: IMarketPrice,
   marketPoolInfo: IMarketInfo,
+  longInterestInUsd: bigint,
+  shortInterestInUsd: bigint,
   sizeDeltaUsd: bigint,
   isLong: boolean,
 ) {
-  const priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, sizeDeltaUsd, isLong)
+  const priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, longInterestInUsd, shortInterestInUsd, sizeDeltaUsd, isLong)
 
   if (priceImpactDeltaUsd < 0n) return priceImpactDeltaUsd
 
@@ -104,15 +109,18 @@ export function getCappedPositionImpactUsd(
 
 export function getPriceImpactForPosition(
   marketInfo: IMarketInfo,
+  longInterestInUsd: bigint,
+  shortInterestInUsd: bigint,
   sizeDeltaUsd: bigint,
   isLong: boolean,
 ) {
-  const nextLongUsd = marketInfo.longInterestUsd + (isLong ? sizeDeltaUsd : 0n)
-  const nextShortUsd = marketInfo.shortInterestUsd + (isLong ? 0n : sizeDeltaUsd)
+  const nextLongUsd = longInterestInUsd + (isLong ? sizeDeltaUsd : 0n)
+  const nextShortUsd = shortInterestInUsd + (isLong ? 0n : sizeDeltaUsd)
 
 
   const priceImpactUsd = getPriceImpactUsd(
-    marketInfo,
+    longInterestInUsd,
+    shortInterestInUsd,
     nextLongUsd,
     nextShortUsd,
     marketInfo.positionImpactFactorPositive,
@@ -136,7 +144,8 @@ export function getPriceImpactForPosition(
   )
 
   const priceImpactUsdForVirtualInventory = getPriceImpactUsd(
-    marketInfo,
+    longInterestInUsd,
+    shortInterestInUsd,
     virtualInventoryParams.nextLongUsd,
     virtualInventoryParams.nextShortUsd,
     marketInfo.positionImpactFactorPositive,

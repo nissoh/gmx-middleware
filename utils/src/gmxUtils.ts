@@ -15,6 +15,8 @@ import { easeInExpo, formatFixed, getMappedValue, groupArrayMany, parseFixed, re
 
 
 export function div(a: bigint, b: bigint): bigint {
+  if (b === 0n) return 0n
+
   return a * BASIS_POINTS_DIVISOR / b
 }
 
