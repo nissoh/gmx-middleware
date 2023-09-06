@@ -8,7 +8,7 @@ import {
   TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { factor } from "./mathUtils.js"
+import { factor, getBasisPoints } from "./mathUtils.js"
 import { ILogEvent, IOraclePrice, IPositionListSummary, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
 import { easeInExpo, formatFixed, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount } from "./utils.js"
 
@@ -210,9 +210,8 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 
 
 export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: IOraclePrice) {
-  const weight = isLong ? factor(liquidationPrice, markPrice.max) : factor(markPrice.max, liquidationPrice)
-  const newLocal = formatFixed(weight, 4)
-  const value = easeInExpo(newLocal)
+  const weight = isLong ? getBasisPoints(liquidationPrice, markPrice.max) : getBasisPoints(markPrice.max, liquidationPrice)
+  const value = easeInExpo(formatFixed(weight, 4))
   return value > 1 ? 1 : value
 }
 

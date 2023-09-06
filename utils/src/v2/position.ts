@@ -251,6 +251,22 @@ export function getLiquidationPrice(
   return liquidationPrice
 }
 
+export function getRoughLiquidationPrice(isLong: boolean, sizeInUsd: bigint, sizeInTokens: bigint, collateralUsd: bigint, collateralAmount: bigint) {
+  if (sizeInUsd <= 0n) return 0n
+
+  if (isLong) {
+    const denominator = sizeInTokens + collateralAmount
+    if (denominator === 0n) return 0n
+
+    return (sizeInUsd + collateralUsd) / denominator
+  } else {
+    const denominator = sizeInTokens - collateralAmount
+    if (denominator === 0n) return 0n
+
+    return (sizeInUsd - collateralUsd) / denominator
+  }
+}
+
 
 export function getLeverageFactor(
   sizeInUsd: bigint,
