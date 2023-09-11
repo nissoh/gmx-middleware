@@ -2,7 +2,7 @@ import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
 import { getTokenUsd } from "../gmxUtils.js"
 import { applyFactor } from "../mathUtils.js"
-import { IMarketInfo, IMarketPrice, IPositionAdjustment, PositionFeesInfo, PositionReferralFees } from "../typesGMXV2.js"
+import { IMarketInfo, IMarketPrice, IPositionAdjustment, PositionFees, PositionReferralFees } from "../typesGMXV2.js"
 import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
 import { getPriceImpactForPosition } from "./price.js"
 
@@ -99,21 +99,21 @@ export function getFundingAmount(
         return positionSizeInUsd * fundingDiffFactor / denominator
     }
 
-export function getPositionFundingFees(positionFees: PositionFeesInfo, position: IPositionAdjustment) {
+export function getPositionFundingFees(positionFees: PositionFees, position: IPositionAdjustment) {
     const fundingFeeAmount = getFundingAmount(
-        positionFees.latestFundingFeeAmountPerSize,
+        positionFees.funding.latestFundingFeeAmountPerSize,
         position.fundingFeeAmountPerSize,
         position.sizeInUsd,
     )
 
     const claimableLongTokenAmount = getFundingAmount(
-        positionFees.latestLongTokenClaimableFundingAmountPerSize,
+        positionFees.funding.latestLongTokenClaimableFundingAmountPerSize,
         position.longTokenClaimableFundingAmountPerSize,
         position.sizeInUsd,
     )
 
     const claimableShortTokenAmount = getFundingAmount(
-        positionFees.latestShortTokenClaimableFundingAmountPerSize,
+        positionFees.funding.latestShortTokenClaimableFundingAmountPerSize,
         position.shortTokenClaimableFundingAmountPerSize,
         position.sizeInUsd,
     )
@@ -172,18 +172,20 @@ export function getPositionNetValue(
 export function getLiquidationPrice(
   marketPrice: IMarketPrice,
   marketPoolInfo: IMarketInfo,
+  isLong: boolean,
   collateralToken: viem.Address,
   indexToken: viem.Address,
-  sizeInUsd: bigint,
+
   sizeInTokens: bigint,
+  sizeInUsd: bigint,
+
   collateralAmount: bigint,
   collateralUsd: bigint,
   
-  pendingFundingFeesUsd: bigint,
-  pendingBorrowingFeesUsd: bigint,
-  minCollateralUsd: bigint,
-  isLong: boolean,
-  useMaxPriceImpact = false,
+  pendingFundingFeesUsd = 0n,
+  pendingBorrowingFeesUsd = 0n,
+  // minCollateralUsd: bigint,
+  useMaxPriceImpact = true,
 ) {
   if (sizeInUsd <= 0n) return 0n
 
@@ -194,7 +196,7 @@ export function getLiquidationPrice(
   const maxNegativePriceImpactUsd = -applyFactor(sizeInUsd, marketPoolInfo.maxPositionImpactFactorForLiquidations)
 
   const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketPoolInfo.longInterestInTokens)
-  const shortInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketPoolInfo.shortInterestInTokens)
+  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, marketPoolInfo.shortInterestInTokens)
 
   let priceImpactDeltaUsd = 0n
 
@@ -213,10 +215,10 @@ export function getLiquidationPrice(
     }
   }
 
-  let liquidationCollateralUsd = applyFactor(sizeInUsd, marketPoolInfo.minCollateralFactor)
-  if (liquidationCollateralUsd < minCollateralUsd) {
-    liquidationCollateralUsd = minCollateralUsd
-  }
+  const liquidationCollateralUsd = applyFactor(sizeInUsd, marketPoolInfo.minCollateralFactor)
+  // if (liquidationCollateralUsd < minCollateralUsd) {
+  //   liquidationCollateralUsd = minCollateralUsd
+  // }
 
   let liquidationPrice = 0n
 

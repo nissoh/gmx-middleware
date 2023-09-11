@@ -34,48 +34,6 @@ export type IEventEmitterAbi = typeof GMX.CONTRACT['42161']['EventEmitter']['abi
 
 export type IEventLog1Args = ILogOrderedEvent<IEventEmitterAbi, 'EventLog1'>
 
-export type PositionFeesInfo = {
-  orderKey: viem.Hex
-  positionKey: viem.Hex
-  referralCode: viem.Hex
-
-  market: viem.Address
-  collateralToken: viem.Address
-  affiliate: viem.Address
-  trader: viem.Address
-  uiFeeReceiver: viem.Address
-
-  'collateralTokenPrice.min': bigint
-  'collateralTokenPrice.max': bigint
-  tradeSizeUsd: bigint
-  totalRebateFactor: bigint
-  traderDiscountFactor: bigint
-  totalRebateAmount: bigint
-  traderDiscountAmount: bigint
-  affiliateRewardAmount: bigint
-  fundingFeeAmount: bigint
-  claimableLongTokenAmount: bigint 
-  claimableShortTokenAmount: bigint
-  latestFundingFeeAmountPerSize: bigint
-  latestLongTokenClaimableFundingAmountPerSize: bigint 
-  latestShortTokenClaimableFundingAmountPerSize: bigint
-  borrowingFeeUsd: bigint
-  borrowingFeeAmount: bigint
-  borrowingFeeReceiverFactor: bigint
-  borrowingFeeAmountForFeeReceiver: bigint
-  positionFeeFactor: bigint
-  protocolFeeAmount: bigint
-  positionFeeReceiverFactor: bigint
-  feeReceiverAmount: bigint
-  feeAmountForPool: bigint
-  positionFeeAmountForPool: bigint
-  positionFeeAmount: bigint
-  totalCostAmount: bigint
-  uiFeeReceiverFactor: bigint
-  uiFeeAmount: bigint
-  isIncrease: bigint
-}
-
 
 export interface PositionReferralFees {
   referralCode: viem.Hex
