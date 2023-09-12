@@ -38,7 +38,7 @@ export function getAvailableReservedUsd(marketInfo: IMarketInfo, marketPrice: IM
   const maxReservedUsd = getMaxReservedUsd(marketInfo, marketPrice, isLong)
   const openInterestUsd = isLong
     ? getTokenUsd(marketPrice.longTokenPrice.min, marketInfo.longInterestInTokens)
-    : getTokenUsd(marketPrice.shortTokenPrice.min, marketInfo.shortInterestInTokens)
+    : marketInfo.shortInterestUsd
 
   return maxReservedUsd - openInterestUsd
 }

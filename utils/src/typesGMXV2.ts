@@ -231,6 +231,8 @@ export interface IMarketInfo {
   longInterestInTokens: bigint
   shortInterestInTokens: bigint
 
+  shortInterestUsd: bigint
+
   positionFeeFactorForPositiveImpact: bigint
   positionFeeFactorForNegativeImpact: bigint
   minCollateralFactor: bigint
