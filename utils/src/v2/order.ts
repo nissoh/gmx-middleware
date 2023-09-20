@@ -1,13 +1,13 @@
-import * as viem from "viem"
-import { expandDecimals, getDenominator, getSafeMappedValue } from "../utils.js"
 import * as GMX from "gmx-middleware-const"
-
+import * as viem from "viem"
+import { getNativeTokenAddress } from "../gmxUtils.js"
+import { getDenominator, getSafeMappedValue } from "../utils.js"
 
 
 
 export function resolveAddress(chain: viem.Chain, indexToken: viem.Address): viem.Address {
   if (indexToken === GMX.ADDRESS_ZERO) {
-    return getSafeMappedValue(GMX.CHAIN_ADDRESS_MAP, chain, GMX.CHAIN.ARBITRUM).NATIVE_TOKEN
+    return getNativeTokenAddress(chain)
   }
 
   const contractAddressMap = getSafeMappedValue(GMX.TOKEN_ADDRESS_DESCRIPTION_MAP, indexToken, indexToken as any)

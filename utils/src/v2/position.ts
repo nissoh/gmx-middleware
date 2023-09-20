@@ -15,7 +15,7 @@ export function getPoolUsdWithoutPnl(
   isLong: boolean,
   maximize: boolean = false
 ) {
-  const poolAmount = isLong ? marketInfo.longTokenAmount : marketInfo.shortTokenAmount
+  const poolAmount = isLong ? marketInfo.poolInfo.longTokenAmount : marketInfo.poolInfo.shortTokenAmount
   const price = isLong
    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
@@ -37,7 +37,7 @@ export function getPositionPnlUsd(
 
 export function getCappedPositionPnlUsd(
   marketPrice: IMarketPrice,
-  marketPoolInfo: IMarketInfo,
+  marketInfo: IMarketInfo,
   isLong: boolean,
   sizeInUsd: bigint,
   sizeInTokens: bigint,
@@ -47,9 +47,9 @@ export function getCappedPositionPnlUsd(
 
   if (totalPnl <= 0n) return totalPnl
 
-  const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
-  const poolUsd = getPoolUsdWithoutPnl(marketPrice, marketPoolInfo, isLong, false)
-  const cappedPnl = getCappedPoolPnl(marketPoolInfo, poolUsd, isLong)
+  const poolPnl = isLong ? marketInfo.poolInfo.longPnl : marketInfo.poolInfo.shortPnl
+  const poolUsd = getPoolUsdWithoutPnl(marketPrice, marketInfo, isLong, false)
+  const cappedPnl = getCappedPoolPnl(marketInfo, poolUsd, isLong)
 
   if (cappedPnl !== poolPnl && cappedPnl > 0n && poolPnl > 0n) {
     return totalPnl * (cappedPnl / GMX.WEI_PRECISION) / (poolPnl / GMX.WEI_PRECISION)
@@ -59,14 +59,14 @@ export function getCappedPositionPnlUsd(
 }
 
 
-export function getCappedPoolPnl(marketPoolInfo: IMarketInfo, poolUsd: bigint, isLong: boolean) { // maximize: boolean
-  const poolPnl = isLong ? marketPoolInfo.longPnl : marketPoolInfo.shortPnl
+export function getCappedPoolPnl(marketInfo: IMarketInfo, poolUsd: bigint, isLong: boolean) { // maximize: boolean
+  const poolPnl = isLong ? marketInfo.poolInfo.longPnl : marketInfo.poolInfo.shortPnl
 
   if (poolPnl <= 0n) return poolPnl
 
   const maxPnlFactor = isLong
-    ? marketPoolInfo.maxPnlFactorForTradersLong
-    : marketPoolInfo.maxPnlFactorForTradersShort
+    ? marketInfo.maxPnlFactorForTradersLong
+    : marketInfo.maxPnlFactorForTradersShort
 
   const maxPnl = applyFactor(poolUsd, maxPnlFactor)
 

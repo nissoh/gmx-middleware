@@ -197,9 +197,27 @@ export type IMarket = IMarketToken & {
   marketToken: viem.Address
 }
 
+export interface IMarketPoolInfo {
+  poolValue: bigint
+  longPnl: bigint
+  shortPnl: bigint
+  netPnl: bigint
+
+  longTokenAmount: bigint
+  shortTokenAmount: bigint
+  longTokenUsd: bigint
+  shortTokenUsd: bigint
+
+  borrowingFeePoolFactor: bigint
+  totalBorrowingFees: bigint
+
+  impactPoolAmount: bigint
+}
+
 export interface IMarketInfo {
     // Reader.MarketInfo
   market: IMarket,
+  poolInfo: IMarketPoolInfo,
   borrowingFactorPerSecondForLongs: bigint
   borrowingFactorPerSecondForShorts: bigint
   baseFunding: IBaseFundingValues
@@ -207,17 +225,6 @@ export interface IMarketInfo {
   virtualInventory: IVirtualInventory
   isDisabled: boolean
 
-  poolValue: bigint
-  longPnl: bigint
-  shortPnl: bigint
-  netPnl: bigint
-  longTokenAmount: bigint
-  shortTokenAmount: bigint
-  longTokenUsd: bigint
-  shortTokenUsd: bigint
-  totalBorrowingFees: bigint
-  borrowingFeePoolFactor: bigint
-  impactPoolAmount: bigint
 
   maxPnlFactorForTradersLong: bigint
   maxPnlFactorForTradersShort: bigint

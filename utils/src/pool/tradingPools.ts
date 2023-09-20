@@ -56,7 +56,7 @@ export function getGmxPriceUsd(client: Stream<PublicClient>, networkTokenUsd: St
       throw new Error('client chain is not defined')
     }
 
-    const networkTokenDescription = getNativeTokenDescription(params.client.chain?.id)
+    const networkTokenDescription = getNativeTokenDescription(params.client.chain)
     const price = params.networkTokenUsd * PRECISION / expandDecimals(params.gmxPerNetworkToken, 30 - networkTokenDescription.decimals)
 
     return price

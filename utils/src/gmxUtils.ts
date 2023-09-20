@@ -2,6 +2,7 @@ import { AbiEvent } from "abitype"
 import {
   BASIS_POINTS_DIVISOR,
   CHAIN,
+  CHAIN_ADDRESS_MAP,
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION, IntervalTime,
   MARGIN_FEE_BASIS_POINTS,
@@ -232,8 +233,12 @@ export function getTokenDescription(token: viem.Address): ITokenDescription {
 }
 
 
-export function getNativeTokenDescription(chain: CHAIN): ITokenDescription {
-  return getMappedValue(CHAIN_NATIVE_DESCRIPTION, chain)
+export function getNativeTokenDescription(chain: viem.Chain): ITokenDescription {
+  return getMappedValue(CHAIN_NATIVE_DESCRIPTION, chain.id)
+}
+
+export function getNativeTokenAddress(chain: viem.Chain): viem.Address {
+  return getMappedValue(CHAIN_ADDRESS_MAP, chain.id).NATIVE_TOKEN
 }
 
 
