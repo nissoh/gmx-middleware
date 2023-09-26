@@ -197,7 +197,7 @@ export type IMarket = IMarketToken & {
   marketToken: viem.Address
 }
 
-export interface IMarketPoolInfo {
+export interface IMarketPool {
   poolValue: bigint
   longPnl: bigint
   shortPnl: bigint
@@ -214,54 +214,61 @@ export interface IMarketPoolInfo {
   impactPoolAmount: bigint
 }
 
-export interface IMarketInfo {
-    // Reader.MarketInfo
-  market: IMarket,
-  poolInfo: IMarketPoolInfo,
+export interface IMarketFees {
   borrowingFactorPerSecondForLongs: bigint
   borrowingFactorPerSecondForShorts: bigint
   baseFunding: IBaseFundingValues
   nextFunding: IGetNextFundingAmountPerSizeResult
   virtualInventory: IVirtualInventory
   isDisabled: boolean
+}
 
-
-  maxPnlFactorForTradersLong: bigint
-  maxPnlFactorForTradersShort: bigint
-
-  reserveFactorLong: bigint
-  reserveFactorShort: bigint
-
-  openInterestReserveFactorLong: bigint
-  openInterestReserveFactorShort: bigint
-
+export interface IMarketUsageInfo {
   longInterestInTokens: bigint
   shortInterestInTokens: bigint
 
+  longInterestUsd: bigint
   shortInterestUsd: bigint
-
-  positionFeeFactorForPositiveImpact: bigint
-  positionFeeFactorForNegativeImpact: bigint
-  minCollateralFactor: bigint
 
   longInterestInTokensUsingLongToken: bigint
   longInterestInTokensUsingShortToken: bigint
   shortInterestInTokensUsingLongToken: bigint
   shortInterestInTokensUsingShortToken: bigint
 
-  // longInterestUsd: bigint
-  // shortInterestUsd: bigint
+  positionImpactPoolAmount: bigint
+}
 
-  maxPositionImpactFactorForLiquidations: bigint
+export interface IMarketConfig {
+  reserveFactorLong: bigint
+  reserveFactorShort: bigint
+
+  maxPnlFactorForTradersLong: bigint
+  maxPnlFactorForTradersShort: bigint
+
+  openInterestReserveFactorLong: bigint
+  openInterestReserveFactorShort: bigint
+
+  positionFeeFactorForPositiveImpact: bigint
+  positionFeeFactorForNegativeImpact: bigint
+  minCollateralFactor: bigint
 
   positionImpactFactorPositive: bigint
   positionImpactFactorNegative: bigint
   positionImpactExponentFactor: bigint
 
+  maxPositionImpactFactorForLiquidations: bigint
   maxPositionImpactFactorPositive: bigint
-  positionImpactPoolAmount: bigint
-
 }
+
+export interface IMarketInfo {
+  market: IMarket
+  price: IMarketPrice
+  fees: IMarketFees
+  pool: IMarketPool
+  config: IMarketConfig
+  usage: IMarketUsageInfo
+}
+
 
 export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarket & {
   salt: viem.Hex
@@ -274,75 +281,6 @@ export type IOraclePriceUpdateEvent = ILogTxType<'MarketCreated'> & {
   minPrice: bigint
   isPriceFeed: boolean
 }
-
-
-
-
-
-// export type IMarketConfig = {
-//   reserveFactorLongs: bigint
-//   reserveFactorShorts: bigint
-
-//   openInterestReserveFactorLongs: bigint
-//   openInterestReserveFactorShorts: bigint
-
-//   minCollateralFactorForOpenInterestMultiplierLong: bigint
-//   minCollateralFactorForOpenInterestMultiplierShort: bigint
-
-//   maxLongTokenPoolAmount: bigint
-//   maxShortTokenPoolAmount: bigint
-
-//   maxOpenInterestForLongs: bigint
-//   maxOpenInterestForShorts: bigint
-
-//   maxPnlFactorForTradersLongs: bigint
-//   maxPnlFactorForTradersShorts: bigint
-
-//   maxPnlFactorForAdlLongs: bigint
-//   maxPnlFactorForAdlShorts: bigint
-
-//   minPnlFactorAfterAdlLongs: bigint
-//   minPnlFactorAfterAdlShorts: bigint
-
-//   maxPnlFactorForDepositsLongs: bigint
-//   maxPnlFactorForDepositsShorts: bigint
-
-//   maxPnlFactorForWithdrawalsLongs: bigint
-//   maxPnlFactorForWithdrawalsShorts: bigint
-
-//   positionFeeFactorForPositiveImpact: bigint
-//   positionFeeFactorForNegativeImpact: bigint
-
-//   negativePositionImpactFactor: bigint
-//   positivePositionImpactFactor: bigint
-//   positionImpactExponentFactor: bigint
-
-//   negativeMaxPositionImpactFactor: bigint
-//   positiveMaxPositionImpactFactor: bigint
-
-//   swapFeeFactorForPositiveImpact: bigint
-//   swapFeeFactorForNegativeImpact: bigint
-
-//   negativeSwapImpactFactor: bigint
-//   positiveSwapImpactFactor: bigint
-//   swapImpactExponentFactor: bigint
-
-//   minCollateralUsd: bigint
-
-//   borrowingFactorForLongs: bigint
-//   borrowingFactorForShorts: bigint
-
-//   borrowingExponentFactorForLongs: bigint
-//   borrowingExponentFactorForShorts: bigint
-
-//   fundingFactor: bigint
-//   fundingExponentFactor: bigint
-
-//   virtualMarketId?: string
-//   virtualTokenIdForIndexToken?: string
-
-//   isDisabled?: boolean
-// }
 
 
 
@@ -391,97 +329,4 @@ export interface IVirtualInventory {
     virtualPoolAmountForShortToken: bigint
     virtualInventoryForPositions: bigint
 }
-
-// export interface IMarketInfo {
-//     borrowingFactorPerSecondForLongs: bigint
-//     borrowingFactorPerSecondForShorts: bigint
-//     baseFunding: IBaseFundingValues
-//     nextFunding: IGetNextFundingAmountPerSizeResult
-//     virtualInventory: IVirtualInventory
-//     isDisabled: boolean
-//     price: IMarketPrice
-// }
-
-// export type IMarketPoolValueInfo = {
-
-//   // marketInfo: IMarketInfo,
-
-
-//   // longToken: TokenData
-//   // shortToken: TokenData
-//   // indexToken: TokenData
-
-//   longPoolAmount: bigint
-//   shortPoolAmount: bigint
-
-//   maxLongPoolAmount: bigint
-//   maxShortPoolAmount: bigint
-
-//   longPoolAmountAdjustment: bigint
-//   shortPoolAmountAdjustment: bigint
-
-//   // poolValueMax: bigint
-//   // poolValueMin: bigint
-
-//   reserveFactorLong: bigint
-//   reserveFactorShort: bigint
-
-//   openInterestReserveFactorLong: bigint
-//   openInterestReserveFactorShort: bigint
-
-//   borrowingFactorLong: bigint
-//   borrowingFactorShort: bigint
-//   borrowingExponentFactorLong: bigint
-//   borrowingExponentFactorShort: bigint
-
-//   fundingFactor: bigint
-//   fundingExponentFactor: bigint
-
-
-//   minCollateralFactor: bigint
-//   minCollateralFactorForOpenInterestLong: bigint
-//   minCollateralFactorForOpenInterestShort: bigint
-
-//   swapImpactPoolAmountLong: bigint
-//   swapImpactPoolAmountShort: bigint
-
-//   maxPnlFactorForTradersLong: bigint
-//   maxPnlFactorForTradersShort: bigint
-
-//   pnlLongMin: bigint
-//   pnlShortMin: bigint
-
-//   pnlLongMax: bigint
-//   pnlShortMax: bigint
-
-//   // netPnlMin: bigint
-//   // netPnlMax: bigint
-
-//   // totalBorrowingFees: bigint
-
-
-//   // claimableFundingAmountLong?: bigint
-//   // claimableFundingAmountShort?: bigint
-
-
-//   
-//   
-
-//   positionFeeFactorForPositiveImpact: bigint
-//   positionFeeFactorForNegativeImpact: bigint
-//   maxPositionImpactFactorNegative: bigint
-//   maxPositionImpactFactorForLiquidations: bigint
-//   positionImpactExponentFactor: bigint
-
-//   swapFeeFactorForPositiveImpact: bigint
-//   swapFeeFactorForNegativeImpact: bigint
-//   swapImpactFactorPositive: bigint
-//   swapImpactFactorNegative: bigint
-//   swapImpactExponentFactor: bigint
-
-
-//   virtualMarketId?: string
-//   virtualLongTokenId?: string
-//   virtualShortTokenId?: string
-// }
 

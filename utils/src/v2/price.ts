@@ -84,7 +84,7 @@ export function getCappedPositionImpactUsd(
 
   if (priceImpactDeltaUsd < 0n) return priceImpactDeltaUsd
 
-  const impactPoolAmount = marketPoolInfo.positionImpactPoolAmount
+  const impactPoolAmount = marketPoolInfo.usage.positionImpactPoolAmount
 
   const maxPriceImpactUsdBasedOnImpactPool = getTokenUsd(
     marketPrice.indexTokenPrice.min,
@@ -97,7 +97,7 @@ export function getCappedPositionImpactUsd(
     cappedImpactUsd = maxPriceImpactUsdBasedOnImpactPool
   }
 
-  const maxPriceImpactFactor = marketPoolInfo.maxPositionImpactFactorPositive
+  const maxPriceImpactFactor = marketPoolInfo.config.maxPositionImpactFactorPositive
   const maxPriceImpactUsdBasedOnMaxPriceImpactFactor = applyFactor(abs(sizeDeltaUsd), maxPriceImpactFactor)
 
   if (cappedImpactUsd > maxPriceImpactUsdBasedOnMaxPriceImpactFactor) {
@@ -117,15 +117,14 @@ export function getPriceImpactForPosition(
   const nextLongUsd = longInterestInUsd + (isLong ? sizeDeltaUsd : 0n)
   const nextShortUsd = shortInterestInUsd + (isLong ? 0n : sizeDeltaUsd)
 
-
   const priceImpactUsd = getPriceImpactUsd(
     longInterestInUsd,
     shortInterestInUsd,
     nextLongUsd,
     nextShortUsd,
-    marketInfo.positionImpactFactorPositive,
-    marketInfo.positionImpactFactorNegative,
-    marketInfo.positionImpactExponentFactor,
+    marketInfo.config.positionImpactFactorPositive,
+    marketInfo.config.positionImpactFactorNegative,
+    marketInfo.config.positionImpactExponentFactor,
   )
 
   if (priceImpactUsd > 0n) {
@@ -133,12 +132,12 @@ export function getPriceImpactForPosition(
   }
 
 
-  if (!(abs(marketInfo.virtualInventory.virtualInventoryForPositions) > 0n)) {
+  if (!(abs(marketInfo.fees.virtualInventory.virtualInventoryForPositions) > 0n)) {
     return priceImpactUsd
   }
 
   const virtualInventoryParams = getNextOpenInterestForVirtualInventory(
-    marketInfo.virtualInventory.virtualInventoryForPositions,
+    marketInfo.fees.virtualInventory.virtualInventoryForPositions,
     sizeDeltaUsd,
     isLong
   )
@@ -148,9 +147,9 @@ export function getPriceImpactForPosition(
     shortInterestInUsd,
     virtualInventoryParams.nextLongUsd,
     virtualInventoryParams.nextShortUsd,
-    marketInfo.positionImpactFactorPositive,
-    marketInfo.positionImpactFactorNegative,
-    marketInfo.positionImpactExponentFactor,
+    marketInfo.config.positionImpactFactorPositive,
+    marketInfo.config.positionImpactFactorNegative,
+    marketInfo.config.positionImpactExponentFactor,
   )
 
   return priceImpactUsdForVirtualInventory < priceImpactUsd ? priceImpactUsdForVirtualInventory : priceImpactUsd

@@ -1,5 +1,5 @@
 import { getTokenUsd } from "../gmxUtils.js"
-import { IMarketInfo, IMarketPrice } from "../typesGMXV2.js"
+import { IMarketInfo, IMarketUsageInfo, IMarketPrice, IMarketFees } from "../typesGMXV2.js"
 import * as GMX from "gmx-middleware-const"
 import { TimelineTime } from "../utils.js"
 import { applyFactor, factor } from "../mathUtils.js"
@@ -10,7 +10,7 @@ export function getPoolUsd(
   isLong: boolean,
   maximize: boolean = false
 ) {
-  const poolAmount = isLong ? marketInfo.poolInfo.longTokenAmount : marketInfo.poolInfo.shortTokenAmount
+  const poolAmount = isLong ? marketInfo.pool.longTokenAmount : marketInfo.pool.shortTokenAmount
   const price = isLong
    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
@@ -20,8 +20,8 @@ export function getPoolUsd(
 
 export function getMaxReservedUsd(marketInfo: IMarketInfo, marketPrice: IMarketPrice, isLong: boolean) {
   const poolUsd = getPoolUsd(marketInfo, marketPrice, isLong, false)
-  const reserveFactor = isLong ? marketInfo.reserveFactorLong : marketInfo.reserveFactorShort
-  const openInterestReserveFactor = isLong ? marketInfo.openInterestReserveFactorLong : marketInfo.openInterestReserveFactorShort
+  const openInterestReserveFactor = isLong ? marketInfo.config.openInterestReserveFactorLong : marketInfo.config.openInterestReserveFactorShort
+  const reserveFactor = isLong ? marketInfo.config.reserveFactorLong : marketInfo.config.reserveFactorShort
 
   if (openInterestReserveFactor < reserveFactor) {
     return poolUsd * openInterestReserveFactor / GMX.PRECISION
@@ -37,32 +37,41 @@ export function getAvailableReservedUsd(marketInfo: IMarketInfo, marketPrice: IM
 
   const maxReservedUsd = getMaxReservedUsd(marketInfo, marketPrice, isLong)
   const openInterestUsd = isLong
-    ? getTokenUsd(marketPrice.longTokenPrice.min, marketInfo.longInterestInTokens)
-    : marketInfo.shortInterestUsd
+    ? getTokenUsd(marketPrice.longTokenPrice.min, marketInfo.usage.longInterestInTokens)
+    : marketInfo.usage.shortInterestUsd
 
   return maxReservedUsd - openInterestUsd
 }
 
 
-export function getBorrowingFactorPerInterval(marketInfo: IMarketInfo, isLong: boolean, interval: GMX.IntervalTime) {
+export function getBorrowingFactorPerInterval(fees: IMarketFees, isLong: boolean, interval: GMX.IntervalTime) {
   const factorPerSecond = isLong
-    ? marketInfo.borrowingFactorPerSecondForLongs
-    : marketInfo.borrowingFactorPerSecondForShorts
+    ? fees.borrowingFactorPerSecondForLongs
+    : fees.borrowingFactorPerSecondForShorts
 
   return factorPerSecond * BigInt(interval)
 }
 
+export function getFundingFactorPerInterval(marketPrice: IMarketPrice, usage: IMarketUsageInfo, fees: IMarketFees, interval: GMX.IntervalTime) {
+  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, usage.longInterestInTokens)
+  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, usage.shortInterestUsd)
 
-export function getFundingFactorPerInterval(marketPrice: IMarketPrice, marketInfo: IMarketInfo, isLong: boolean, interval: GMX.IntervalTime) {
-  const longsPayShorts = marketInfo.nextFunding.longsPayShorts
+  const ratio = factor(usage.longInterestUsd, usage.shortInterestUsd)
+
+  return applyFactor(ratio, fees.nextFunding.fundingFactorPerSecond) * BigInt(interval)
+}
+
+
+export function getFundingFactorPerInterval2(marketPrice: IMarketPrice, usage: IMarketUsageInfo, fees: IMarketFees, isLong: boolean, interval: GMX.IntervalTime) {
+  const longsPayShorts = fees.nextFunding.longsPayShorts
   const isLargerSide = isLong ? longsPayShorts : !longsPayShorts
 
-  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketInfo.longInterestInTokens)
-  const shortInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketInfo.shortInterestInTokens)
+  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, usage.longInterestInTokens)
+  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, usage.shortInterestInTokens)
   const ratio = factor(longInterestUsd, shortInterestUsd)
 
-  if (isLargerSide) return marketInfo.nextFunding.fundingFactorPerSecond * BigInt(interval)
+  if (isLargerSide) return fees.nextFunding.fundingFactorPerSecond * BigInt(interval)
 
-  return applyFactor(ratio, marketInfo.nextFunding.fundingFactorPerSecond) * BigInt(interval)
+  return applyFactor(ratio, fees.nextFunding.fundingFactorPerSecond) * BigInt(interval)
 }
 

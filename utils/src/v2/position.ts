@@ -15,7 +15,7 @@ export function getPoolUsdWithoutPnl(
   isLong: boolean,
   maximize: boolean = false
 ) {
-  const poolAmount = isLong ? marketInfo.poolInfo.longTokenAmount : marketInfo.poolInfo.shortTokenAmount
+  const poolAmount = isLong ? marketInfo.pool.longTokenAmount : marketInfo.pool.shortTokenAmount
   const price = isLong
    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
@@ -47,7 +47,7 @@ export function getCappedPositionPnlUsd(
 
   if (totalPnl <= 0n) return totalPnl
 
-  const poolPnl = isLong ? marketInfo.poolInfo.longPnl : marketInfo.poolInfo.shortPnl
+  const poolPnl = isLong ? marketInfo.pool.longPnl : marketInfo.pool.shortPnl
   const poolUsd = getPoolUsdWithoutPnl(marketPrice, marketInfo, isLong, false)
   const cappedPnl = getCappedPoolPnl(marketInfo, poolUsd, isLong)
 
@@ -60,13 +60,13 @@ export function getCappedPositionPnlUsd(
 
 
 export function getCappedPoolPnl(marketInfo: IMarketInfo, poolUsd: bigint, isLong: boolean) { // maximize: boolean
-  const poolPnl = isLong ? marketInfo.poolInfo.longPnl : marketInfo.poolInfo.shortPnl
+  const poolPnl = isLong ? marketInfo.pool.longPnl : marketInfo.pool.shortPnl
 
   if (poolPnl <= 0n) return poolPnl
 
   const maxPnlFactor = isLong
-    ? marketInfo.maxPnlFactorForTradersLong
-    : marketInfo.maxPnlFactorForTradersShort
+    ? marketInfo.config.maxPnlFactorForTradersLong
+    : marketInfo.config.maxPnlFactorForTradersShort
 
   const maxPnl = applyFactor(poolUsd, maxPnlFactor)
 
@@ -135,8 +135,8 @@ export function getPositionPendingFeesUsd(pendingFundingFeesUsd: bigint, pending
 
 export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean, sizeDeltaUsd: bigint) {
   const factor = forPositiveImpact
-    ? marketInfo.positionFeeFactorForPositiveImpact
-    : marketInfo.positionFeeFactorForNegativeImpact
+    ? marketInfo.config.positionFeeFactorForPositiveImpact
+    : marketInfo.config.positionFeeFactorForNegativeImpact
 
   
   return -applyFactor(sizeDeltaUsd, factor)
@@ -171,7 +171,7 @@ export function getPositionNetValue(
 
 export function getLiquidationPrice(
   marketPrice: IMarketPrice,
-  marketPoolInfo: IMarketInfo,
+  marketInfo: IMarketInfo,
   isLong: boolean,
   collateralToken: viem.Address,
   indexToken: viem.Address,
@@ -189,21 +189,21 @@ export function getLiquidationPrice(
 ) {
   if (sizeInUsd <= 0n) return 0n
 
-  const closingFeeUsd = getMarginFee(marketPoolInfo, false, sizeInUsd)
+  const closingFeeUsd = getMarginFee(marketInfo, false, sizeInUsd)
   const totalPendingFeesUsd = getPositionPendingFeesUsd(pendingFundingFeesUsd, pendingBorrowingFeesUsd)
   const totalFeesUsd = totalPendingFeesUsd + closingFeeUsd
 
-  const maxNegativePriceImpactUsd = -applyFactor(sizeInUsd, marketPoolInfo.maxPositionImpactFactorForLiquidations)
+  const maxNegativePriceImpactUsd = -applyFactor(sizeInUsd, marketInfo.config.maxPositionImpactFactorForLiquidations)
 
-  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketPoolInfo.longInterestInTokens)
-  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, marketPoolInfo.shortInterestInTokens)
+  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketInfo.usage.longInterestInTokens)
+  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, marketInfo.usage.shortInterestInTokens)
 
   let priceImpactDeltaUsd = 0n
 
   if (useMaxPriceImpact) {
     priceImpactDeltaUsd = maxNegativePriceImpactUsd
   } else {
-    priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, longInterestUsd, shortInterestUsd, -sizeInUsd, isLong)
+    priceImpactDeltaUsd = getPriceImpactForPosition(marketInfo, longInterestUsd, shortInterestUsd, -sizeInUsd, isLong)
 
     if (priceImpactDeltaUsd < maxNegativePriceImpactUsd) {
       priceImpactDeltaUsd = maxNegativePriceImpactUsd
@@ -215,7 +215,7 @@ export function getLiquidationPrice(
     }
   }
 
-  const liquidationCollateralUsd = applyFactor(sizeInUsd, marketPoolInfo.minCollateralFactor)
+  const liquidationCollateralUsd = applyFactor(sizeInUsd, marketInfo.config.minCollateralFactor)
   // if (liquidationCollateralUsd < minCollateralUsd) {
   //   liquidationCollateralUsd = minCollateralUsd
   // }
