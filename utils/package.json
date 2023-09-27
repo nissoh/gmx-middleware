@@ -21,12 +21,12 @@
         "@most/prelude": "^1.8.0",
         "@most/scheduler": "^1.3.0",
         "@most/types": "^1.1.0",
-        "@urql/core": "4.1.2",
+        "@urql/core": "4.1.3",
         "abitype": "^0.9.8",
-        "graphql": "^16.6.0",
-        "@types/isomorphic-fetch": "^0.0.36",
+        "graphql": "^16.8.1",
+        "@types/isomorphic-fetch": "^0.0.37",
         "isomorphic-fetch": "^3.0.0",
         "isomorphic-ws": "^5.0.0",
-        "viem": "^1.10.4"
+        "viem": "^1.12.2"
     }
 }
