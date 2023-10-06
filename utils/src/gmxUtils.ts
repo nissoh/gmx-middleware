@@ -316,63 +316,63 @@ export function createPricefeedCandle(blockTimestamp: number, price: bigint): IP
 }
 
 export function createMovingAverageCalculator(windowValues: number[], windowSize: number, newValue: number) {
-    let sum = 0
+  let sum = 0
 
-    if (windowValues.length === windowSize) {
-        sum -= windowValues.shift() || 0
-    }
+  if (windowValues.length === windowSize) {
+    sum -= windowValues.shift() || 0
+  }
 
-    windowValues.push(newValue)
-    sum += newValue
+  windowValues.push(newValue)
+  sum += newValue
 
-    return sum / windowValues.length
+  return sum / windowValues.length
 }
 
 export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSummary {
 
   const seedAccountSummary: IPositionListSummary = {
-      size: 0n,
-      collateral: 0n,
-      cumulativeLeverage: 0n,
-      avgCollateral: 0n,
-      avgSize: 0n,
-      fee: 0n,
-      lossCount: 0,
-      pnl: 0n,
-      winCount: 0,
+    size: 0n,
+    collateral: 0n,
+    cumulativeLeverage: 0n,
+    avgCollateral: 0n,
+    avgSize: 0n,
+    fee: 0n,
+    lossCount: 0,
+    pnl: 0n,
+    winCount: 0,
+  }
+
+  return tradeList.reduce((seed, next, idx): IPositionListSummary => {
+    const idxBn = BigInt(idx) + 1n
+
+    const size = seed.size + next.maxSizeUsd
+    const collateral = seed.collateral + next.maxCollateralUsd
+    const cumulativeLeverage = seed.cumulativeLeverage + factor(next.maxSizeUsd, next.maxCollateralUsd)
+
+    const avgSize = size / idxBn
+    const avgCollateral = collateral / idxBn
+
+
+    const fee = seed.fee + next.cumulativeFee
+    const pnl = seed.fee + next.realisedPnl
+
+
+    const winCount = seed.winCount + (next.realisedPnl > 0n ? 1 : 0)
+    const lossCount = seed.lossCount + (next.realisedPnl <= 0n ? 1 : 0)
+
+
+    return {
+      size,
+      collateral,
+      cumulativeLeverage,
+      avgCollateral,
+      avgSize,
+      fee,
+      lossCount,
+      pnl,
+      winCount,
     }
-
-    return tradeList.reduce((seed, next, idx): IPositionListSummary => {
-      const idxBn = BigInt(idx) + 1n
-
-      const size = seed.size + next.maxSizeUsd
-      const collateral = seed.collateral + next.maxCollateralUsd
-      const cumulativeLeverage = seed.cumulativeLeverage + factor(next.maxSizeUsd, next.maxCollateralUsd)
-
-      const avgSize = size / idxBn
-      const avgCollateral = collateral / idxBn
-
-
-      const fee = seed.fee + next.cumulativeFee
-      const pnl = seed.fee + next.realisedPnl
-
-
-      const winCount = seed.winCount + (next.realisedPnl > 0n ? 1 : 0)
-      const lossCount = seed.lossCount + (next.realisedPnl <= 0n ? 1 : 0)
-
-
-      return {
-        size,
-        collateral,
-        cumulativeLeverage,
-        avgCollateral,
-        avgSize,
-        fee,
-        lossCount,
-        pnl,
-        winCount,
-      }
-    }, seedAccountSummary)
+  }, seedAccountSummary)
 }
 
 export function leaderboardTrader(positionMap: Record<viem.Hex, IPositionSettled>): IPositionListSummary[] {

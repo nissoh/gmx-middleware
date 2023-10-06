@@ -8,10 +8,10 @@ import { IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type Nullable<T> = {
-    [P in keyof T]: T[P] | null
+  [P in keyof T]: T[P] | null
 }
 export type NonNullableStruct<T> = {
-    [P in keyof T]: NonNullable<T[P]>
+  [P in keyof T]: NonNullable<T[P]>
 }
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL

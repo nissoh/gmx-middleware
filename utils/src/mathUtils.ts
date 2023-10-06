@@ -14,8 +14,8 @@ export function factor(a: bigint, b: bigint): bigint {
   return a * PRECISION / b
 }
 
-export function applyFactor(value: bigint, factor: bigint): bigint {
-  return value * factor / PRECISION
+export function applyFactor(value: bigint, factorn: bigint): bigint {
+  return value * factorn / PRECISION
 }
 
 export function getBasisPoints(numerator: bigint, denominator: bigint) {

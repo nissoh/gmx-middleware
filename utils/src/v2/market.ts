@@ -12,8 +12,8 @@ export function getPoolUsd(
 ) {
   const poolAmount = isLong ? marketInfo.pool.longTokenAmount : marketInfo.pool.shortTokenAmount
   const price = isLong
-   ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
-   : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
+    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
+    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
 
   return getTokenUsd(price, poolAmount)
 }
