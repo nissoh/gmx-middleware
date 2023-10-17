@@ -15,6 +15,11 @@ import { easeInExpo, formatFixed, getMappedValue, groupArrayMany, parseFixed, re
 
 
 
+export function lst<T>(a: readonly T[]): T {
+  if (a.length === 0) throw new Error('empty array')
+  return a[a.length - 1]
+}
+
 export function div(a: bigint, b: bigint): bigint {
   if (b === 0n) return 0n
 

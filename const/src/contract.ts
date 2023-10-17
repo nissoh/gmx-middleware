@@ -1,6 +1,6 @@
 import { arbitrum } from "viem/chains"
 import * as abi from "./abi.js"
-import { erc20Abi } from "abitype/test"
+import { erc20Abi } from "abitype/abis"
 import exchangeRouter from "./abi/exchangeRouter.js"
 // import datastore from "./abi/datastore.js"
 import eventEmitter from "./abi/eventEmitter.js"

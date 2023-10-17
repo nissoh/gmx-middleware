@@ -106,7 +106,7 @@ export enum PositionStatus {
 export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
   updates: readonly (IPositionIncrease | IPositionDecrease)[]
   // feeUpdates: readonly PositionFeesInfo[]
-  latestUpdate: IPositionIncrease | IPositionDecrease
+  // latestUpdate: IPositionIncrease | IPositionDecrease
   orderKey: viem.Hex
 
   realisedPnl: bigint
