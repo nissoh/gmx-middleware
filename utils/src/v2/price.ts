@@ -23,8 +23,8 @@ export function getPriceImpactUsd(
   }
 
   const currentDiff = delta(currentLongUsd, currentShortUsd)
-
   const nextDiff = delta(nextLongUsd, nextShortUsd)
+
   const isSameSideRebalance = currentLongUsd < currentShortUsd === nextLongUsd < nextShortUsd
 
 
@@ -231,13 +231,13 @@ export function getPriceUsd(price: IOraclePrice, isLong: boolean, maximize = fal
 // @dev pick the min or max price depending on whether it is for a long or short position
 // and whether the pending pnl should be maximized or not
 function pickPriceForPnl(price: IOraclePrice, isLong: boolean, maximize: boolean) {
-    // for long positions, pick the larger price to maximize pnl
-    // for short positions, pick the smaller price to maximize pnl
-    if (isLong) {
-        return maximize ? price.max : price.min
-    }
+  // for long positions, pick the larger price to maximize pnl
+  // for short positions, pick the smaller price to maximize pnl
+  if (isLong) {
+    return maximize ? price.max : price.min
+  }
 
-    return maximize ? price.min : price.max
+  return maximize ? price.min : price.max
 }
 
 
