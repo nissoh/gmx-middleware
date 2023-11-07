@@ -17,8 +17,8 @@ export function getPoolUsdWithoutPnl(
 ) {
   const poolAmount = isLong ? marketInfo.pool.longTokenAmount : marketInfo.pool.shortTokenAmount
   const price = isLong
-   ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
-   : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
+    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
+    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
 
   return getTokenUsd(price, poolAmount)
 }
@@ -77,48 +77,48 @@ export function getCappedPoolPnl(marketInfo: IMarketInfo, poolUsd: bigint, isLon
 const FLOAT_PRECISION_SQRT = 10n ** 15n
 
 export function getFundingAmount(
-        latestFundingAmountPerSize: bigint,
-        positionFundingAmountPerSize: bigint,
-        positionSizeInUsd: bigint,
-    ): bigint {
-        // a user could avoid paying funding fees by continually updating the position
-        // before the funding fee becomes large enough to be chargeable
-        // to avoid this, funding fee amounts should be rounded up
-        //
-        // this could lead to large additional charges if the token has a low number of decimals
-        // or if the token's value is very high, so care should be taken to inform users of this
-        //
-        // if the calculation is for the claimable amount, the amount should be rounded down instead
+  latestFundingAmountPerSize: bigint,
+  positionFundingAmountPerSize: bigint,
+  positionSizeInUsd: bigint,
+): bigint {
+  // a user could avoid paying funding fees by continually updating the position
+  // before the funding fee becomes large enough to be chargeable
+  // to avoid this, funding fee amounts should be rounded up
+  //
+  // this could lead to large additional charges if the token has a low number of decimals
+  // or if the token's value is very high, so care should be taken to inform users of this
+  //
+  // if the calculation is for the claimable amount, the amount should be rounded down instead
 
-        // divide the result by Precision.FLOAT_PRECISION * Precision.FLOAT_PRECISION_SQRT as the fundingAmountPerSize values
-        // are stored based on FLOAT_PRECISION_SQRT values
+  // divide the result by Precision.FLOAT_PRECISION * Precision.FLOAT_PRECISION_SQRT as the fundingAmountPerSize values
+  // are stored based on FLOAT_PRECISION_SQRT values
 
-        const fundingDiffFactor = latestFundingAmountPerSize - positionFundingAmountPerSize
+  const fundingDiffFactor = latestFundingAmountPerSize - positionFundingAmountPerSize
 
-        const denominator = GMX.PRECISION * FLOAT_PRECISION_SQRT
-        return positionSizeInUsd * fundingDiffFactor / denominator
-    }
+  const denominator = GMX.PRECISION * FLOAT_PRECISION_SQRT
+  return positionSizeInUsd * fundingDiffFactor / denominator
+}
 
 export function getPositionFundingFees(positionFees: PositionFees, position: IPositionAdjustment) {
-    const fundingFeeAmount = getFundingAmount(
-        positionFees.funding.latestFundingFeeAmountPerSize,
-        position.fundingFeeAmountPerSize,
-        position.sizeInUsd,
-    )
+  const fundingFeeAmount = getFundingAmount(
+    positionFees.funding.latestFundingFeeAmountPerSize,
+    position.fundingFeeAmountPerSize,
+    position.sizeInUsd,
+  )
 
-    const claimableLongTokenAmount = getFundingAmount(
-        positionFees.funding.latestLongTokenClaimableFundingAmountPerSize,
-        position.longTokenClaimableFundingAmountPerSize,
-        position.sizeInUsd,
-    )
+  const claimableLongTokenAmount = getFundingAmount(
+    positionFees.funding.latestLongTokenClaimableFundingAmountPerSize,
+    position.longTokenClaimableFundingAmountPerSize,
+    position.sizeInUsd,
+  )
 
-    const claimableShortTokenAmount = getFundingAmount(
-        positionFees.funding.latestShortTokenClaimableFundingAmountPerSize,
-        position.shortTokenClaimableFundingAmountPerSize,
-        position.sizeInUsd,
-    )
+  const claimableShortTokenAmount = getFundingAmount(
+    positionFees.funding.latestShortTokenClaimableFundingAmountPerSize,
+    position.shortTokenClaimableFundingAmountPerSize,
+    position.sizeInUsd,
+  )
 
-    return { fundingFeeAmount, claimableLongTokenAmount, claimableShortTokenAmount }
+  return { fundingFeeAmount, claimableLongTokenAmount, claimableShortTokenAmount }
 }
 
 
@@ -137,9 +137,8 @@ export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean
   const factor = forPositiveImpact
     ? marketInfo.config.positionFeeFactorForPositiveImpact
     : marketInfo.config.positionFeeFactorForNegativeImpact
-
   
-  return -applyFactor(sizeDeltaUsd, factor)
+  return applyFactor(sizeDeltaUsd, factor)
 }
 
 

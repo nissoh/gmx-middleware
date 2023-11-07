@@ -7,6 +7,7 @@ import eventEmitter from "./abi/eventEmitter.js"
 import reader from "./abi/reader.js"
 import datastore from "./abi/datastore.js"
 import referralStorage from "./abi/referralStorage.js"
+import customError from "./abi/customError.js"
 
 
 export const CONTRACT = {
@@ -54,7 +55,7 @@ export const CONTRACT = {
       abi: reader,
     },
     ExchangeRouter: {
-      address: "0x3b070aa6847bd0fb56efadb351f49bbb7619dbc2",
+      address: "0x7C68C7866A64FA2160F78EEaE12217FFbf871fa8",
       abi: exchangeRouter,
     },
     OrderVault: {
@@ -67,6 +68,9 @@ export const CONTRACT = {
     EventEmitter: {
       address: "0xC8ee91A54287DB53897056e12D9819156D3822Fb",
       abi: eventEmitter,
+    },
+    CustomError: {
+      abi: customError,
     },
   },
 } as const

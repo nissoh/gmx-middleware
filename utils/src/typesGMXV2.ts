@@ -325,8 +325,8 @@ export interface IGetNextFundingAmountPerSizeResult {
 }
 
 export interface IVirtualInventory {
-    virtualPoolAmountForLongToken: bigint
-    virtualPoolAmountForShortToken: bigint
-    virtualInventoryForPositions: bigint
+  virtualPoolAmountForLongToken: bigint
+  virtualPoolAmountForShortToken: bigint
+  virtualInventoryForPositions: bigint
 }
 
