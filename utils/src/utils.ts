@@ -75,20 +75,20 @@ const UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte
 const BYTES_PER_KB = 1000
 
 export function readableFileSize(sizeBytes: number | bigint): string {
-    let size = Math.abs(Number(sizeBytes))
+  let size = Math.abs(Number(sizeBytes))
 
-    let u = 0
-    while(size >= BYTES_PER_KB && u < UNITS.length-1) {
-        size /= BYTES_PER_KB
-        ++u
-    }
+  let u = 0
+  while(size >= BYTES_PER_KB && u < UNITS.length-1) {
+    size /= BYTES_PER_KB
+    ++u
+  }
 
-    return new Intl.NumberFormat([], {
-        style: 'unit',
-        unit: UNITS[u],
-        unitDisplay: 'short',
-        maximumFractionDigits: 1,
-    }).format(size)
+  return new Intl.NumberFormat([], {
+    style: 'unit',
+    unit: UNITS[u],
+    unitDisplay: 'short',
+    maximumFractionDigits: 1,
+  }).format(size)
 }
 
 export const readableDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleDateString(undefined, intlOptions)
@@ -662,12 +662,12 @@ export function importGlobal<T>(queryCb: () => Promise<T>): Stream<T> {
       }
 
       cacheQuery
-      .then(res => {
-        sink.event(scheduler.currentTime(), res)
-      })
-      .catch(err => {
-        sink.error(scheduler.currentTime(), err as Error)
-      })
+        .then(res => {
+          sink.event(scheduler.currentTime(), res)
+        })
+        .catch(err => {
+          sink.error(scheduler.currentTime(), err as Error)
+        })
 
       return disposeNone()
     },

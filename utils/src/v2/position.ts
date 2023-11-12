@@ -134,6 +134,8 @@ export function getPositionPendingFeesUsd(pendingFundingFeesUsd: bigint, pending
 
 
 export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean, sizeDeltaUsd: bigint) {
+  if (sizeDeltaUsd <= 0n) return 0n
+
   const factor = forPositiveImpact
     ? marketInfo.config.positionFeeFactorForPositiveImpact
     : marketInfo.config.positionFeeFactorForNegativeImpact
