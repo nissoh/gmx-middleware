@@ -103,7 +103,7 @@ export enum PositionStatus {
   LIQUIDATED
 }
 
-export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled' = 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
+export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
   updates: readonly (IPositionIncrease | IPositionDecrease)[]
   // feeUpdates: readonly PositionFeesInfo[]
   // latestUpdate: IPositionIncrease | IPositionDecrease
