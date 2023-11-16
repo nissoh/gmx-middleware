@@ -179,12 +179,7 @@ export type IInsolventClose = {
   basePnlUsd: bigint
 }
 
-export interface IMarketToken {
-  // salt: viem.Hex
-  indexToken: viem.Address
-  longToken: viem.Address
-  shortToken: viem.Address
-}
+
 
 
 export interface IMarketPrice {
@@ -193,7 +188,10 @@ export interface IMarketPrice {
   shortTokenPrice: IOraclePrice
 }
 
-export type IMarket = IMarketToken & {
+export type IMarket = {
+  indexToken: viem.Address
+  longToken: viem.Address
+  shortToken: viem.Address
   marketToken: viem.Address
 }
 
@@ -272,6 +270,14 @@ export interface IMarketInfo {
 
 export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarket & {
   salt: viem.Hex
+}
+
+export type IRoute = {
+  marketSalt: viem.Address
+  isLong: boolean
+  collateralToken: viem.Address
+  indexToken: viem.Address
+  routeTypeKey: viem.Hex
 }
 
 
