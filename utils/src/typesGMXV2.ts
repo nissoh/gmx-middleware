@@ -1,6 +1,6 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { ILogOrderedEvent, ILogTxType, IPosition } from "./types.js"
+import { IAbstractPositionParams, ILogOrderedEvent, ILogTxType, IPosition } from "./types.js"
 
 
 export enum OrderType {
@@ -272,11 +272,8 @@ export type IMarketCreatedEvent = ILogTxType<'MarketCreated'> & IMarket & {
   salt: viem.Hex
 }
 
-export type IRoute = {
+export type ITradeRoute = IAbstractPositionParams & {
   marketSalt: viem.Address
-  isLong: boolean
-  collateralToken: viem.Address
-  indexToken: viem.Address
   routeTypeKey: viem.Hex
 }
 
