@@ -167,7 +167,8 @@ export type IPositionDecrease = ILogTxType<'PositionDecrease'> & IPositionAdjust
 }
 
 export type IOraclePrice = PriceMinMax & {
-  isPriceFeed: boolean
+  priceSourceType: bigint
+  timestamp: number
   token: viem.Address
 }
 
@@ -278,11 +279,12 @@ export type ITradeRoute = IAbstractPositionParams & {
 }
 
 
-export type IOraclePriceUpdateEvent = ILogTxType<'MarketCreated'> & {
+export type IOraclePriceUpdateEvent = ILogTxType<'OraclePriceUpdate'> & {
   token: viem.Address
   maxPrice: bigint
   minPrice: bigint
-  isPriceFeed: boolean
+  priceSourceType: bigint
+  timestamp: bigint
 }
 
 
