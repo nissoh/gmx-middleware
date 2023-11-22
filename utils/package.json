@@ -27,6 +27,6 @@
         "@types/isomorphic-fetch": "^0.0.37",
         "isomorphic-fetch": "^3.0.0",
         "isomorphic-ws": "^5.0.0",
-        "viem": "^1.19.1"
+        "viem": "^1.19.6"
     }
 }
