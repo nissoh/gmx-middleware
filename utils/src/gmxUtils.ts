@@ -103,7 +103,7 @@ export function getTokenAmount(price: bigint, amountUsd: bigint) {
 }
 
 export function getTokenUsd(price: bigint, tokenAmount: bigint) {
-  return tokenAmount * price 
+  return tokenAmount ? tokenAmount * price : 0n
 }
 
 
