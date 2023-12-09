@@ -164,6 +164,8 @@ export interface IPriceTimeline {
 
 
 export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
+export type IPricefeed = Record<IPriceIntervalIdentity, Record<string, IPriceInterval>>
+
 export interface IPriceInterval extends ILogType<'PriceInterval'> {
   o: bigint // open
   h: bigint // high
