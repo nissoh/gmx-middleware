@@ -5,23 +5,12 @@ import { applyFactor } from "../mathUtils.js"
 import { IMarketInfo, IMarketPrice, IPositionAdjustment, PositionFees, PositionReferralFees } from "../typesGMXV2.js"
 import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
 import { getPriceImpactForPosition } from "./price.js"
+import { getPoolUsdWithoutPnl } from "./market.js"
 
 
 
 
-export function getPoolUsdWithoutPnl(
-  marketPrice: IMarketPrice,
-  marketInfo: IMarketInfo,
-  isLong: boolean,
-  maximize: boolean = false
-) {
-  const poolAmount = isLong ? marketInfo.pool.longTokenAmount : marketInfo.pool.shortTokenAmount
-  const price = isLong
-    ? maximize ? marketPrice.longTokenPrice.max : marketPrice.longTokenPrice.min
-    : maximize ? marketPrice.shortTokenPrice.max : marketPrice.shortTokenPrice.min
 
-  return getTokenUsd(price, poolAmount)
-}
 
 export function getPositionPnlUsd(
   isLong: boolean,

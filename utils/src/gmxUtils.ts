@@ -1,7 +1,6 @@
 import { AbiEvent } from "abitype"
 import {
   BASIS_POINTS_DIVISOR,
-  CHAIN,
   CHAIN_ADDRESS_MAP,
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION, IntervalTime,
@@ -10,8 +9,8 @@ import {
 } from "gmx-middleware-const"
 import * as viem from "viem"
 import { factor, getBasisPoints } from "./mathUtils.js"
-import { ILogEvent, IOraclePrice, IPositionListSummary, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getMappedValue, groupArrayMany, parseFixed, readableUnitAmount } from "./utils.js"
+import { ILogEvent, IOraclePrice, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getMappedValue, parseFixed, readableUnitAmount } from "./utils.js"
 
 
 
@@ -331,61 +330,6 @@ export function createMovingAverageCalculator(windowValues: number[], windowSize
   sum += newValue
 
   return sum / windowValues.length
-}
-
-export function summariesTrader(tradeList: IPositionSettled[]): IPositionListSummary {
-
-  const seedAccountSummary: IPositionListSummary = {
-    size: 0n,
-    collateral: 0n,
-    cumulativeLeverage: 0n,
-    avgCollateral: 0n,
-    avgSize: 0n,
-    fee: 0n,
-    lossCount: 0,
-    pnl: 0n,
-    winCount: 0,
-  }
-
-  return tradeList.reduce((seed, next, idx): IPositionListSummary => {
-    const idxBn = BigInt(idx) + 1n
-
-    const size = seed.size + next.maxSizeUsd
-    const collateral = seed.collateral + next.maxCollateralUsd
-    const cumulativeLeverage = seed.cumulativeLeverage + factor(next.maxSizeUsd, next.maxCollateralUsd)
-
-    const avgSize = size / idxBn
-    const avgCollateral = collateral / idxBn
-
-
-    const fee = seed.fee + next.cumulativeFee
-    const pnl = seed.fee + next.realisedPnl
-
-
-    const winCount = seed.winCount + (next.realisedPnl > 0n ? 1 : 0)
-    const lossCount = seed.lossCount + (next.realisedPnl <= 0n ? 1 : 0)
-
-
-    return {
-      size,
-      collateral,
-      cumulativeLeverage,
-      avgCollateral,
-      avgSize,
-      fee,
-      lossCount,
-      pnl,
-      winCount,
-    }
-  }, seedAccountSummary)
-}
-
-export function leaderboardTrader(positionMap: Record<viem.Hex, IPositionSettled>): IPositionListSummary[] {
-  const tradeListMap = groupArrayMany(Object.values(positionMap), a => a.account)
-  const tradeListEntries = Object.values(tradeListMap)
-  const summaryList = tradeListEntries.map(tradeList => summariesTrader(tradeList))
-
-  return summaryList
 }
 
 export const tokenAmount = (token: viem.Address, amount: bigint) => {

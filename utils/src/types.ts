@@ -2,7 +2,7 @@ import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
+import { IOraclePrice, IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -146,6 +146,8 @@ export interface IPositionListSummary {
   collateral: bigint
   fee: bigint
   pnl: bigint
+  openPnl: bigint
+  realisedPnl: bigint
   cumulativeLeverage: bigint
   avgSize: bigint
   avgCollateral: bigint
@@ -164,7 +166,8 @@ export interface IPriceTimeline {
 
 
 export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
-export type IPricefeed = Record<IPriceIntervalIdentity, Record<string, IPriceInterval>>
+export type IPricefeedMap = Record<IPriceIntervalIdentity, Record<string, IPriceInterval>>
+export type IPriceLatestMap = Record<viem.Address, IOraclePrice>
 
 export interface IPriceInterval extends ILogType<'PriceInterval'> {
   o: bigint // open
