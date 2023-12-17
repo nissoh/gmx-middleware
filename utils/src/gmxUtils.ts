@@ -98,7 +98,7 @@ export function getNextAveragePrice(islong: boolean, size: bigint, nextPrice: bi
 
 
 export function getTokenAmount(price: bigint, amountUsd: bigint) {
-  return amountUsd / price
+  return price ? amountUsd / price : 0n
 }
 
 export function getTokenUsd(price: bigint, tokenAmount: bigint) {
@@ -331,19 +331,4 @@ export function createMovingAverageCalculator(windowValues: number[], windowSize
 
   return sum / windowValues.length
 }
-
-export const tokenAmount = (token: viem.Address, amount: bigint) => {
-  const tokenDesc = getTokenDescription(token)
-  const newLocal = formatFixed(amount, tokenDesc.decimals)
-  
-  return readableUnitAmount(newLocal)
-}
-
-export const tokenAmountLabel = (token: viem.Address, amount: bigint) => {
-  const tokenDesc = getTokenDescription(token)
-  const newLocal = formatFixed(amount, tokenDesc.decimals)
-  
-  return readableUnitAmount(newLocal) + ' ' + tokenDesc.symbol
-}
-
 

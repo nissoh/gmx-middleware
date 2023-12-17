@@ -10,7 +10,7 @@ import { Stream } from "@most/types"
 import { ClientOptions, createClient } from "@urql/core"
 import { BASIS_POINTS_DIVISOR, CHAIN, EXPLORER_URL, FACTOR_PERCISION, PRECISION, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
 import * as viem from "viem"
-import { getTokenAmount, getTokenUsd } from "./gmxUtils.js"
+import { getTokenAmount, getTokenDescription, getTokenUsd } from "./gmxUtils.js"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
 export * as GraphQL from '@urql/core'
 
@@ -68,8 +68,10 @@ export const readablePercentage = (amount: bigint) => readableUnitAmount(formatF
 export const readableFactorPercentage = (amount: bigint) => readableUnitAmount(formatFixed(amount, FACTOR_PERCISION) * 100) + '%'
 export const readableLeverage = (a: bigint, b: bigint) => (b ? readableUnitAmount(formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)) : 0n) + 'x'
 export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
-export const readableTokenAmount = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
+export const readableTokenValueUsd = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
 export const readableTokenUsd = (price: bigint, amount: bigint) => readableFixedUSD30(getTokenUsd(price, amount))
+export const readableTokenAmount = (token: viem.Address, amount: bigint) => readableUnitAmount(formatFixed(amount, getTokenDescription(token).decimals))
+export const readableTokenAmountLabel = (token: viem.Address, amount: bigint) => readableTokenAmount(token, amount) + ' ' + getTokenDescription(token).symbol
 
 const UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte']
 const BYTES_PER_KB = 1000
