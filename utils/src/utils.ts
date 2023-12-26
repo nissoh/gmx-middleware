@@ -551,12 +551,12 @@ export function groupArrayMany<A, B extends string | symbol | number>(list: A[],
 }
 
 
-export function groupArrayByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B) {
+export function groupArrayByKey<A, B extends string | symbol | number>(list: A[], getKey: (v: A) => B): Record<B, A> {
   return groupArrayByKeyMap(list, getKey, (x) => x)
 }
 
 
-export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
+export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R): Record<B, R> {
   const gmap = {} as { [P in B]: R }
 
   for (const item of list) {
@@ -565,22 +565,6 @@ export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(lis
   }
 
   return gmap
-}
-
-
-export const createSubgraphClient = (opts: ClientOptions) => {
-  return async <Data, Variables extends object = object>(document: any, params: Variables, context?: any): Promise<any> => {
-    const client = createClient(opts)
-
-    const result = await client.query(document, params, context)
-      .toPromise()
-
-    if (result.error) {
-      throw new Error(result.error.message)
-    }
-
-    return result.data!
-  }
 }
 
 export function getSafeMappedValue<T extends object>(contractMap: T, prop: any, fallbackProp: keyof T): T[keyof T] {

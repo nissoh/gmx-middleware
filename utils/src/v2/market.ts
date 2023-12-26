@@ -127,10 +127,7 @@ export function getBorrowingFactorPerInterval(fees: IMarketFees, isLong: boolean
   return factorPerSecond * BigInt(interval)
 }
 
-export function getFundingFactorPerInterval(marketPrice: IMarketPrice, usage: IMarketUsageInfo, fees: IMarketFees, interval: GMX.IntervalTime) {
-  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, usage.longInterestInTokens)
-  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, usage.shortInterestUsd)
-
+export function getFundingFactorPerInterval(usage: IMarketUsageInfo, fees: IMarketFees, interval: GMX.IntervalTime) {
   const ratio = factor(usage.longInterestUsd, usage.shortInterestUsd)
 
   return applyFactor(ratio, fees.nextFunding.fundingFactorPerSecond) * BigInt(interval)

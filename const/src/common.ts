@@ -54,6 +54,7 @@ export const TIME_INTERVAL_MAP = {
   MIN60: 3600,
   HR2: 7200,
   HR4: 14400,
+  HR6: 21600,
   HR8: 28800,
   HR24: 86400,
   DAY7: 604800,

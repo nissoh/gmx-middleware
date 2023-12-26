@@ -1,6 +1,6 @@
 import { getTokenUsd } from "../gmxUtils.js"
 import { abs, applyFactor, delta } from "../mathUtils.js"
-import { IMarket, IMarketInfo, IMarketPrice, IOraclePrice, PriceMinMax } from "../typesGMXV2.js"
+import { IMarket, IMarketInfo, IMarketPrice, IOraclePrice, IPriceMinMax } from "../typesGMXV2.js"
 import { getMappedValue, getDenominator } from "../utils.js"
 import * as GMX from "gmx-middleware-const"
 
@@ -75,12 +75,10 @@ export function calculateImpactForCrossoverRebalance(
 export function getCappedPositionImpactUsd(
   marketPrice: IMarketPrice,
   marketPoolInfo: IMarketInfo,
-  longInterestInUsd: bigint,
-  shortInterestInUsd: bigint,
   sizeDeltaUsd: bigint,
   isLong: boolean,
 ) {
-  const priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, longInterestInUsd, shortInterestInUsd, sizeDeltaUsd, isLong)
+  const priceImpactDeltaUsd = getPriceImpactForPosition(marketPoolInfo, sizeDeltaUsd, isLong)
 
   if (priceImpactDeltaUsd < 0n) return priceImpactDeltaUsd
 
@@ -109,11 +107,14 @@ export function getCappedPositionImpactUsd(
 
 export function getPriceImpactForPosition(
   marketInfo: IMarketInfo,
-  longInterestInUsd: bigint,
-  shortInterestInUsd: bigint,
   sizeDeltaUsd: bigint,
   isLong: boolean,
 ) {
+
+  const longInterestInUsd = marketInfo.usage.longInterestUsd
+  const shortInterestInUsd = marketInfo.usage.shortInterestInTokens
+    
+
   const nextLongUsd = longInterestInUsd + (isLong ? sizeDeltaUsd : 0n)
   const nextShortUsd = shortInterestInUsd + (isLong ? 0n : sizeDeltaUsd)
 
@@ -156,7 +157,7 @@ export function getPriceImpactForPosition(
 }
 
 
-export function getMarkPrice(price: PriceMinMax, isIncrease: boolean, isLong: boolean) {
+export function getMarkPrice(price: IPriceMinMax, isIncrease: boolean, isLong: boolean) {
   const shouldUseMaxPrice = getShouldUseMaxPrice(isIncrease, isLong)
 
   return shouldUseMaxPrice ? price.max : price.min

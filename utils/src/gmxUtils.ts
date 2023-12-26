@@ -9,7 +9,7 @@ import {
 } from "gmx-middleware-const"
 import * as viem from "viem"
 import { factor, getBasisPoints } from "./mathUtils.js"
-import { ILogEvent, IOraclePrice, IPositionSettled, IPositionSlot, IPriceInterval, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
+import { ILogEvent, IOraclePrice, IPositionSettled, IPositionOpen, IPriceCandle, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
 import { easeInExpo, formatFixed, getMappedValue, parseFixed, readableUnitAmount } from "./utils.js"
 
 
@@ -110,98 +110,14 @@ export function getMarginFees(size: bigint) {
   return size * MARGIN_FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR
 }
 
-// export function getLiquidationPrice(isLong: boolean, collateral: bigint, size: bigint, averagePrice: bigint) {
-//   const liquidationAmount = factor(size, MAX_LEVERAGE_FACTOR)
-//   const liquidationDelta = collateral - liquidationAmount
-//   const priceDelta = liquidationDelta * averagePrice / size
-
-//   return isLong ? averagePrice - priceDelta : averagePrice + priceDelta
-// }
-
-// export function getLiquidationPriceFromDelta(isLong: boolean, size: bigint, collateral: bigint, averagePrice: bigint, liquidationAmount: bigint) {
-//   if (liquidationAmount > collateral) {
-//     const liquidationDelta = liquidationAmount - collateral
-//     const priceDeltaToLiquidate = liquidationDelta * averagePrice / size
-//     return isLong ? averagePrice + priceDeltaToLiquidate : averagePrice - priceDeltaToLiquidate
-//   }
-
-//   const liquidationDelta = collateral - liquidationAmount
-//   const priceDelta = liquidationDelta * averagePrice / size
-
-//   return isLong ? averagePrice - priceDelta : averagePrice + priceDelta
-// }
-
-
-// export function getNextLiquidationPrice(
-//   isLong: boolean,
-//   size: bigint,
-//   collateralUsd: bigint,
-//   averagePriceUsd: bigint,
-
-//   entryFundingRate = 0n,
-//   cumulativeFundingRate = 0n,
-//   pnl = 0n,
-
-//   sizeDeltaUsd = 0n,
-//   collateralDeltaUsd = 0n,
-// ) {
-
-//   const nextSize = size + sizeDeltaUsd
-
-//   if (nextSize === 0n) {
-//     return 0n
-//   }
-
-//   const adjustedLossAmount = pnl < 0n ? sizeDeltaUsd * pnl / size : 0n
-//   const nextCollateral = collateralUsd + collateralDeltaUsd - adjustedLossAmount // deduct loss off collateral
-
-
-//   const fundingFee = getFundingFee(entryFundingRate, cumulativeFundingRate, size)
-//   const positionFee = getMarginFees(size) + LIQUIDATION_FEE + fundingFee
-
-
-//   const liquidationPriceForFees = getLiquidationPriceFromDelta(
-//     isLong,
-//     nextSize,
-//     nextCollateral,
-//     averagePriceUsd,
-//     positionFee,
-//   )
-
-//   const liquidationPriceForMaxLeverage = getLiquidationPriceFromDelta(
-//     isLong,
-//     nextSize,
-//     nextCollateral,
-//     averagePriceUsd,
-//     factor(nextSize, MAX_LEVERAGE_FACTOR)
-//   )
-
-
-//   if (isLong) {
-//     // return the higher price
-//     return liquidationPriceForFees > liquidationPriceForMaxLeverage
-//       ? liquidationPriceForFees
-//       : liquidationPriceForMaxLeverage
-//   }
-
-//   // return the lower price
-//   return liquidationPriceForMaxLeverage > liquidationPriceForFees
-//     ? liquidationPriceForFees
-//     : liquidationPriceForMaxLeverage
-
-// }
-
-export function isPositionSettled(trade: IPositionSlot | IPositionSettled): trade is IPositionSettled {
-  return `isLiquidated` in trade
+export function isPositionSettled(trade: IPositionOpen | IPositionSettled): trade is IPositionSettled {
+  return trade.__typename === 'PositionSettled'
 }
 
-// export function getAveragePrice(trade: IPositionSlot | IPositionSettled): bigint {
-//   return trade.averagePrice
-// }
+export function isPositionOpen(trade: IPositionOpen | IPositionSettled): trade is IPositionOpen {
+  return trade.__typename === 'PositionOpen'
+}
 
-// export function getTradeTotalFee(trade: IPositionSlot | IPositionSettled): bigint {
-//   return [...trade.increaseList, ...trade.decreaseList].reduce((seed, next) => seed + next.fee, 0n)
-// }
 
 export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: bigint, size: bigint) {
   if (size === 0n) {
@@ -303,9 +219,17 @@ export function parseJsonAbiEvent(abiEvent: AbiEvent) {
 export const abiParamParseMap = {
   uint256: BigInt,
   uint: BigInt,
+  'uint[]': (x: string[]) => x.map(BigInt),
   string: String,
-  'int': Number,
+  'string[]': (x: string[]) => x.map(String),
+  number: Number,
+  'number[]': (x: number[]) => x.map(Number),
+  'int': BigInt,
+  'int[]': (x: string[]) => x.map(BigInt),
+  address: viem.getAddress,
+  'address[]': (x: string) => viem.getAddress(x),
   bool: Boolean,
+  'bool[]': (x: boolean[]) => x.map(Boolean),
   int256: BigInt,
 } as const
 
@@ -315,9 +239,6 @@ export function getIntervalIdentifier(token: viem.Address, interval: IntervalTim
   return `${token}:${interval}`
 }
 
-export function createPricefeedCandle(blockTimestamp: number, price: bigint): IPriceInterval {
-  return { blockTimestamp, o: price, h: price, l: price, c: price, __typename: 'PriceInterval' }
-}
 
 export function createMovingAverageCalculator(windowValues: number[], windowSize: number, newValue: number) {
   let sum = 0

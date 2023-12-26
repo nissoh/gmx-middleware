@@ -1,36 +1,25 @@
-// import { O } from "@aelea/core"
-// import { CHAIN } from "gmx-middleware-const"
-// import { awaitPromises, map } from "@most/core"
-// import { Stream } from "@most/types"
-// import { cacheExchange, fetchExchange, gql } from "@urql/core"
-// import fetch from "isomorphic-fetch"
-// import { TOKEN_SYMBOL } from "gmx-middleware-const"
-// import * as GMX from "gmx-middleware-const"
-// import * as fromJson from "./fromJson.js"
-// import { getTokenDescription } from "./gmxUtils.js"
-// import {
-//   IChainParamApi,
-//   IEnsRegistration,
-//   IPriceLatest,
-//   IPricefeed,
-//   IRequestAccountApi,
-//   IRequestAccountTradeListApi,
-//   IRequestGraphEntityApi,
-//   IRequestPageApi,
-//   IRequestPagePositionApi,
-//   IRequestPricefeedApi,
-//   IRequestTimerangeApi,
-//   IStake,
-//   ITokenSymbol,
-//   ITrade,
-//   ITradeOpen,
-//   ITradeSettled,
-//   TradeStatus
-// } from "./types.js"
-// import {
-//   createSubgraphClient, getMappedValue, groupByKeyMap, pagingQuery, parseFixed,
-//   switchFailedSources, unixTimestampNow
-// } from "./utils.js"
+import { TypedDocumentNode } from "@urql/core"
+import { Client } from "@urql/core"
+import { OperationContext } from "@urql/core"
+import { createClient } from "@urql/core"
+import { ClientOptions } from "@urql/core"
+
+
+export const createSubgraphClient = (opts: ClientOptions) => {
+  const client = createClient(opts)
+
+  return async <Data, Variables extends object = object>(document: TypedDocumentNode<Data, Variables>, params: Variables, context?: Partial<OperationContext>): Promise<Data> => {
+    const result = await client.query(document, params, context)
+      .toPromise()
+
+    if (result.error) {
+      throw new Error(result.error.message)
+    }
+
+    return result.data!
+  }
+}
+
 
 
 // export const ensGraph = createSubgraphClient({

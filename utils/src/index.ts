@@ -1,6 +1,9 @@
 
 export * from './types.js'
 export * from './utils.js'
+export * from './graph.js'
+export * from './subgraph/query.js'
+export * from './subgraph/schema.js'
 export * from './gmxUtils.js'
 export * from './v2/index.js'
 export * from './mathUtils.js'

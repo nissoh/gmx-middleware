@@ -2,7 +2,7 @@ import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IOraclePrice, IPositionDecrease, IPositionIncrease } from "./typesGMXV2.js"
+import { IOraclePrice, IPositionLink, IPriceMinMax } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -30,14 +30,13 @@ export interface ILogOrdered {
   orderId: number
 }
 
-export type ILogTypeName<T extends string> = { __typename: T } // & IIdentifiableEntity
-
-export type ILogType<T extends string> = ILogTypeName<T> & {
-  blockTimestamp: number
+export type ILogTypeId<T extends string> = {
+  __typename: T
+  id: string
 }
 
-export type ILogTxType<T extends string> = ILogTypeName<T> & {
-  blockTimestamp: number
+export type ILogTxType<T extends string> = ILogTypeId<T> & {
+  blockTimestamp: bigint
   transactionHash: viem.Hex
 }
 
@@ -103,27 +102,38 @@ export enum PositionStatus {
   LIQUIDATED
 }
 
-export interface IPosition<TypeName extends 'PositionSlot' | 'PositionSettled'> extends IAbstractPositionIdentity, ILogTxType<TypeName> {
-  updates: (IPositionIncrease | IPositionDecrease)[]
-  // feeUpdates: readonly PositionFeesInfo[]
-  // latestUpdate: IPositionIncrease | IPositionDecrease
-  orderKey: viem.Hex
 
-  realisedPnl: bigint
-  averagePrice: bigint
+
+
+export interface IPosition<TypeName extends 'PositionOpen' | 'PositionSettled'> extends ILogTxType<TypeName> {
+  link: IPositionLink
+
+  key: viem.Hex
+
+  account: viem.Address
+  market: viem.Address
+  collateralToken: viem.Address
+  indexToken: viem.Address
+
+  sizeInUsd: bigint
+  sizeInTokens: bigint
+  collateralAmount: bigint
+  realisedPnlUsd: bigint
 
   cumulativeSizeUsd: bigint
   cumulativeSizeToken: bigint
-  cumulativeFee: bigint
+  cumulativeCollateralUsd: bigint
+  cumulativeCollateralToken: bigint
 
   maxSizeUsd: bigint
   maxSizeToken: bigint
-
   maxCollateralUsd: bigint
   maxCollateralToken: bigint
+
+  isLong: boolean
 }
 
-export type IPositionSlot = IPosition<'PositionSlot'>
+export type IPositionOpen = IPosition<'PositionOpen'>
 export type IPositionSettled = IPosition<'PositionSettled'>
 
 
@@ -166,22 +176,21 @@ export interface IPriceTimeline {
 
 
 export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
-export type IPricefeedMap = Record<IPriceIntervalIdentity, Record<string, IPriceInterval>>
-export type IPriceLatestMap = Record<viem.Address, IOraclePrice>
+export type IPricefeedMap = Record<IPriceIntervalIdentity, Record<string, IPriceCandle>>
+export type IPriceLatestMap = Record<viem.Address, IPriceMinMax>
 
-export interface IPriceInterval extends ILogType<'PriceInterval'> {
+export interface IPriceCandleDto {
+  token: viem.Address
+  interval: IntervalTime
+  timestamp: number
   o: bigint // open
   h: bigint // high
   l: bigint // low
   c: bigint // close
 }
 
-
-export interface IPriceLatest extends ILogType<'PriceLatest'> {
-  value: bigint
-  id: viem.Address
-  timestamp: number
-}
+export interface IPriceCandle extends IPriceCandleDto, ILogTypeId<'PriceCandle'> {}
+export interface IPriceCandleLatest extends IPriceCandleDto, ILogTypeId<'PriceCandleLatest'> {}
 
 
 

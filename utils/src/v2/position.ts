@@ -2,7 +2,7 @@ import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
 import { getTokenUsd } from "../gmxUtils.js"
 import { applyFactor } from "../mathUtils.js"
-import { IMarketInfo, IMarketPrice, IPositionAdjustment, PositionFees, PositionReferralFees } from "../typesGMXV2.js"
+import { IMarketInfo, IMarketPrice, IPositionFees, IPositionNumbers, PositionReferralFees } from "../typesGMXV2.js"
 import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
 import { getPriceImpactForPosition } from "./price.js"
 import { getPoolUsdWithoutPnl } from "./market.js"
@@ -88,7 +88,7 @@ export function getFundingAmount(
   return positionSizeInUsd * fundingDiffFactor / denominator
 }
 
-export function getPositionFundingFees(positionFees: PositionFees, position: IPositionAdjustment) {
+export function getPositionFundingFees(positionFees: IPositionFees, position: IPositionNumbers) {
   const fundingFeeAmount = getFundingAmount(
     positionFees.funding.latestFundingFeeAmountPerSize,
     position.fundingFeeAmountPerSize,
@@ -117,9 +117,6 @@ export function getEntryPrice(sizeInUsd: bigint, sizeInTokens: bigint, indexToke
   return sizeInUsd / sizeInTokens * getTokenDenominator(indexToken)
 }
 
-export function getPositionPendingFeesUsd(pendingFundingFeesUsd: bigint, pendingBorrowingFeesUsd: bigint) {
-  return pendingBorrowingFeesUsd + pendingFundingFeesUsd
-}
 
 
 export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean, sizeDeltaUsd: bigint) {
@@ -152,7 +149,7 @@ export function getPositionNetValue(
   closingFeeUsd: bigint,
 ) {
 
-  const pendingFeesUsd = getPositionPendingFeesUsd(pendingFundingFeesUsd, pendingBorrowingFeesUsd)
+  const pendingFeesUsd = pendingFundingFeesUsd + pendingBorrowingFeesUsd
 
   return collateralUsd - pendingFeesUsd - closingFeeUsd + pnl
 }
@@ -160,7 +157,6 @@ export function getPositionNetValue(
 
 
 export function getLiquidationPrice(
-  marketPrice: IMarketPrice,
   marketInfo: IMarketInfo,
   isLong: boolean,
   collateralToken: viem.Address,
@@ -180,20 +176,17 @@ export function getLiquidationPrice(
   if (sizeInUsd <= 0n) return 0n
 
   const closingFeeUsd = getMarginFee(marketInfo, false, sizeInUsd)
-  const totalPendingFeesUsd = getPositionPendingFeesUsd(pendingFundingFeesUsd, pendingBorrowingFeesUsd)
+  const totalPendingFeesUsd = pendingFundingFeesUsd + pendingBorrowingFeesUsd
   const totalFeesUsd = totalPendingFeesUsd + closingFeeUsd
 
   const maxNegativePriceImpactUsd = -applyFactor(sizeInUsd, marketInfo.config.maxPositionImpactFactorForLiquidations)
-
-  const longInterestUsd = getTokenUsd(marketPrice.longTokenPrice.max, marketInfo.usage.longInterestInTokens)
-  const shortInterestUsd = getTokenUsd(marketPrice.shortTokenPrice.max, marketInfo.usage.shortInterestInTokens)
 
   let priceImpactDeltaUsd = 0n
 
   if (useMaxPriceImpact) {
     priceImpactDeltaUsd = maxNegativePriceImpactUsd
   } else {
-    priceImpactDeltaUsd = getPriceImpactForPosition(marketInfo, longInterestUsd, shortInterestUsd, -sizeInUsd, isLong)
+    priceImpactDeltaUsd = getPriceImpactForPosition(marketInfo, -sizeInUsd, isLong)
 
     if (priceImpactDeltaUsd < maxNegativePriceImpactUsd) {
       priceImpactDeltaUsd = maxNegativePriceImpactUsd
@@ -267,7 +260,7 @@ export function getLeverageFactor(
   pendingFundingFeesUsd: bigint,
   pendingBorrowingFeesUsd: bigint,
 ) {
-  const totalPendingFeesUsd = getPositionPendingFeesUsd(pendingFundingFeesUsd, pendingBorrowingFeesUsd)
+  const totalPendingFeesUsd = pendingFundingFeesUsd + pendingBorrowingFeesUsd
   const remainingCollateralUsd = collateralUsd + pnl - totalPendingFeesUsd
 
   return sizeInUsd * GMX.BASIS_POINTS_DIVISOR / remainingCollateralUsd
