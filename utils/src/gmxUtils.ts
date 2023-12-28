@@ -130,8 +130,8 @@ export function getFundingFee(entryFundingRate: bigint, cumulativeFundingRate: b
 
 
 
-export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: IOraclePrice) {
-  const weight = isLong ? getBasisPoints(liquidationPrice, markPrice.max) : getBasisPoints(markPrice.max, liquidationPrice)
+export function liquidationWeight(isLong: boolean, liquidationPrice: bigint, markPrice: bigint) {
+  const weight = isLong ? getBasisPoints(liquidationPrice, markPrice) : getBasisPoints(markPrice, liquidationPrice)
   const value = easeInExpo(formatFixed(weight, 4))
   return value > 1 ? 1 : value
 }

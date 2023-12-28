@@ -1,20 +1,27 @@
-import { SolidityAddress, SolidityArrayWithoutTuple, SolidityBool, SolidityBytes, SolidityInt, SolidityString } from "abitype"
-import { request } from "graphql-request"
+import { Client } from '@urql/core'
 import { abiParamParseMap } from "../gmxUtils.js"
 import { getMappedValue } from "../utils.js"
-import { filter } from "@most/core/dist/combinator/filter.js"
-
 export { encodePacked } from 'viem'
 
 export type GqlType<T extends string> = { __typename: T }
 
 type PackedAbiType =
-  | SolidityAddress
-  | SolidityBool
-  | SolidityBytes
-  | SolidityInt
-  | SolidityString
-  | SolidityArrayWithoutTuple
+  | 'uint'
+  | 'uint[]'
+  | 'uint256'
+  | 'uint256[]'
+  | 'string'
+  | 'string[]'
+  | 'number'
+  | 'number[]'
+  | 'int'
+  | 'int[]'
+  | 'address'
+  | 'address[]'
+  | 'bool'
+  | 'bool[]'
+  | 'int256'
+  | 'bytes'
 
 export type ISchema<T extends GqlType<any>> = {
   [P in keyof T]: T[P] extends any[] ? any : T[P] extends GqlType<any> ? ISchema<T[P]> : P extends `__typename` ? string : PackedAbiType
@@ -39,11 +46,16 @@ interface IQuerySubgraph <Type extends GqlType<any>, TQuery>{
   schema: ISchema<Type>
   document?: TQuery | undefined
   filter?: any
-  url: string
   startBlock?: bigint
+
+  first?: number
+  skip?: number
+  orderBy?: string
+  orderDirection?: 'asc' | 'desc'
 }
 
 export const querySubgraph = <Type extends GqlType<any>, TQuery>(
+  client: Client,
   params: IQuerySubgraph<Type, TQuery>
 ): Promise<TQuery extends unknown ? Type[] : PrettifyReturn<ISchemaQuery<Type, TQuery>>[]> => {
 
@@ -51,23 +63,21 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
   const whereClause = parseWhereClause(params.filter)
   const fieldStructure = parseQueryObject(params.document ? params.document : fillQuery(params.schema))
   const graphDocumentIdentifier = `${typeName.charAt(0).toLowerCase() + typeName.slice(1)}s`
-
   const changeBlockFilterParam = params.startBlock ? ` _change_block: { number_gte: ${params.startBlock} }, ` : ''
+  const orderByFilterParam = params.orderBy ? ` orderBy: ${params.orderBy}, ` : ''
+  const orderDirectionFilterParam = params.orderDirection ? ` orderDirection: ${params.orderDirection}, ` : ''
 
-  const entry = `${graphDocumentIdentifier}(first: 1000, where: { ${changeBlockFilterParam} ${whereClause} }) { ${fieldStructure} }`
+  const entry = `${graphDocumentIdentifier}(first: ${params.first || 1000}, ${orderByFilterParam} ${orderDirectionFilterParam} where: { ${changeBlockFilterParam} ${whereClause} }) { ${fieldStructure} }`
 
+  const newLogsFilter = client.query(`{ ${entry} }`, {})
+    .then(response => {
+      if (response.error) throw new Error(response.error.message)
 
-  const newLogsFilter = request({
-    document: `{ ${entry} }`,
-    url: params.url
-  })
-    .then((x: any) => {
-
-      if (!(graphDocumentIdentifier in x)) {
+      if (!(graphDocumentIdentifier in response.data)) {
         throw new Error(`No ${graphDocumentIdentifier} found in subgraph response`)
       }
 
-      const list: PrettifyReturn<ISchemaQuery<Type, TQuery>>[] = x[graphDocumentIdentifier]
+      const list: PrettifyReturn<ISchemaQuery<Type, TQuery>>[] = response.data[graphDocumentIdentifier]
 
       if (list instanceof Array) {
         return list.map(item => parseResults(item, params.schema))
@@ -128,10 +138,12 @@ function parseWhereClause(query?: object) {
   const where: string[] = []
 
   Object.entries(query).forEach(([key, value]) => {
+
+    if (value === undefined) return
+
     const valueFormatted = typeof value === 'string' ? `"${value}"` : String(value)
 
     where.push(`${key}: ${valueFormatted}`)
-    
   })
 
   return where.join(', ')

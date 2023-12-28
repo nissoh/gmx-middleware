@@ -1,4 +1,4 @@
-import { IPosition, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleLatest } from "../types.js"
+import { IPosition, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
 import { IPositionIncrease, IPositionDecrease, IPositionFeeUpdate, IPositionLink } from "../typesGMXV2.js"
 import { ISchema } from "./query.js"
 
@@ -194,11 +194,11 @@ const positionSettled: ISchema<IPositionSettled> = {
   __typename: 'PositionSettled',
 }
 
-const priceCandleLatest: ISchema<IPriceCandleLatest> = {
+const priceCandleSeed: ISchema<IPriceCandleSeed> = {
   id: 'string',
-  token: 'string',
+  token: 'address',
   interval: 'string',
-  timestamp: 'int',
+  timestamp: 'number',
 
   o: 'uint',
   h: 'uint',
@@ -210,9 +210,9 @@ const priceCandleLatest: ISchema<IPriceCandleLatest> = {
 
 const priceCandle: ISchema<IPriceCandle> = {
   id: 'string',
-  token: 'string',
+  token: 'address',
   interval: 'string',
-  timestamp: 'int',
+  timestamp: 'number',
 
   o: 'uint',
   h: 'uint',
@@ -228,7 +228,7 @@ export const schema = {
   
   positionIncrease, positionDecrease,
 
-  priceCandleLatest, priceCandle,
+  priceCandleSeed, priceCandle,
 }
 
 

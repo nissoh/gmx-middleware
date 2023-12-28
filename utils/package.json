@@ -23,7 +23,6 @@
         "@most/types": "^1.1.0",
         "@urql/core": "4.2.2",
         "abitype": "^0.10.3",
-        "graphql": "^16.8.1",
         "@types/isomorphic-fetch": "^0.0.39",
         "isomorphic-fetch": "^3.0.0",
         "isomorphic-ws": "^5.0.0",

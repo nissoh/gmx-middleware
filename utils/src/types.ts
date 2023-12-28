@@ -175,10 +175,6 @@ export interface IPriceTimeline {
 }
 
 
-export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
-export type IPricefeedMap = Record<IPriceIntervalIdentity, Record<string, IPriceCandle>>
-export type IPriceLatestMap = Record<viem.Address, IPriceMinMax>
-
 export interface IPriceCandleDto {
   token: viem.Address
   interval: IntervalTime
@@ -189,8 +185,14 @@ export interface IPriceCandleDto {
   c: bigint // close
 }
 
+export type IPriceTick = { timestamp: number, price: bigint, token: viem.Address }
+export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
+export type IPricefeedMap = Record<viem.Address, IPriceCandleDto[]>
+export type IPricetickListMap = Record<viem.Address, IPriceTick[]>
+export type IPricetickMap = Record<viem.Address, IPriceTick>
+
 export interface IPriceCandle extends IPriceCandleDto, ILogTypeId<'PriceCandle'> {}
-export interface IPriceCandleLatest extends IPriceCandleDto, ILogTypeId<'PriceCandleLatest'> {}
+export interface IPriceCandleSeed extends IPriceCandleDto, ILogTypeId<'PriceCandleSeed'> {}
 
 
 
