@@ -3,14 +3,14 @@ import {
   BASIS_POINTS_DIVISOR,
   CHAIN_ADDRESS_MAP,
   CHAIN_NATIVE_DESCRIPTION,
-  FUNDING_RATE_PRECISION, IntervalTime,
+  FUNDING_RATE_PRECISION,
   MARGIN_FEE_BASIS_POINTS,
   TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
 import { factor, getBasisPoints } from "./mathUtils.js"
-import { ILogEvent, IOraclePrice, IPositionSettled, IPositionOpen, IPriceCandle, IPriceIntervalIdentity, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getMappedValue, parseFixed, readableUnitAmount } from "./utils.js"
+import { ILogEvent, IPositionOpen, IPositionSettled, ITokenDescription } from "./types.js"
+import { easeInExpo, formatFixed, getMappedValue, parseFixed } from "./utils.js"
 
 
 
@@ -235,9 +235,7 @@ export const abiParamParseMap = {
 
 
 
-export function getIntervalIdentifier(token: viem.Address, interval: IntervalTime): IPriceIntervalIdentity {
-  return `${token}:${interval}`
-}
+
 
 
 export function createMovingAverageCalculator(windowValues: number[], windowSize: number, newValue: number) {

@@ -1,5 +1,5 @@
-import { IPosition, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
-import { IPositionIncrease, IPositionDecrease, IPositionFeeUpdate, IPositionLink } from "../typesGMXV2.js"
+import { IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
+import { IPositionDecrease, IPositionFeeUpdate, IPositionIncrease, IPositionLink } from "../typesGMXV2.js"
 import { ISchema } from "./query.js"
 
 
@@ -137,19 +137,10 @@ const positionLink: ISchema<IPositionLink> = {
   id: 'string',
   key: 'uint256',
 
-  account: 'address',
-  market: 'address',
-  collateralToken: 'address',
-
-  isLong: 'bool',
-
   increaseList: positionIncrease,
   decreaseList: positionDecrease,
   feeUpdateList: positionFeeUpdate,
-
-  blockTimestamp: 'uint256',
-  transactionHash: 'string',
-  
+ 
   __typename: 'PositionLink',
 }
 
@@ -205,7 +196,7 @@ const priceCandleSeed: ISchema<IPriceCandleSeed> = {
   l: 'uint',
   c: 'uint',
 
-  __typename: 'PriceCandleLatest',
+  __typename: 'PriceCandleSeed',
 }
 
 const priceCandle: ISchema<IPriceCandle> = {

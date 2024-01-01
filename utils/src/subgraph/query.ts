@@ -71,7 +71,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
 
   const newLogsFilter = client.query(`{ ${entry} }`, {})
     .then(response => {
-      if (response.error) throw new Error(response.error.message)
+      if (response.error) throw new Error(`${graphDocumentIdentifier} query error: ${response.error.message}`)
 
       if (!(graphDocumentIdentifier in response.data)) {
         throw new Error(`No ${graphDocumentIdentifier} found in subgraph response`)
@@ -134,6 +134,7 @@ function parseQueryObject(query: any) {
 
 function parseWhereClause(query?: object) {
   if (query === undefined) return ''
+  if (typeof query !== 'object') throw new Error('Query must be an object')
 
   const where: string[] = []
 

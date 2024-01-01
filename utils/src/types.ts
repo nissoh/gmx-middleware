@@ -2,7 +2,7 @@ import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
 import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
 import * as viem from "viem"
-import { IOraclePrice, IPositionLink, IPriceMinMax } from "./typesGMXV2.js"
+import { IOraclePrice, IPositionLink } from "./typesGMXV2.js"
 
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -22,7 +22,7 @@ export interface IIdentifiableEntity {
 
 export interface ILogIndex<TQuantity = bigint, TIndex = number> {
   blockNumber: TQuantity
-  transactionIndex: TIndex
+  // transactionIndex: TIndex
   logIndex: TIndex
 }
 
@@ -185,11 +185,16 @@ export interface IPriceCandleDto {
   c: bigint // close
 }
 
-export type IPriceTick = { timestamp: number, price: bigint, token: viem.Address }
-export type IPriceIntervalIdentity = `${viem.Address}:${IntervalTime}`
-export type IPricefeedMap = Record<viem.Address, IPriceCandleDto[]>
-export type IPricetickListMap = Record<viem.Address, IPriceTick[]>
-export type IPricetickMap = Record<viem.Address, IPriceTick>
+export interface IPricetick {
+  price: bigint
+  timestamp: number
+}
+
+export type IPriceTickListMap = Record<viem.Address, IPricetick[]>
+export type IPriceLatestMap = Record<viem.Address, IPriceCandleDto>
+
+export type IPriceCandleListMap = Record<viem.Address, IPriceCandleDto[]>
+export type IPriceOracleMap = Record<viem.Address, IOraclePrice>
 
 export interface IPriceCandle extends IPriceCandleDto, ILogTypeId<'PriceCandle'> {}
 export interface IPriceCandleSeed extends IPriceCandleDto, ILogTypeId<'PriceCandleSeed'> {}

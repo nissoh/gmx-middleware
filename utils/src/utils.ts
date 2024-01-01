@@ -537,7 +537,7 @@ export const cacheMap = (cacheMap: { [k: string]: ICacheItem<any> }) => <T>(key:
 }
 
 
-export function groupArrayManyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R): Record<B, R[]> {
+export function groupArrayManyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A, key: B) => R): Record<B, R[]> {
   const gmap = {} as { [P in B]: R[] }
 
   list.forEach(item => {
@@ -548,7 +548,7 @@ export function groupArrayManyMap<A, B extends string | symbol | number, R>(list
     }
 
     gmap[key] ??= []
-    const mappedValue = mapFn(item)
+    const mappedValue = mapFn(item, key)
     gmap[key].push(mappedValue)
   })
 
@@ -565,7 +565,7 @@ export function groupArrayByKey<A, B extends string | symbol | number>(list: A[]
 }
 
 
-export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A) => R) {
+export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(list: A[], getKey: (v: A) => B, mapFn: (v: A, key: B) => R) {
   const gmap = {} as { [P in B]: R }
 
   for (const item of list) {
@@ -575,7 +575,7 @@ export function groupArrayByKeyMap<A, B extends string | symbol | number, R>(lis
       throw new Error(`key is undefined`)
     }
 
-    gmap[key] = mapFn(item)
+    gmap[key] = mapFn(item, key)
   }
 
   return gmap

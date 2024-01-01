@@ -1,6 +1,6 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { IAbstractPositionParams, ILogOrderedEvent, ILogTxType } from "./types.js"
+import { IAbstractPositionParams, ILogOrderedEvent, ILogTxType, ILogTypeId } from "./types.js"
 
 
 export enum OrderType {
@@ -179,15 +179,9 @@ export interface IPositionInfo {
 }
 
 
-export interface IPositionLink extends ILogTxType<'PositionLink'> {
+export interface IPositionLink extends ILogTypeId<'PositionLink'> {
   id: string
   key: viem.Hex
-
-  account: viem.Address
-  market: viem.Address
-  collateralToken: viem.Address
-
-  isLong: boolean
 
   increaseList: IPositionIncrease[]
   decreaseList: IPositionDecrease[]
