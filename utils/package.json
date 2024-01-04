@@ -10,7 +10,7 @@
     ],
     "scripts": {
         "clean": "rm -fr .dist",
-        "build": "tsc -b"
+        "build": "bun tsc -b"
     },
     "dependencies": {
         "@aelea/core": "^1.3.2",

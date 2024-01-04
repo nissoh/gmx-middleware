@@ -1,11 +1,13 @@
 {
     "name": "monorepo",
     "private": true,
-    "packageManager": "pnpm@8.5.1",
+    "workspaces": [
+        "*"
+    ],
     "scripts": {
-        "build": "pnpm recursive run build",
-        "clean": "pnpm recursive run clean",
-        "test": "pnpm recursive run test"
+        "build": "npm run build --workspaces",
+        "clean": "bun run clean --workspaces",
+        "test": "bun recursive run test"
     },
     "devDependencies": {
         "@changesets/cli": "^2.26.2",

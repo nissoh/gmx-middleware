@@ -10,7 +10,7 @@
     ],
     "scripts": {
         "clean": "rm -fr .dist/*",
-        "build": "tsc -b"
+        "build": "bun tsc -b"
     },
     "dependencies": {
         "viem": "^1.20.0",
