@@ -65,6 +65,14 @@ export const TIME_INTERVAL_MAP = {
 
 export type IntervalTime = typeof TIME_INTERVAL_MAP[keyof typeof TIME_INTERVAL_MAP]
 
+export const PRICEFEED_INTERVAL = [
+  TIME_INTERVAL_MAP.MIN5,
+  TIME_INTERVAL_MAP.MIN15,
+  TIME_INTERVAL_MAP.MIN60,
+  TIME_INTERVAL_MAP.HR6,
+  TIME_INTERVAL_MAP.HR24,
+  TIME_INTERVAL_MAP.DAY7,
+] as const
 
 export const TRADE_CONTRACT_MAPPING = {
   [CHAIN.ARBITRUM]: ARBITRUM_ADDRESS,
@@ -74,20 +82,6 @@ export const TRADE_CONTRACT_MAPPING = {
 export type ContractChain = keyof typeof TRADE_CONTRACT_MAPPING
 
 
-export const EXPLORER_URL = {
-  [CHAIN.ETH]: "https://etherscan.io/",
-  [CHAIN.ETH_KOVAN]: "https://kovan.etherscan.io/",
-  [CHAIN.ETH_ROPSTEN]: "https://ropsten.etherscan.io/",
-  [CHAIN.ETH_RINKBY]: "https://rinkeby.etherscan.io/",
-  [CHAIN.ETH_GOERLI]: "https://goerli.etherscan.io/",
-
-  [CHAIN.BSC]: "https://bscscan.com/",
-  [CHAIN.BSC_TESTNET]: "https://testnet.bscscan.com/",
-
-  [CHAIN.ARBITRUM]: "https://arbiscan.io/",
-  [CHAIN.ARBITRUM_RINKBY]: "https://testnet.arbiscan.io/",
-  [CHAIN.AVALANCHE]: "https://snowtrace.io/",
-}
 
 
 export enum MarketEvent {
@@ -137,4 +131,3 @@ export enum PositionEvent {
   PositionFeesInfo = '0x506f736974696f6e46656573496e666f',
   PositionFeesCollected = '0x506f736974696f6e46656573436f6c6c6563746564',
 }
-

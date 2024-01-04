@@ -1,8 +1,7 @@
-import { getTokenUsd } from "../gmxUtils.js"
-import { IMarketInfo, IMarketUsageInfo, IMarketPrice, IMarketFees } from "../typesGMXV2.js"
 import * as GMX from "gmx-middleware-const"
-import { TimelineTime } from "../utils.js"
+import { getTokenUsd } from "../gmxUtils.js"
 import { applyFactor, factor } from "../mathUtils.js"
+import { IMarketInfo, IMarketPrice, IMarketFees, IMarketUsageInfo } from "../types.js"
 
 export function getPoolUsd(
   marketInfo: IMarketInfo,

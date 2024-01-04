@@ -12,7 +12,9 @@ import { factor, getBasisPoints } from "./mathUtils.js"
 import { ILogEvent, IPositionOpen, IPositionSettled, ITokenDescription } from "./types.js"
 import { easeInExpo, formatFixed, getMappedValue, parseFixed } from "./utils.js"
 
-
+export function findClosest<T extends readonly number[]> (arr: T, chosen: number): T[number] {
+  return arr.reduce((a, b) => b - chosen < chosen - a ? b : a)
+}
 
 export function lst<T>(a: readonly T[]): T {
   if (a.length === 0) throw new Error('empty array')

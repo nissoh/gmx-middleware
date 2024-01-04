@@ -1,5 +1,4 @@
-import { IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
-import { IPositionDecrease, IPositionFeeUpdate, IPositionIncrease, IPositionLink } from "../typesGMXV2.js"
+import { IPositionDecrease, IPositionFeeUpdate, IPositionIncrease, IPositionLink, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
 import { ISchema } from "./query.js"
 
 

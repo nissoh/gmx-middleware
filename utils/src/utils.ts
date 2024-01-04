@@ -7,8 +7,7 @@ import {
 import { disposeNone } from "@most/disposable"
 import { curry2 } from "@most/prelude"
 import { Stream } from "@most/types"
-import { ClientOptions, createClient } from "@urql/core"
-import { BASIS_POINTS_DIVISOR, CHAIN, EXPLORER_URL, FACTOR_PERCISION, PRECISION, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
+import { BASIS_POINTS_DIVISOR, FACTOR_PERCISION, TOKEN_ADDRESS_DESCRIPTION_MAP, USD_DECIMALS } from "gmx-middleware-const"
 import * as viem from "viem"
 import { getTokenAmount, getTokenDescription, getTokenUsd } from "./gmxUtils.js"
 import { IRequestPagePositionApi, IRequestSortApi, IResponsePageApi } from "./types.js"
@@ -254,22 +253,15 @@ export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTim
 }
 
 
+
 export function createTimeline<T, R, RTime extends R & TimelineTime = R & TimelineTime>({
   source, getTime, seed, interval,
-
   seedMap,
   gapMap = prev => prev,
   squashMap = seedMap,
 }: IFillGap<T, R, RTime>) {
 
-
   const sortedSource = [...source].sort((a, b) => getTime(a) - getTime(b))
-  const initialSourceTime = getTime(sortedSource[0])
-
-  if (seed.time > initialSourceTime) {
-    throw new Error(`inital source time: ${initialSourceTime} must be greater then seed time: ${seed.time}`)
-  }
-
   const seedSlot = Math.floor(seed.time / interval)
   const normalizedSeed = { ...seed, time: seedSlot * interval } as RTime
 
@@ -348,12 +340,15 @@ export function pagingQuery<T, ReqParams extends IRequestPagePositionApi & (IReq
 export const unixTimestampNow = () => Math.floor(Date.now() / 1000)
 
 
-export const getTxExplorerUrl = (chain: CHAIN, hash: string) => {
-  return EXPLORER_URL[chain] + 'tx/' + hash
+export const getExplorerUrl = (chain: viem.Chain) => {
+  return chain.blockExplorers?.default.url || chain.blockExplorers?.etherscan?.url
+}
+export const getTxExplorerUrl = (chain: viem.Chain, hash: string) => {
+  return getExplorerUrl(chain) + '/tx/' + hash
 }
 
-export function getAccountExplorerUrl(chain: CHAIN, account: viem.Address) {
-  return EXPLORER_URL[chain] + "address/" + account
+export function getAccountExplorerUrl(chain: viem.Chain, account: viem.Address) {
+  return getExplorerUrl(chain) + "/address/" + account
 }
 
 export function getDebankProfileUrl(account: viem.Address) {
@@ -600,57 +595,6 @@ export function easeInExpo(x: number) {
 }
 
 
-
-export function getTargetUsdgAmount(weight: bigint, usdgSupply: bigint, totalTokenWeights: bigint) {
-  if (usdgSupply === 0n) {
-    return 0n
-  }
-
-  return weight * usdgSupply / totalTokenWeights
-}
-
-export function getFeeBasisPoints(
-  debtUsd: bigint,
-  weight: bigint,
-
-  amountUsd: bigint,
-  feeBasisPoints: bigint,
-  taxBasisPoints: bigint,
-  increment: boolean,
-  usdgSupply: bigint,
-  totalTokenWeights: bigint
-) {
-
-  const nextAmount = increment
-    ? debtUsd + amountUsd
-    : amountUsd > debtUsd
-      ? 0n
-      : debtUsd - amountUsd
-
-  const targetAmount = getTargetUsdgAmount(weight, usdgSupply, totalTokenWeights)
-
-  if (targetAmount === 0n) {
-    return feeBasisPoints
-  }
-
-  const initialDiff = debtUsd > targetAmount ? debtUsd - targetAmount : targetAmount - debtUsd
-  const nextDiff = nextAmount > targetAmount ? nextAmount - targetAmount : targetAmount - nextAmount
-
-  if (nextDiff < initialDiff) {
-    const rebateBps = taxBasisPoints * initialDiff / targetAmount
-    return rebateBps > feeBasisPoints ? 0n : feeBasisPoints - rebateBps
-  }
-
-  let averageDiff = (initialDiff + nextDiff) / 2n
-
-  if (averageDiff > targetAmount) {
-    averageDiff = targetAmount
-  }
-
-  const taxBps = taxBasisPoints * averageDiff / targetAmount
-
-  return feeBasisPoints + taxBps
-}
 
 export function importGlobal<T>(queryCb: () => Promise<T>): Stream<T> {
   let cacheQuery: Promise<T> | null = null

@@ -1,7 +1,7 @@
 import { map, periodic } from "@most/core"
 import * as GMX from "gmx-middleware-const"
-import { groupArrayByKey, groupArrayByKeyMap, unixTimestampNow } from "./utils.js"
-import { IMarketCreatedEvent } from "./typesGMXV2.js"
+import { groupArrayByKey, unixTimestampNow } from "./utils.js"
+import { IMarketCreatedEvent } from "./types.js"
 
 
 const intervals = [

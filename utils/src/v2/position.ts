@@ -2,10 +2,10 @@ import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
 import { getTokenUsd } from "../gmxUtils.js"
 import { applyFactor } from "../mathUtils.js"
-import { IMarketInfo, IMarketPrice, IPositionFees, IPositionNumbers, PositionReferralFees } from "../typesGMXV2.js"
 import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
 import { getPriceImpactForPosition } from "./price.js"
 import { getPoolUsdWithoutPnl } from "./market.js"
+import { IMarketPrice, IMarketInfo, IPositionFees, IPositionNumbers, PositionReferralFees } from "../types.js"
 
 
 
