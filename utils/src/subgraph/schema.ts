@@ -147,7 +147,7 @@ const position = {
   id: 'string',
   link: positionLink,
 
-  key: 'uint256',
+  key: 'string',
 
   account: 'address',
   market: 'address',
