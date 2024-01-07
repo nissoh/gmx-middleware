@@ -5,12 +5,12 @@ import { IMarketCreatedEvent } from "./types.js"
 
 
 const intervals = [
-  { label: 'year', seconds: GMX.TIME_INTERVAL_MAP.MONTH * 12 },
-  { label: 'month', seconds: GMX.TIME_INTERVAL_MAP.MONTH },
-  { label: 'day', seconds: GMX.TIME_INTERVAL_MAP.HR24 },
-  { label: 'hr', seconds: GMX.TIME_INTERVAL_MAP.MIN * 60 },
-  { label: 'min', seconds: GMX.TIME_INTERVAL_MAP.MIN },
-  { label: 'sec', seconds: GMX.TIME_INTERVAL_MAP.SEC }
+  { label: 'year', seconds: GMX.IntervalTime.MONTH * 12 },
+  { label: 'month', seconds: GMX.IntervalTime.MONTH },
+  { label: 'day', seconds: GMX.IntervalTime.HR24 },
+  { label: 'hr', seconds: GMX.IntervalTime.MIN * 60 },
+  { label: 'min', seconds: GMX.IntervalTime.MIN },
+  { label: 'sec', seconds: GMX.IntervalTime.SEC }
 ] as const
 
 export function timeSince(time: number) {
@@ -49,12 +49,12 @@ export function countdownFn(targetDate: number | bigint, now: number | bigint) {
 export function getIntervalBasedOnTimeframe(maxColumns: number, from: number, to: number) {
   const delta = to - from
 
-  const interval = maxColumns < delta / GMX.TIME_INTERVAL_MAP.DAY7
-    ? GMX.TIME_INTERVAL_MAP.DAY7 : maxColumns < delta / GMX.TIME_INTERVAL_MAP.HR24
-      ? GMX.TIME_INTERVAL_MAP.HR24 : maxColumns < delta / GMX.TIME_INTERVAL_MAP.HR4
-        ? GMX.TIME_INTERVAL_MAP.HR4 : maxColumns < delta / GMX.TIME_INTERVAL_MAP.MIN60
-          ? GMX.TIME_INTERVAL_MAP.MIN60 : maxColumns < delta / GMX.TIME_INTERVAL_MAP.MIN15
-            ? GMX.TIME_INTERVAL_MAP.MIN15 : GMX.TIME_INTERVAL_MAP.MIN5
+  const interval = maxColumns < delta / GMX.IntervalTime.DAY7
+    ? GMX.IntervalTime.DAY7 : maxColumns < delta / GMX.IntervalTime.HR24
+      ? GMX.IntervalTime.HR24 : maxColumns < delta / GMX.IntervalTime.HR4
+        ? GMX.IntervalTime.HR4 : maxColumns < delta / GMX.IntervalTime.MIN60
+          ? GMX.IntervalTime.MIN60 : maxColumns < delta / GMX.IntervalTime.MIN15
+            ? GMX.IntervalTime.MIN15 : GMX.IntervalTime.MIN5
 
   return interval
 }

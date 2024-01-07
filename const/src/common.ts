@@ -1,7 +1,6 @@
-import { encodePacked, hexToString, keccak256, stringToHex } from "viem"
 import { ARBITRUM_ADDRESS } from "./chain/arbitrum.js"
 import { AVALANCHE_ADDRESS } from "./chain/avalanche.js"
-
+import * as viem from "viem"
 
 export enum CHAIN {
   ETH = 1,
@@ -18,8 +17,8 @@ export enum CHAIN {
   AVALANCHE = 43114
 }
 
-export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000" as const
-export const BYTES32_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000" as const
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000" as viem.Address
+export const BYTES32_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000" as viem.Hex
 
 export const BASIS_POINTS_DIVISOR = 10000n
 
@@ -45,33 +44,32 @@ export const MARGIN_FEE_BASIS_POINTS = 10n
 export const FUNDING_RATE_PRECISION = 1000000n
 
 
-export const TIME_INTERVAL_MAP = {
-  SEC: 1,
-  MIN: 60,
-  MIN5: 300,
-  MIN15: 900,
-  MIN30: 1800,
-  MIN60: 3600,
-  HR2: 7200,
-  HR4: 14400,
-  HR6: 21600,
-  HR8: 28800,
-  HR24: 86400,
-  DAY7: 604800,
-  MONTH: 2628000,
-  MONTH2: 5256000,
-  YEAR: 31536000
-} as const
+export enum IntervalTime {
+  SEC = 1,
+  MIN = 60,
+  MIN5 = 300,
+  MIN15 = 900,
+  MIN30 = 1800,
+  MIN60 = 3600,
+  HR2 = 7200,
+  HR4 = 14400,
+  HR6 = 21600,
+  HR8 = 28800,
+  HR24 = 86400,
+  DAY7 = 604800,
+  MONTH = 2628000,
+  MONTH2 = 5256000,
+  YEAR = 31536000
+}
 
-export type IntervalTime = typeof TIME_INTERVAL_MAP[keyof typeof TIME_INTERVAL_MAP]
 
 export const PRICEFEED_INTERVAL = [
-  TIME_INTERVAL_MAP.MIN5,
-  TIME_INTERVAL_MAP.MIN15,
-  TIME_INTERVAL_MAP.MIN60,
-  TIME_INTERVAL_MAP.HR6,
-  TIME_INTERVAL_MAP.HR24,
-  TIME_INTERVAL_MAP.DAY7,
+  IntervalTime.MIN5,
+  IntervalTime.MIN15,
+  IntervalTime.MIN60,
+  IntervalTime.HR6,
+  IntervalTime.HR24,
+  IntervalTime.DAY7,
 ] as const
 
 export const TRADE_CONTRACT_MAPPING = {
