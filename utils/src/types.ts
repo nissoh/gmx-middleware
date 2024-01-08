@@ -310,7 +310,7 @@ export interface PositionReferralFees {
 }
 
 
-export interface IPositionFeeUpdate extends ILogTxType<'PositionFeeUpdate'> {
+export interface IPositionFeesCollected extends ILogTxType<'PositionFeeUpdate'> {
   orderKey: viem.Hex
   positionKey: viem.Hex
   referralCode: viem.Hex
@@ -447,7 +447,7 @@ export interface IPositionLink extends ILogTypeId<'PositionLink'> {
 
   increaseList: IPositionIncrease[]
   decreaseList: IPositionDecrease[]
-  feeUpdateList: IPositionFeeUpdate[]
+  feeUpdateList: IPositionFeesCollected[]
 }
 
 

@@ -230,4 +230,4 @@ export const TEMP_MARKET_LIST: IMarketCreatedEvent[] = [
 ]
 
 export const TEMP_MARKET_TOKEN_MARKET_MAP = groupArrayByKey(TEMP_MARKET_LIST, x => x.marketToken)
-export const TEMP_INDEX_TOKEN_MARKET = groupArrayByKey(TEMP_MARKET_LIST, x => x.indexToken)
+export const TEMP_INDEX_TOKEN_MARKET_MAP = groupArrayByKey(TEMP_MARKET_LIST, x => x.indexToken)

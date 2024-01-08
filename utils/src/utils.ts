@@ -61,16 +61,18 @@ export const readableNumber = curry2((formatOptions: Intl.NumberFormatOptions, a
 
 const intlOptions: Intl.DateTimeFormatOptions = { year: '2-digit', month: 'short', day: '2-digit' }
 
-export const readableUnitAmount = readableNumber({  })
-export const readableUSD = readableNumber({  })
+export const readableUnitAmount = readableNumber({ })
+export const readableAccountingAmount = readableNumber(readableAccountingNumber)
+export const readableUSD = readableNumber({ })
 export const readablePercentage = (amount: bigint) => readableUnitAmount(formatFixed(amount, 2)) + '%'
 export const readableFactorPercentage = (amount: bigint) => readableUnitAmount(formatFixed(amount, FACTOR_PERCISION) * 100) + '%'
 export const readableLeverage = (a: bigint, b: bigint) => (b ? readableUnitAmount(formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)) : 0n) + 'x'
 export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
-export const readableTokenValueUsd = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
+export const readableTokenAmountFromUsdAmount = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
 export const readableTokenUsd = (price: bigint, amount: bigint) => readableFixedUSD30(getTokenUsd(price, amount))
 export const readableTokenAmount = (token: viem.Address, amount: bigint) => readableUnitAmount(formatFixed(amount, getTokenDescription(token).decimals))
 export const readableTokenAmountLabel = (token: viem.Address, amount: bigint) => readableTokenAmount(token, amount) + ' ' + getTokenDescription(token).symbol
+export const readableTokenPrice = (decimals: number, amount: bigint) => readableAccountingAmount(formatFixed(amount, USD_DECIMALS - decimals))
 
 const UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte']
 const BYTES_PER_KB = 1000

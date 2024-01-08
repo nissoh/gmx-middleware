@@ -5,7 +5,8 @@ import {
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION,
   MARGIN_FEE_BASIS_POINTS,
-  TOKEN_ADDRESS_DESCRIPTION_MAP, mapArrayBy
+  TOKEN_ADDRESS_DESCRIPTION_MAP,
+  mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
 import { factor, getBasisPoints } from "./mathUtils.js"

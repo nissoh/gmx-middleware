@@ -24,7 +24,6 @@ export const BASIS_POINTS_DIVISOR = 10000n
 
 export const FACTOR_PERCISION = 30
 export const USD_DECIMALS = 30
-export const USDG_DECIMALS = 18
 export const WEI_PRECISION = 10n ** BigInt(18)
 
 export const MAX_LEVERAGE_FACTOR = 100n * BASIS_POINTS_DIVISOR

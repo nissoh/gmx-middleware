@@ -1,4 +1,4 @@
-import { IPositionDecrease, IPositionFeeUpdate, IPositionIncrease, IPositionLink, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
+import { IPositionDecrease, IPositionFeesCollected, IPositionIncrease, IPositionLink, IPositionOpen, IPositionSettled, IPriceCandle, IPriceCandleSeed } from "../types.js"
 import { ISchema } from "./query.js"
 
 
@@ -81,7 +81,7 @@ const positionDecrease: ISchema<IPositionDecrease> = {
   __typename: 'PositionDecrease',
 }
 
-const positionFeeUpdate: ISchema<IPositionFeeUpdate> = {
+const positionFeeUpdate: ISchema<IPositionFeesCollected> = {
   id: 'string',
 
   orderKey: 'uint256',
@@ -128,7 +128,7 @@ const positionFeeUpdate: ISchema<IPositionFeeUpdate> = {
   blockTimestamp: 'uint256',
   transactionHash: 'string',
 
-  __typename: 'PositionFeeUpdate',
+  __typename: 'PositionFeesCollected',
 
 }
 
