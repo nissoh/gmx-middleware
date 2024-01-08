@@ -13,8 +13,8 @@ const intervals = [
   { label: 'sec', seconds: GMX.IntervalTime.SEC }
 ] as const
 
-export function timeSince(time: number) {
-  const timeDelta = Math.abs(unixTimestampNow() - time)
+export function getTimeSince(time: number, suffix = 'ago') {
+  const timeDelta = unixTimestampNow() - time
   const interval = intervals.find(i => i.seconds < timeDelta)
 
   if (!interval) {
@@ -22,7 +22,7 @@ export function timeSince(time: number) {
   }
 
   const count = Math.floor(timeDelta / interval.seconds)
-  return `${count} ${interval.label}${count !== 1 ? 's' : ''}`
+  return `${count} ${interval.label}${count !== 1 ? 's' : ''} ${suffix}`
 }
 
 export const everySec = map(unixTimestampNow, periodic(1000))

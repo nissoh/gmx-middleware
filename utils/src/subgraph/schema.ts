@@ -221,18 +221,3 @@ export const schema = {
   priceCandleSeed, priceCandle,
 }
 
-
-
-// const processSeed: IPositionSettled = {
-//   ...fillQuery(schema.positionSettled)
-// }
-
-
-// const gmxTradingSubgraph = replaySubgraphQuery(
-//   {
-//     subgraph: `https://gateway-arbitrum.network.thegraph.com/api/${import.meta.env.THE_GRAPH}/subgraphs/id/DJ4SBqiG8A8ytcsNJSuUU2gDTLFXxxPrAN8Aags84JH2`,
-//     parentStoreScope: rootStoreScope,
-//   },
-//   schema.positionSettled,
-//   processSeed
-// )

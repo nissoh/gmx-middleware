@@ -94,22 +94,16 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
 function parseResults(json: any, schema: any) {
   const entity: any = {}
   Object.entries(json).forEach(([key, value]) => {
-    const schemaField = schema[key]
+    const schemaType = schema[key]
 
-    if (typeof value === 'string') {
-      if (key === '__typename') {
-        entity[key] = value
-        return
-      }
-
-      const abiType = schemaField
-      const parseFn = getMappedValue(abiParamParseMap, abiType)
+    if (schemaType in abiParamParseMap) {
+      const parseFn = getMappedValue(abiParamParseMap, schemaType)
 
       entity[key] = parseFn(value)
     } else if(value instanceof Array) {
-      entity[key] = value.map((item, i) => parseResults(item, schemaField))
+      entity[key] = value.map((item, i) => parseResults(item, schemaType))
     } else if(value instanceof Object) {
-      entity[key] = parseResults(value, schemaField )
+      entity[key] = parseResults(value, schemaType )
     } else {
       entity[key] = value
     }

@@ -230,7 +230,7 @@ export const abiParamParseMap = {
   'int': BigInt,
   'int[]': (x: string[]) => x.map(BigInt),
   address: viem.getAddress,
-  'address[]': (x: string) => viem.getAddress(x),
+  'address[]': (arrx: string[]) => arrx.map(viem.getAddress),
   bool: Boolean,
   'bool[]': (x: boolean[]) => x.map(Boolean),
   int256: BigInt,
