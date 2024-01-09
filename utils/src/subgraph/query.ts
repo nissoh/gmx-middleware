@@ -54,6 +54,21 @@ interface IQuerySubgraph <Type extends GqlType<any>, TQuery>{
   orderDirection?: 'asc' | 'desc'
 }
 
+export const documentQuery = <Type extends GqlType<any>, TQuery>(
+  params: IQuerySubgraph<Type, TQuery>
+): string => {
+
+  const typeName = params.schema.__typename as string
+  const whereClause = parseWhereClause(params.filter)
+  const fieldStructure = parseQueryObject(params.document ? params.document : fillQuery(params.schema))
+  const graphDocumentIdentifier = `${typeName.charAt(0).toLowerCase() + typeName.slice(1)}s`
+  const changeBlockFilterParam = params.startBlock ? ` _change_block: { number_gte: ${params.startBlock} }, ` : ''
+  const orderByFilterParam = params.orderBy ? ` orderBy: ${params.orderBy}, ` : ''
+  const orderDirectionFilterParam = params.orderDirection ? ` orderDirection: ${params.orderDirection}, ` : ''
+
+  return `${graphDocumentIdentifier}(first: ${params.first || 1000}, ${orderByFilterParam} ${orderDirectionFilterParam} where: { ${changeBlockFilterParam} ${whereClause} }) { ${fieldStructure} }`
+}
+
 export const querySubgraph = <Type extends GqlType<any>, TQuery>(
   client: Client,
   params: IQuerySubgraph<Type, TQuery>
@@ -80,7 +95,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
       const list: PrettifyReturn<ISchemaQuery<Type, TQuery>>[] = response.data[graphDocumentIdentifier]
 
       if (list instanceof Array) {
-        return list.map(item => parseResults(item, params.schema))
+        return list.map(item => parseQueryResults(item, params.schema))
       }
 
       throw new Error(`No ${graphDocumentIdentifier} found in subgraph response`)
@@ -91,7 +106,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
 
 
 // recursively parse a json object to query result
-function parseResults(json: any, schema: any) {
+export function parseQueryResults(json: any, schema: any) {
   const entity: any = {}
   Object.entries(json).forEach(([key, value]) => {
     const schemaType = schema[key]
@@ -101,9 +116,9 @@ function parseResults(json: any, schema: any) {
 
       entity[key] = parseFn(value)
     } else if(value instanceof Array) {
-      entity[key] = value.map((item, i) => parseResults(item, schemaType))
+      entity[key] = value.map((item, i) => parseQueryResults(item, schemaType))
     } else if(value instanceof Object) {
-      entity[key] = parseResults(value, schemaType )
+      entity[key] = parseQueryResults(value, schemaType )
     } else {
       entity[key] = value
     }
