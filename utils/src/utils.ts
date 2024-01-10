@@ -244,7 +244,7 @@ export type TimelineTime = {
 }
 
 export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTime> {
-  interval: number
+  interval?: number
   getTime: (t: T) => number
   seed: R
   source: T[]
@@ -256,18 +256,20 @@ export interface IFillGap<T, R, RTime extends R & TimelineTime = R & TimelineTim
 
 
 
-export function createTimeline<T, R, RTime extends R & TimelineTime = R & TimelineTime>({
-  source, getTime, seed, interval,
-  seedMap,
-  gapMap = prev => prev,
-  squashMap = seedMap,
-}: IFillGap<T, R, RTime>) {
+export function createTimeline<T, R, RTime extends R & TimelineTime = R & TimelineTime>(config: IFillGap<T, R, RTime>) {
+  const {
+    source, getTime, seed,
+    seedMap,
+    gapMap = prev => prev,
+    squashMap = seedMap,
+  } = config
 
   if (source.length === 0) {
     return []
   }
 
   const sortedSource = [...source].sort((a, b) => getTime(a) - getTime(b))
+  const interval = config.interval ?? Math.floor((getTime(sortedSource[sortedSource.length - 1]) - getTime(sortedSource[0])) / sortedSource.length)
   const fstSrc = sortedSource[0]
   const seedSlot = Math.floor(getTime(fstSrc) / interval)
   const normalizedSeed = { ...seed, time: seedSlot * interval } as RTime
