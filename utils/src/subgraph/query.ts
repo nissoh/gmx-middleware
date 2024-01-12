@@ -1,4 +1,4 @@
-import { Client } from '@urql/core'
+import { Client, OperationContext } from '@urql/core'
 import { abiParamParseMap } from "../gmxUtils.js"
 import { getMappedValue } from "../utils.js"
 export { encodePacked } from 'viem'
@@ -55,7 +55,7 @@ interface IQuerySubgraph <Type extends GqlType<any>, TQuery>{
 }
 
 export const documentQuery = <Type extends GqlType<any>, TQuery>(
-  params: IQuerySubgraph<Type, TQuery>
+  params: IQuerySubgraph<Type, TQuery>,
 ): string => {
 
   const typeName = params.schema.__typename as string
@@ -71,7 +71,8 @@ export const documentQuery = <Type extends GqlType<any>, TQuery>(
 
 export const querySubgraph = <Type extends GqlType<any>, TQuery>(
   client: Client,
-  params: IQuerySubgraph<Type, TQuery>
+  params: IQuerySubgraph<Type, TQuery>,
+  context?: Partial<OperationContext>,
 ): Promise<TQuery extends unknown ? Type[] : PrettifyReturn<ISchemaQuery<Type, TQuery>>[]> => {
 
   const typeName = params.schema.__typename as string
@@ -84,7 +85,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
 
   const entry = `${graphDocumentIdentifier}(first: ${params.first || 1000}, ${orderByFilterParam} ${orderDirectionFilterParam} where: { ${changeBlockFilterParam} ${whereClause} }) { ${fieldStructure} }`
 
-  const newLogsFilter = client.query(`{ ${entry} }`, {})
+  const newLogsFilter = client.query(`{ ${entry} }`, {}, context)
     .then(response => {
       if (response.error) throw new Error(`${graphDocumentIdentifier} query error: ${response.error.message}`)
 
