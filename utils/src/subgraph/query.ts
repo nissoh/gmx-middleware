@@ -34,7 +34,7 @@ export type ISchemaQuery<TSchema, TQuery> = {
         ? TSchema[P] : never
 }
 
-export type PrettifyReturn<T> = {
+export type PrettifyT<T> = {
   [K in keyof T]: T[K];
 } & {};
 
@@ -73,7 +73,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
   client: Client,
   params: IQuerySubgraph<Type, TQuery>,
   context?: Partial<OperationContext>,
-): Promise<TQuery extends unknown ? Type[] : PrettifyReturn<ISchemaQuery<Type, TQuery>>[]> => {
+): Promise<TQuery extends unknown ? Type[] : PrettifyT<ISchemaQuery<Type, TQuery>>[]> => {
 
   const typeName = params.schema.__typename as string
   const whereClause = parseWhereClause(params.filter)
@@ -93,7 +93,7 @@ export const querySubgraph = <Type extends GqlType<any>, TQuery>(
         throw new Error(`No ${graphDocumentIdentifier} found in subgraph response`)
       }
 
-      const list: PrettifyReturn<ISchemaQuery<Type, TQuery>>[] = response.data[graphDocumentIdentifier]
+      const list: PrettifyT<ISchemaQuery<Type, TQuery>>[] = response.data[graphDocumentIdentifier]
 
       if (list instanceof Array) {
         return list.map(item => parseQueryResults(item, params.schema))

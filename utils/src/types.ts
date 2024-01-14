@@ -301,6 +301,7 @@ export interface PositionReferralFees {
   referralCode: viem.Hex
   affiliate: viem.Address
   trader: viem.Address
+
   totalRebateFactor: bigint
   traderDiscountFactor: bigint
   totalRebateAmount: bigint
@@ -324,21 +325,25 @@ export interface IPositionFeesCollected extends ILogTxType<'PositionFeeUpdate'> 
   collateralTokenPriceMin: bigint
   collateralTokenPriceMax: bigint
   tradeSizeUsd: bigint
+
   totalRebateFactor: bigint
   traderDiscountFactor: bigint
   totalRebateAmount: bigint
   traderDiscountAmount: bigint
   affiliateRewardAmount: bigint
+
   fundingFeeAmount: bigint
   claimableLongTokenAmount: bigint
   claimableShortTokenAmount: bigint
   latestFundingFeeAmountPerSize: bigint
   latestLongTokenClaimableFundingAmountPerSize: bigint
   latestShortTokenClaimableFundingAmountPerSize: bigint
+
   borrowingFeeUsd: bigint
   borrowingFeeAmount: bigint
   borrowingFeeReceiverFactor: bigint
   borrowingFeeAmountForFeeReceiver: bigint
+
   positionFeeFactor: bigint
   protocolFeeAmount: bigint
   positionFeeReceiverFactor: bigint
@@ -390,6 +395,7 @@ export interface IPositionFees {
   borrowing: PositionBorrowingFees
   ui: IPositionUiFees
   collateralTokenPrice: IPriceMinMax
+
   positionFeeFactor: bigint
   protocolFeeAmount: bigint
   positionFeeReceiverFactor: bigint
@@ -440,6 +446,41 @@ export interface IPositionInfo {
   pnlAfterPriceImpactUsd: bigint
 }
 
+export interface IOrderCreated extends ILogTypeId<'OrderCreated'> {
+  key: viem.Hex
+
+  account: viem.Address
+  receiver: viem.Address
+  callbackContract: viem.Address
+  uiFeeReceiver: viem.Address
+  market: viem.Address
+  initialCollateralToken: viem.Address
+
+  swapPath: viem.Address[]
+
+  orderType: bigint
+  decreasePositionSwapType: bigint
+  sizeDeltaUsd: bigint
+  initialCollateralDeltaAmount: bigint
+  triggerPrice: bigint
+  acceptablePrice: bigint
+  executionFee: bigint
+  callbackGasLimit: bigint
+  minOutputAmount: bigint
+  updatedAtBlock: bigint
+
+  isLong: boolean
+  shouldUnwrapNativeToken: boolean
+  isFrozen: boolean
+}
+
+
+export interface IOrderStatus extends ILogTxType<'OrderStatus'> {
+  order: IOrderCreated
+  orderType: bigint
+  statusType: bigint
+  message: string
+}
 
 export interface IPositionLink extends ILogTypeId<'PositionLink'> {
   id: string
@@ -453,6 +494,8 @@ export interface IPositionLink extends ILogTypeId<'PositionLink'> {
 
 export type IPositionIncrease =  ILogTxType<'PositionIncrease'> & IPositionAddresses & IPositionNumbers & {
   link?: IPositionLink
+  order: IOrderStatus
+  feeCollected: IPositionFeesCollected
 
   account: viem.Address
   market: viem.Address
@@ -480,6 +523,8 @@ export type IPositionIncrease =  ILogTxType<'PositionIncrease'> & IPositionAddre
 
 export type IPositionDecrease = ILogTxType<'PositionDecrease'> & IPositionAddresses & IPositionNumbers & {
   link?: IPositionLink
+  order: IOrderStatus
+  feeCollected: IPositionFeesCollected
 
   executionPrice: bigint
   indexTokenPriceMax: bigint
