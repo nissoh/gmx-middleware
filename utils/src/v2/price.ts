@@ -112,7 +112,7 @@ export function getPriceImpactForPosition(
 ) {
 
   const longInterestInUsd = marketInfo.usage.longInterestUsd
-  const shortInterestInUsd = marketInfo.usage.shortInterestInTokens
+  const shortInterestInUsd = marketInfo.usage.shortInterestUsd
     
 
   const nextLongUsd = longInterestInUsd + (isLong ? sizeDeltaUsd : 0n)

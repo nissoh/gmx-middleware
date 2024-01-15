@@ -68,9 +68,10 @@ export const readableUSD = readableNumber({ })
 export const readablePercentage = (amount: bigint) => readableUnitAmount(formatFixed(amount, 2)) + '%'
 export const readableFactorPercentage = (amount: bigint) => readableUnitAmount(formatFixed(amount, FACTOR_PERCISION) * 100) + '%'
 export const readableLeverage = (a: bigint, b: bigint) => (b ? readableUnitAmount(formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)) : 0n) + 'x'
-export const readableFixedUSD30 = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
+export const readableUsd = (ammount: bigint) => readableUSD(formatFixed(ammount, USD_DECIMALS))
+export const readablePnl = (ammount: bigint) => readableNumber({ signDisplay: "exceptZero" })(formatFixed(ammount, USD_DECIMALS))
 export const readableTokenAmountFromUsdAmount = (decimals: number, price: bigint, amount: bigint) => readableUnitAmount(formatFixed(getTokenAmount(price, amount), decimals))
-export const readableTokenUsd = (price: bigint, amount: bigint) => readableFixedUSD30(getTokenUsd(price, amount))
+export const readableTokenUsd = (price: bigint, amount: bigint) => readableUsd(getTokenUsd(price, amount))
 export const readableTokenAmount = (token: viem.Address, amount: bigint) => readableUnitAmount(formatFixed(amount, getTokenDescription(token).decimals))
 export const readableTokenAmountLabel = (token: viem.Address, amount: bigint) => readableTokenAmount(token, amount) + ' ' + getTokenDescription(token).symbol
 export const readableTokenPrice = (decimals: number, amount: bigint) => readableAccountingAmount(formatFixed(amount, USD_DECIMALS - decimals))
