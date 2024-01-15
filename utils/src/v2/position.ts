@@ -126,7 +126,7 @@ export function getMarginFee(marketInfo: IMarketInfo, forPositiveImpact: boolean
     ? marketInfo.config.positionFeeFactorForPositiveImpact
     : marketInfo.config.positionFeeFactorForNegativeImpact
   
-  return applyFactor(sizeDeltaUsd, factor)
+  return -applyFactor(sizeDeltaUsd, factor)
 }
 
 
