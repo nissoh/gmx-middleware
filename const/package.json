@@ -13,7 +13,7 @@
         "build": "bun tsc -b"
     },
     "dependencies": {
-        "viem": "^1.20.0",
-        "abitype": "^0.10.3"
+        "viem": "^1.21.4",
+        "abitype": "^1.0.0"
     }
 }
