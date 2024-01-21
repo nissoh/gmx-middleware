@@ -1,6 +1,6 @@
 import { Client, OperationContext } from '@urql/core'
 import { abiParamParseMap } from "../gmxUtils.js"
-import { getMappedValue } from "../utils.js"
+import { getMappedValue } from 'common-utils'
 export { encodePacked } from 'viem'
 
 export type GqlType<T extends string> = { __typename: T }

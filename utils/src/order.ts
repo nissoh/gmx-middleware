@@ -1,12 +1,12 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { getNativeTokenAddress } from "../gmxUtils.js"
-import { getDenominator, getSafeMappedValue } from "../utils.js"
+import { getNativeTokenAddress } from "./gmxUtils.js"
+import { ADDRESS_ZERO, getDenominator, getSafeMappedValue } from "common-utils"
 
 
 
-export function resolveAddress(chain: viem.Chain, indexToken: viem.Address): viem.Address {
-  if (indexToken === GMX.ADDRESS_ZERO) {
+export function resolveAddress<TChain extends viem.Chain>(chain: TChain, indexToken: viem.Address): viem.Address {
+  if (indexToken === ADDRESS_ZERO) {
     return getNativeTokenAddress(chain)
   }
 

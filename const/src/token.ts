@@ -1,6 +1,6 @@
+import { arbitrum, avalanche } from "viem/chains"
 import { ARBITRUM_ADDRESS } from "./chain/arbitrum.js"
 import { AVALANCHE_ADDRESS } from "./chain/avalanche.js"
-import { CHAIN } from "./common.js"
 import { TOKEN_SYMBOL } from "./symbol.js"
 import { mapArrayBy } from "./utils.js"
 
@@ -180,13 +180,13 @@ export const TOKEN_DESCRIPTION_LIST = [
 export const TOKEN_DESCRIPTION_MAP = mapArrayBy(TOKEN_DESCRIPTION_LIST, token => token.symbol, x => x)
 
 export const CHAIN_ADDRESS_MAP = {
-  [CHAIN.AVALANCHE]: AVALANCHE_ADDRESS,
-  [CHAIN.ARBITRUM]: ARBITRUM_ADDRESS,
+  [avalanche.id]: AVALANCHE_ADDRESS,
+  [arbitrum.id]: ARBITRUM_ADDRESS,
 }
 
 export const CHAIN_NATIVE_DESCRIPTION = {
-  [CHAIN.AVALANCHE]: TOKEN_DESCRIPTION_MAP.AVAX,
-  [CHAIN.ARBITRUM]: TOKEN_DESCRIPTION_MAP.ETH,
+  [avalanche.id]: TOKEN_DESCRIPTION_MAP.AVAX,
+  [arbitrum.id]: TOKEN_DESCRIPTION_MAP.ETH,
 } as const
 
 export const TOKEN_ADDRESS_DESCRIPTION_MAP = {

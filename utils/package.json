@@ -17,6 +17,7 @@
         "@aelea/dom": "^0.2.2",
         "@most/core": "^1.6.1",
         "gmx-middleware-const": "workspace:*",
+        "common-utils": "workspace:*",
         "@most/disposable": "^1.3.0",
         "@most/prelude": "^1.8.0",
         "@most/scheduler": "^1.3.0",

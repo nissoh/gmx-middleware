@@ -1,6 +1,6 @@
 import { AbiEvent } from "abitype"
+import { factor, getBasisPoints, BASIS_POINTS_DIVISOR, easeInExpo, formatFixed, getMappedValue, getPriceDelta } from "common-utils"
 import {
-  BASIS_POINTS_DIVISOR,
   CHAIN_ADDRESS_MAP,
   CHAIN_NATIVE_DESCRIPTION,
   FUNDING_RATE_PRECISION,
@@ -9,73 +9,7 @@ import {
   mapArrayBy
 } from "gmx-middleware-const"
 import * as viem from "viem"
-import { factor, getBasisPoints } from "./mathUtils.js"
 import { ILogEvent, IPositionOpen, IPositionSettled, ITokenDescription } from "./types.js"
-import { easeInExpo, formatFixed, getMappedValue, parseFixed } from "./utils.js"
-
-export function findClosest<T extends readonly number[]> (arr: T, chosen: number): T[number] {
-  return arr.reduce((a, b) => b - chosen < chosen - a ? b : a)
-}
-
-export function lst<T>(a: readonly T[]): T {
-  if (a.length === 0) throw new Error('empty array')
-  return a[a.length - 1]
-}
-
-export function div(a: bigint, b: bigint): bigint {
-  if (b === 0n) return 0n
-
-  return a * BASIS_POINTS_DIVISOR / b
-}
-
-export function formatDiv(a: bigint, b: bigint): number {
-  return formatFixed(a * BASIS_POINTS_DIVISOR / b, 4)
-}
-
-export function parseBps(a: number | string): bigint {
-  return parseFixed(a, 4)
-}
-
-export function getAdjustedDelta(size: bigint, sizeDeltaUsd: bigint, pnl: bigint) {
-  if (size === 0n) {
-    return 0n
-  }
-
-  return sizeDeltaUsd * pnl / size
-}
-
-export function getPriceDeltaPercentage(positionPrice: bigint, price: bigint) {
-  const priceDelta = price - positionPrice
-
-  return priceDelta / positionPrice
-}
-
-export function getPriceDelta(isLong: boolean, entryPrice: bigint, priceChange: bigint) {
-  return isLong ? priceChange - entryPrice : entryPrice - priceChange
-}
-
-
-
-// export function getPoolUsdWithoutPnl(
-//   marketInfo: MarketPoolValueInfo,
-//   isLong: boolean,
-//   priceType: "minPrice" | "maxPrice" | "midPrice"
-// ) {
-//   const poolAmount = isLong ? marketInfo.longTokenAmount : marketInfo.shortTokenAmount
-//   const token = isLong ? marketInfo.longToken : marketInfo.shortToken
-
-//   let price: BigNumber
-
-//   if (priceType === "minPrice") {
-//     price = token.prices?.minPrice
-//   } else if (priceType === "maxPrice") {
-//     price = token.prices?.maxPrice
-//   } else {
-//     price = getMidPrice(token.prices)
-//   }
-
-//   return convertToUsd(poolAmount, token.decimals, price)!
-// }
 
 
 export function getPnL(isLong: boolean, entryPrice: bigint, priceChange: bigint, size: bigint) {
@@ -97,15 +31,6 @@ export function getNextAveragePrice(islong: boolean, size: bigint, nextPrice: bi
   const divisor = islong ? nextSize + pnl : nextSize + -pnl
 
   return nextPrice * nextSize / divisor
-}
-
-
-export function getTokenAmount(price: bigint, amountUsd: bigint) {
-  return price ? amountUsd / price : 0n
-}
-
-export function getTokenUsd(price: bigint, tokenAmount: bigint) {
-  return tokenAmount ? tokenAmount * price : 0n
 }
 
 
@@ -237,30 +162,18 @@ export const abiParamParseMap = {
 } as const
 
 
-
-export function getShortHash(name: string, obj: any) {
-  const str = JSON.stringify(obj)
-  let hash = 0
-
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i)
-    hash |= 0 // Convert to 32bit integer
-  }
-    
-  return `${name}-${hash.toString(16)}`
+export function getPositionKey(account: viem.Address, market: viem.Address, collateralToken: viem.Address, isLong: boolean) {
+  return hashData(
+    ["address", "address", "address", "bool"],
+    [account, market, collateralToken, isLong]
+  )
 }
 
-
-export function createMovingAverageCalculator(windowValues: number[], windowSize: number, newValue: number) {
-  let sum = 0
-
-  if (windowValues.length === windowSize) {
-    sum -= windowValues.shift() || 0
-  }
-
-  windowValues.push(newValue)
-  sum += newValue
-
-  return sum / windowValues.length
+export function hashData(types: string[], values: any) {
+  const params = viem.parseAbiParameters(types)
+  const hex = viem.encodeAbiParameters(params as any, values)
+  const bytes = viem.toBytes(hex)
+  const hash = viem.keccak256(bytes)
+  return hash
 }
 

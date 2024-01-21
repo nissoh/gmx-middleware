@@ -1,17 +1,11 @@
 import { Stream } from "@most/types"
 import { Abi, ExtractAbiEvent } from "abitype"
-import { CHAIN, IntervalTime, TOKEN_SYMBOL } from "gmx-middleware-const"
-import * as viem from "viem"
+import { IntervalTime } from "common-utils"
 import * as GMX from "gmx-middleware-const"
+import { TOKEN_SYMBOL } from "gmx-middleware-const"
+import * as viem from "viem"
 
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
-export type Nullable<T> = {
-  [P in keyof T]: T[P] | null
-}
-export type NonNullableStruct<T> = {
-  [P in keyof T]: NonNullable<T[P]>
-}
 
 export type ITokenSymbol = keyof typeof TOKEN_SYMBOL
 
@@ -199,7 +193,7 @@ export interface IPriceCandleSeed extends IPriceCandleDto, ILogTypeId<'PriceCand
 
 
 export interface IChainParamApi {
-  chain: CHAIN
+  chain: number
 }
 
 
@@ -208,20 +202,8 @@ export interface IRequestTimerangeApi {
   to: number
 }
 
-export interface IRequestPagePositionApi {
-  offset: number
-  pageSize: number
-}
-
-export interface IRequestSortApi<T> {
-  selector: keyof T
-  direction: 'desc' | 'asc'
-}
 
 
-
-export type IRequestAccountTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestAccountApi
-export type IRequestPageApi = IRequestPagePositionApi & IChainParamApi & IRequestTimerangeApi
 
 
 
@@ -230,16 +212,13 @@ export type IRequestAccountApi = IChainParamApi & { account: viem.Address }
 export type IRequestPriceTimelineApi = IChainParamApi & IRequestTimerangeApi & { tokenAddress: viem.Address }
 export type IRequestAccountHistoricalDataApi = IChainParamApi & IRequestAccountApi & IRequestTimerangeApi
 export type IRequestPricefeedApi = IChainParamApi & IRequestTimerangeApi & { interval: IntervalTime, tokenAddress: viem.Address }
-export type IRequestTradeListApi = IChainParamApi & IRequestPagePositionApi & IRequestSortApi<keyof IPositionSettled>
 
 
 export interface IRequestGraphEntityApi extends IChainParamApi, IIdentifiableEntity { }
 
 
 
-export interface IResponsePageApi<T> extends IRequestPagePositionApi {
-  page: T[]
-}
+
 
 export type StreamInputArray<T extends readonly unknown[]> = {
   [P in keyof T]: Stream<T[P]>;

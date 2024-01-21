@@ -1,9 +1,7 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { getTokenUsd } from "../gmxUtils.js"
-import { abs, applyFactor, delta } from "../mathUtils.js"
-import { IMarketInfo, IMarketPrice, IOraclePrice, IPriceMinMax, IPriceOracleMap } from "../types.js"
-import { getDenominator, getMappedValue, groupArrayByKeyMap } from "../utils.js"
+import { IMarketInfo, IMarketPrice, IOraclePrice, IPriceMinMax, IPriceOracleMap } from "./types.js"
+import { abs, applyFactor, delta, getDenominator, getMappedValue, getTokenUsd, groupArrayByKeyMap } from "common-utils"
 
 
 

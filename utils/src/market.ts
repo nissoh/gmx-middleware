@@ -1,7 +1,5 @@
-import * as GMX from "gmx-middleware-const"
-import { getTokenUsd } from "../gmxUtils.js"
-import { applyFactor, factor } from "../mathUtils.js"
-import { IMarketInfo, IMarketPrice, IMarketFees, IMarketUsageInfo } from "../types.js"
+import { IntervalTime, PRECISION, applyFactor, factor, getTokenUsd } from "common-utils"
+import { IMarketFees, IMarketInfo, IMarketPrice, IMarketUsageInfo } from "./types.js"
 
 export function getPoolUsd(
   marketInfo: IMarketInfo,
@@ -52,10 +50,10 @@ export function getMaxReservedUsd(marketInfo: IMarketInfo, marketPrice: IMarketP
   const reserveFactor = isLong ? marketInfo.config.reserveFactorLong : marketInfo.config.reserveFactorShort
 
   if (openInterestReserveFactor < reserveFactor) {
-    return poolUsd * openInterestReserveFactor / GMX.PRECISION
+    return poolUsd * openInterestReserveFactor / PRECISION
   }
 
-  return poolUsd * reserveFactor / GMX.PRECISION
+  return poolUsd * reserveFactor / PRECISION
 }
 
 // export function getReservedUsd(marketInfo: MarketInfo, isLong: boolean) {
@@ -118,7 +116,7 @@ export function getAvailableUsdLiquidityForPosition(marketInfo: IMarketInfo, mar
 }
 
 
-export function getBorrowingFactorPerInterval(fees: IMarketFees, isLong: boolean, interval: GMX.IntervalTime) {
+export function getBorrowingFactorPerInterval(fees: IMarketFees, isLong: boolean, interval: IntervalTime) {
   const factorPerSecond = isLong
     ? fees.borrowingFactorPerSecondForLongs
     : fees.borrowingFactorPerSecondForShorts
@@ -126,14 +124,14 @@ export function getBorrowingFactorPerInterval(fees: IMarketFees, isLong: boolean
   return factorPerSecond * BigInt(interval)
 }
 
-export function getFundingFactorPerInterval(usage: IMarketUsageInfo, fees: IMarketFees, interval: GMX.IntervalTime) {
+export function getFundingFactorPerInterval(usage: IMarketUsageInfo, fees: IMarketFees, interval: IntervalTime) {
   const ratio = factor(usage.longInterestUsd, usage.shortInterestUsd)
 
   return applyFactor(ratio, fees.nextFunding.fundingFactorPerSecond) * BigInt(interval)
 }
 
 
-export function getFundingFactorPerInterval2(marketPrice: IMarketPrice, usage: IMarketUsageInfo, fees: IMarketFees, isLong: boolean, interval: GMX.IntervalTime) {
+export function getFundingFactorPerInterval2(marketPrice: IMarketPrice, usage: IMarketUsageInfo, fees: IMarketFees, isLong: boolean, interval: IntervalTime) {
   const longsPayShorts = fees.nextFunding.longsPayShorts
   const isLargerSide = isLong ? longsPayShorts : !longsPayShorts
 

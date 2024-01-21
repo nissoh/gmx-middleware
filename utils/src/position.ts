@@ -1,11 +1,9 @@
 import * as GMX from "gmx-middleware-const"
 import * as viem from "viem"
-import { getTokenUsd } from "../gmxUtils.js"
-import { applyFactor } from "../mathUtils.js"
-import { getDenominator, getMappedValue, getTokenDenominator } from "../utils.js"
+import { applyFactor, BASIS_POINTS_DIVISOR, getDenominator, getMappedValue, getTokenDenominator, getTokenUsd, ITokenDescription, PRECISION, WEI_PRECISION } from "common-utils"
 import { getPriceImpactForPosition } from "./price.js"
 import { getPoolUsdWithoutPnl } from "./market.js"
-import { IMarketPrice, IMarketInfo, IPositionFees, IPositionNumbers, PositionReferralFees } from "../types.js"
+import { IMarketPrice, IMarketInfo, IPositionFees, IPositionNumbers, PositionReferralFees } from "./types.js"
 
 
 
@@ -41,7 +39,7 @@ export function getCappedPositionPnlUsd(
   const cappedPnl = getCappedPoolPnl(marketInfo, poolUsd, isLong)
 
   if (cappedPnl !== poolPnl && cappedPnl > 0n && poolPnl > 0n) {
-    return totalPnl * (cappedPnl / GMX.WEI_PRECISION) / (poolPnl / GMX.WEI_PRECISION)
+    return totalPnl * (cappedPnl / WEI_PRECISION) / (poolPnl / WEI_PRECISION)
   }
 
   return totalPnl
@@ -84,7 +82,7 @@ export function getFundingAmount(
 
   const fundingDiffFactor = latestFundingAmountPerSize - positionFundingAmountPerSize
 
-  const denominator = GMX.PRECISION * FLOAT_PRECISION_SQRT
+  const denominator = PRECISION * FLOAT_PRECISION_SQRT
   return positionSizeInUsd * fundingDiffFactor / denominator
 }
 
@@ -111,10 +109,10 @@ export function getPositionFundingFees(positionFees: IPositionFees, position: IP
 }
 
 
-export function getEntryPrice(sizeInUsd: bigint, sizeInTokens: bigint, indexToken: viem.Address) {
+export function getEntryPrice(sizeInUsd: bigint, sizeInTokens: bigint, tokenDesc: ITokenDescription) {
   if (sizeInTokens <= 0n) return 0n
 
-  return sizeInUsd / sizeInTokens * getTokenDenominator(indexToken)
+  return sizeInUsd / sizeInTokens * getTokenDenominator(tokenDesc)
 }
 
 
@@ -263,7 +261,7 @@ export function getLeverageFactor(
   const totalPendingFeesUsd = pendingFundingFeesUsd + pendingBorrowingFeesUsd
   const remainingCollateralUsd = collateralUsd + pnl - totalPendingFeesUsd
 
-  return sizeInUsd * GMX.BASIS_POINTS_DIVISOR / remainingCollateralUsd
+  return sizeInUsd * BASIS_POINTS_DIVISOR / remainingCollateralUsd
 }
 
 
