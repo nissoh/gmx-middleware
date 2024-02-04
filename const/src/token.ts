@@ -7,13 +7,6 @@ import { mapArrayBy } from "./utils.js"
 
 export const TOKEN_DESCRIPTION_LIST = [
   {
-    name: "PUPPET",
-    symbol: TOKEN_SYMBOL.GLP,
-    decimals: 18,
-    denominator: 10n ** 18n,
-    isUsd: false,
-  },
-  {
     name: "GLP",
     symbol: TOKEN_SYMBOL.GLP,
     decimals: 18,
