@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "common-utils": "workspace:*",
-        "viem": "^2.7.1",
+        "viem": "^2.7.9",
         "abitype": "^1.0.0"
     }
 }
